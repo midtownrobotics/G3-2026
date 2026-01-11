@@ -3,6 +3,10 @@ plugins {
     id "edu.wpi.first.GradleRIO" version "2026.1.1"
 }
 
+repositories {
+  mavenCentral()
+}
+
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
@@ -73,6 +77,9 @@ dependencies {
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    compileOnly 'org.projectlombok:lombok:1.18.42' 
+    annotationProcessor 'org.projectlombok:lombok:1.18.42'
 }
 
 test {
@@ -105,3 +112,4 @@ wpi.java.configureTestTasks(test)
 tasks.withType(JavaCompile) {
     options.compilerArgs.add '-XDstringConcat=inline'
 }
+
