@@ -14,10 +14,12 @@ import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.CANBus;
 
+import choreo.trajectory.SwerveSample;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -36,6 +38,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -81,6 +84,10 @@ public class Drive extends SubsystemBase {
   private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(kinematics, rawGyroRotation,
       lastModulePositions, new Pose2d());
 
+  private final PIDController xController = new PIDController(10.0, 0.0, 0.0);
+  private final PIDController yController = new PIDController(10.0, 0.0, 0.0);
+  private final PIDController headingController = new PIDController(7.5, 0.0, 0.0);
+
   public Drive(GyroIO gyroIO, ModuleIO flModuleIO, ModuleIO frModuleIO, ModuleIO blModuleIO, ModuleIO brModuleIO) {
     poseEstimator.addVisionMeasurement(getPose(), DRIVE_BASE_RADIUS);
     this.gyroIO = gyroIO;
@@ -101,6 +108,8 @@ public class Drive extends SubsystemBase {
             (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
         new SysIdRoutine.Mechanism(
             (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
+
+    headingController.enableContinuousInput(-Math.PI, Math.PI);
   }
 
   @Override
@@ -160,6 +169,24 @@ public class Drive extends SubsystemBase {
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
 
     LoggerUtil.recordLatencyOutput(getName(), timestamp, Timer.getFPGATimestamp());
+  }
+
+  public void followTrajectory(SwerveSample sample) {
+    Pose2d pose = getPose();
+
+    ChassisSpeeds speeds = new ChassisSpeeds(
+        sample.vx + xController.calculate(pose.getX(), sample.x),
+        sample.vy + yController.calculate(pose.getY(), sample.y),
+        sample.omega + headingController.calculate(pose.getRotation().getRadians(), sample.heading));
+
+    runVelocityFieldRleative(speeds);
+  }
+
+  public void runVelocityFieldRleative(ChassisSpeeds speeds) {
+    runVelocity(
+        ChassisSpeeds.fromFieldRelativeSpeeds(speeds,
+            DriverStation.getAlliance().get() == Alliance.Red ? getRotation().plus(new Rotation2d(Math.PI))
+                : getRotation()));
   }
 
   public void runVelocity(ChassisSpeeds speeds) {

@@ -4,21 +4,24 @@
 
 package frc.robot;
 
+import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 
+import choreo.auto.AutoChooser;
 import edu.wpi.first.wpilibj.Threads;
-import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.commands.Autos;
+import frc.robot.subsystems.drivetrain.Drive;
 
-public class Robot extends TimedRobot {
-  private Command m_autonomousCommand;
-
-  private final RobotContainer m_robotContainer;
+public class Robot extends LoggedRobot {
+  private final AutoChooser m_autoChooser;
+  private final Drive m_drive;
 
   public Robot() {
+    m_drive = new Drive(null, null, null, null, null);
 
-    m_robotContainer = new RobotContainer();
+    Autos autos = new Autos(m_drive);
+    m_autoChooser = autos.createAutoChooser();
     Logger.start();
   }
 
@@ -41,11 +44,6 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
-
-    if (m_autonomousCommand != null) {
-      CommandScheduler.getInstance().schedule(m_autonomousCommand);
-    }
   }
 
   @Override
@@ -58,11 +56,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.cancel();
-    }
 
-    m_robotContainer.teleopInit();
   }
 
   @Override
