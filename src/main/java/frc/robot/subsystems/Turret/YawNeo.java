@@ -1,10 +1,11 @@
 package frc.robot.subsystems.Turret;
 
-import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
@@ -13,9 +14,13 @@ import static edu.wpi.first.units.Units.Seconds;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearAcceleration;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import yams.mechanisms.config.FlyWheelConfig;
@@ -29,7 +34,7 @@ import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.local.SparkWrapper;
 
-public class Turret extends SubsystemBase {
+public class YawNeo extends SubsystemBase {
   private final SparkMax yawMotor;
   private final SparkMax pitchMotor;
   private final SparkMax shootMotor;
@@ -40,7 +45,7 @@ public class Turret extends SubsystemBase {
   private final DutyCycleEncoder pitchMotorEncoder;
   private boolean isTargetingHub;
 
-  public Turret(int yawMotorID, int pitchMotorID, int yawMotorEncoderID, int pitchMotorEncoderID, int shootMotorID) {
+  public YawNeo(int yawMotorID, int pitchMotorID, int yawMotorEncoderID, int pitchMotorEncoderID, int shootMotorID) {
     yawMotor = new SparkMax(yawMotorID, MotorType.kBrushless);
     pitchMotor = new SparkMax(pitchMotorID, MotorType.kBrushless);
     shootMotor = new SparkMax(shootMotorID, MotorType.kBrushless);
@@ -49,36 +54,36 @@ public class Turret extends SubsystemBase {
 
     SmartMotorControllerConfig shootMotorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
-        .withClosedLoopController(TurretConstants.shooterP, TurretConstants.shooterI, TurretConstants.shooterD,
+        .withClosedLoopController(TurretConstants.SHOOTER_P, TurretConstants.SHOOTER_I, TurretConstants.SHOOTER_D,
             RPM.of(600), DegreesPerSecondPerSecond.of(60))
         .withIdleMode(MotorMode.COAST)
         /*.withGearing() */
         .withTelemetry("Flywheel Motor", TelemetryVerbosity.HIGH)
-        .withStatorCurrentLimit(Amps.of(TurretConstants.motorCurrentLimit))
-        .withClosedLoopRampRate(Seconds.of(TurretConstants.shooterPIDRampRate))
-        .withOpenLoopRampRate(Seconds.of(TurretConstants.shooterPIDRampRate));
+        .withStatorCurrentLimit(TurretConstants.MOTOR_CURRENT_LIMIT)
+        .withClosedLoopRampRate(Seconds.of(TurretConstants.SHOOTER_RAMP_RATE))
+        .withOpenLoopRampRate(Seconds.of(TurretConstants.SHOOTER_RAMP_RATE));
 
     SmartMotorControllerConfig yawMotorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
-        .withClosedLoopController(TurretConstants.yawP, TurretConstants.yawI, TurretConstants.yawD,
+        .withClosedLoopController(TurretConstants.YAW_P, TurretConstants.YAW_I, TurretConstants.YAW_D,
             DegreesPerSecond.of(60), DegreesPerSecondPerSecond.of(30))
         /*.withGearing() */
         .withIdleMode(MotorMode.BRAKE)
         .withTelemetry("Yaw Motor", TelemetryVerbosity.HIGH)
-        .withStatorCurrentLimit(Amps.of(TurretConstants.motorCurrentLimit))
-        .withClosedLoopRampRate(Seconds.of(TurretConstants.yawPIDRampRate))
-        .withOpenLoopRampRate(Seconds.of(TurretConstants.yawPIDRampRate));
+        .withStatorCurrentLimit(TurretConstants.MOTOR_CURRENT_LIMIT)
+        .withClosedLoopRampRate(Seconds.of(TurretConstants.YAW_PID_RAMP_RATE))
+        .withOpenLoopRampRate(Seconds.of(TurretConstants.YAW_PID_RAMP_RATE));
 
     SmartMotorControllerConfig pitchMotorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
-        .withClosedLoopController(TurretConstants.pitchP, TurretConstants.pitchI, TurretConstants.pitchD,
+        .withClosedLoopController(TurretConstants.PITCH_P, TurretConstants.PITCH_I, TurretConstants.PITCH_D,
             DegreesPerSecond.of(60), DegreesPerSecondPerSecond.of(30))
         /*.withGearing() */
         .withIdleMode(MotorMode.BRAKE)
         .withTelemetry("Pitch Motor", TelemetryVerbosity.HIGH)
-        .withStatorCurrentLimit(Amps.of(TurretConstants.motorCurrentLimit))
-        .withClosedLoopRampRate(Seconds.of(TurretConstants.pitchPIDRampRate))
-        .withOpenLoopRampRate(Seconds.of(TurretConstants.pitchPIDRampRate));
+        .withStatorCurrentLimit(TurretConstants.MOTOR_CURRENT_LIMIT)
+        .withClosedLoopRampRate(Seconds.of(TurretConstants.PITCH_PID_RAMP_RATE))
+        .withOpenLoopRampRate(Seconds.of(TurretConstants.PITCH_PID_RAMP_RATE));
 
     // Assumed pitch and yaw motors are NEOs
     SmartMotorController yawMotorController = new SparkWrapper(yawMotor, DCMotor.getNEO(1), yawMotorConfig);
@@ -87,20 +92,20 @@ public class Turret extends SubsystemBase {
     SmartMotorController shooterMotorController = new SparkWrapper(shootMotor, DCMotor.getNEO(1), shootMotorConfig);
 
     FlyWheelConfig shooterFlyWheelConfig = new FlyWheelConfig(shooterMotorController)
-        .withDiameter(Meters.of(TurretConstants.shooterFlyWheelDiameter))
+        .withDiameter(Meters.of(TurretConstants.SHOOTER_FLYWHEEL_DIAMETER))
         .withTelemetry("Shooter Mechanism", TelemetryVerbosity.HIGH)
-        .withMass(Pounds.of(TurretConstants.shooterMass));
+        .withMass(Pounds.of(TurretConstants.SOOTER_MASS));
 
     PivotConfig yawMotorPivotConfig = new PivotConfig(yawMotorController)
         .withStartingPosition(getYawAngle())
         .withWrapping(Degrees.of(0), Degrees.of(360))
-        .withHardLimit(Degrees.of(0), TurretConstants.yawPivotHardLimit)
+        .withHardLimit(Degrees.of(0), TurretConstants.YAW_PIVOT_HARD_LIMIT)
         .withTelemetry("Yaw Pivot", TelemetryVerbosity.HIGH)
     /* .withMOI() */;
 
     PivotConfig pitchMotorPivotConfig = new PivotConfig(pitchMotorController)
         .withStartingPosition(getPitchAngle())
-        .withHardLimit(Degrees.of(0), TurretConstants.pitchPivotHardLimit)
+        .withHardLimit(Degrees.of(0), TurretConstants.PITCH_PIVOT_HARD_LIMIT)
         .withTelemetry("Pitch Pivot", TelemetryVerbosity.HIGH)
     /* .withMOI() */;
 
@@ -109,8 +114,9 @@ public class Turret extends SubsystemBase {
     shooterMech = new FlyWheel(shooterFlyWheelConfig);
   }
 
-  private double getMuzzleVelocity(AngularVelocity speed, Double wheelDiameter) {
-    return TurretConstants.shooterVelocityLoss * ((speed.in(RPM) * Math.PI * wheelDiameter) / 60);
+  // Temporary method until we can empirically find
+  private LinearVelocity getMuzzleVelocity(AngularVelocity speed, Double wheelDiameter) {
+    return MetersPerSecond.of(TurretConstants.SHOOTER_VELOCITY_LOSS * ((speed.in(RPM) * Math.PI * wheelDiameter) / 60));
   }
 
   public void targetHub(Boolean target) {
@@ -133,22 +139,26 @@ public class Turret extends SubsystemBase {
     return Radians.of(Math.atan2(leftMeters, forwardMeters));
   }
 
-  public Angle pitchFromCoords(double leftMeters, double forwardMeters, double upMeters, double launchVelocity) {
-    double gravity = 9.80665;
-    double v2 = launchVelocity * launchVelocity;
-    double horizontalDistance = Math.hypot(forwardMeters, leftMeters);
+  public Angle pitchFromCoords(Translation3d position, LinearVelocity launchVelocity) {
+    LinearAcceleration gravity = MetersPerSecondPerSecond.of(9.80665);
+    double v2 = launchVelocity.in(MetersPerSecond) * launchVelocity.in(MetersPerSecond);
+    Distance horizontalDistance = Meters.ofBaseUnits(
+        Math.hypot(position.getMeasureX().baseUnitMagnitude(), position.getMeasureY().times(-1).baseUnitMagnitude()));
 
-    if (horizontalDistance < 1e-6) {
+    if (horizontalDistance.lt(Meters.of(1e-6))) {
       return null; // invalid shot
     }
 
-    double discriminant = v2 * v2 - gravity * (gravity * horizontalDistance * horizontalDistance + 2 * upMeters * v2);
+    double discriminant = v2 * v2 - gravity.baseUnitMagnitude()
+        * (gravity.baseUnitMagnitude() * horizontalDistance.baseUnitMagnitude() * horizontalDistance.baseUnitMagnitude()
+            + 2 * position.getMeasureZ().baseUnitMagnitude() * v2);
 
     if (discriminant < 0) {
       return null; // unreachable at this velocity
     }
 
-    return Radians.of(Math.atan2((v2 + Math.sqrt(discriminant)), (gravity * horizontalDistance)));
+    return Radians.of(Math.atan2((v2 + Math.sqrt(discriminant)),
+        (gravity.baseUnitMagnitude() * horizontalDistance.baseUnitMagnitude())));
   }
 
   public AngularVelocity getShooterSpeed() {
@@ -164,12 +174,12 @@ public class Turret extends SubsystemBase {
     pitchPivot.setAngle(pitch);
   }
 
-  public void aimAtTarget(double leftMeters, double forwardMeters, double upMeters) {
-    double muzzleVelocity = getMuzzleVelocity(getShooterSpeed(), TurretConstants.shooterFlyWheelDiameter);
-    Angle pitch = pitchFromCoords(leftMeters, forwardMeters, upMeters, muzzleVelocity);
+  public void aimAtTarget(Translation3d position) {
+    LinearVelocity muzzleVelocity = getMuzzleVelocity(getShooterSpeed(), TurretConstants.SHOOTER_VELOCITY_LOSS);
+    Angle pitch = pitchFromCoords(position, muzzleVelocity);
     if (pitch == null)
       return;
-    Angle yaw = yawFromCoords(leftMeters, forwardMeters);
+    Angle yaw = yawFromCoords(-position.getY(), position.getX());
 
     setTurretAngle(yaw, pitch);
 
