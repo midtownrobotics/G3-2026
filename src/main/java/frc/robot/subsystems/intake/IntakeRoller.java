@@ -1,11 +1,10 @@
 package frc.robot.subsystems.intake;
 
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
 
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 
 import edu.wpi.first.math.system.plant.DCMotor;
