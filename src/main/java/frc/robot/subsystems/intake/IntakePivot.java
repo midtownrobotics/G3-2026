@@ -3,7 +3,7 @@ package frc.robot.subsystems.intake;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
-import static edu.wpi.first.units.Units.Feet;
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Pounds;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -47,7 +47,7 @@ public class IntakePivot extends SubsystemBase {
     ArmConfig armCfg = new ArmConfig(pivotMotor)
         .withSoftLimits(Degrees.of(-20), Degrees.of(150))
         .withStartingPosition(Degrees.of(0))
-        .withLength(Feet.of(1.5))
+        .withLength(Inches.of(30.5))
         .withMass(Pounds.of(4.0))
         .withTelemetry("PivotArm", TelemetryVerbosity.HIGH);
 
