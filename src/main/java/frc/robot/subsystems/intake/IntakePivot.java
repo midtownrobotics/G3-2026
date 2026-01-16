@@ -28,7 +28,6 @@ import yams.motorcontrollers.local.SparkWrapper;
 @Logged(strategy = Strategy.OPT_IN)
 
 public class IntakePivot extends SubsystemBase {
-
   private final SmartMotorController pivotMotor;
   private final Arm pivotArm;
 
@@ -68,5 +67,4 @@ public class IntakePivot extends SubsystemBase {
   public Command setAngleCommand(Angle angle) {
     return pivotArm.setAngle(angle);
   }
-
 }

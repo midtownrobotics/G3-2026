@@ -23,20 +23,19 @@ import yams.motorcontrollers.local.SparkWrapper;
 
 @Logged(strategy = Strategy.OPT_IN)
 public class IntakeRoller extends SubsystemBase {
-  private final SmartMotorController rollerMotor;
+  private final SmartMotorController m_rollerMotor;
   private final FlyWheel m_roller;
 
   public IntakeRoller() {
-
     SmartMotorControllerConfig rollerMotorCfg = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.OPEN_LOOP)
         .withIdleMode(MotorMode.COAST)
         .withTelemetry("RollerMotor", TelemetryVerbosity.HIGH);
 
     SparkMax rollerSpark = new SparkMax(5, MotorType.kBrushless);
-    rollerMotor = new SparkWrapper(rollerSpark, DCMotor.getNEO(1), rollerMotorCfg);
+    m_rollerMotor = new SparkWrapper(rollerSpark, DCMotor.getNEO(1), rollerMotorCfg);
 
-    FlyWheelConfig rollerConfig = new FlyWheelConfig(rollerMotor)
+    FlyWheelConfig rollerConfig = new FlyWheelConfig(m_rollerMotor)
         .withMass(Pounds.of(0.5))
         .withUpperSoftLimit(RPM.of(6000))
         .withLowerSoftLimit(RPM.of(-6000))
@@ -44,7 +43,6 @@ public class IntakeRoller extends SubsystemBase {
         .withTelemetry("IntakeRoller", TelemetryVerbosity.HIGH);
 
     m_roller = new FlyWheel(rollerConfig);
-
   }
 
   @Override
@@ -60,5 +58,4 @@ public class IntakeRoller extends SubsystemBase {
   public Command setSpeedCommand(double dutyCycle) {
     return m_roller.set(dutyCycle);
   }
-
 }
