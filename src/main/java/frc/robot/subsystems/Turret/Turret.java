@@ -1,7 +1,6 @@
 package frc.robot.subsystems.Turret;
 
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
@@ -34,7 +33,7 @@ public class Turret extends SubsystemBase {
     SmartMotorControllerConfig yawMotorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
         .withClosedLoopController(TurretConstants.YAW_P, TurretConstants.YAW_I, TurretConstants.YAW_D,
-            DegreesPerSecond.of(60), DegreesPerSecondPerSecond.of(30))
+            TurretConstants.YAW_MOTOR_MAX_ANGULAR_VELOCITY, DegreesPerSecondPerSecond.of(30))
         .withGearing(TurretConstants.YAW_GEAR_REDUCTION)
         .withIdleMode(MotorMode.BRAKE)
         .withTelemetry("Yaw Motor", TelemetryVerbosity.HIGH)

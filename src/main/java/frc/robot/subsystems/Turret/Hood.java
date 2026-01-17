@@ -1,7 +1,6 @@
 package frc.robot.subsystems.Turret;
 
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
@@ -34,7 +33,7 @@ public class Hood extends SubsystemBase {
     SmartMotorControllerConfig pitchMotorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
         .withClosedLoopController(TurretConstants.PITCH_P, TurretConstants.PITCH_I, TurretConstants.PITCH_D,
-            DegreesPerSecond.of(60), DegreesPerSecondPerSecond.of(30))
+            TurretConstants.PITCH_MOTOR_MAX_ANGULAR_VELOCITY, DegreesPerSecondPerSecond.of(30))
         .withGearing(TurretConstants.PITCH_GEAR_REDUCTION)
         .withIdleMode(MotorMode.BRAKE)
         .withTelemetry("Pitch Motor", TelemetryVerbosity.HIGH)

@@ -4,8 +4,10 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Pounds;
+import static edu.wpi.first.units.Units.RPM;
 
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Mass;
@@ -37,9 +39,13 @@ public class TurretConstants {
   final static Mass YAW_PIVOT_MASS = Pounds.of(0);
   final static Distance PITCH_PIVOT_DIAMETER = Inches.of(0);
   final static Distance YAW_PIVOT_DIAMETER = Inches.of(0);
+  final static AngularVelocity YAW_MOTOR_MAX_ANGULAR_VELOCITY = RPM.of(20);
+  final static AngularVelocity PITCH_MOTOR_MAX_ANGULAR_VELOCITY = RPM.of(20);
+
   // Flywheel config
   final static Distance SHOOTER_FLYWHEEL_DIAMETER = Inches.of(4);
   final static Mass SHOOTER_MASS = Pounds.of(0.5);
   final static double SHOOTER_VELOCITY_LOSS = 0.5; //Remove once muzzle velocity found empirically
   final static double SHOOTER_GEAR_REDUCTION = 0;
+  final static AngularVelocity SHOOTER_MAX_ANGULAR_VELOCITY = RPM.of(5000);
 }
