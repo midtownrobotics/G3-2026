@@ -12,8 +12,8 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import yams.mechanisms.config.PivotConfig;
-import yams.mechanisms.positional.Pivot;
+import yams.mechanisms.config.ArmConfig;
+import yams.mechanisms.positional.Arm;
 import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
@@ -23,7 +23,7 @@ import yams.motorcontrollers.local.SparkWrapper;
 
 public class Hood extends SubsystemBase {
   private final SparkMax pitchMotor;
-  private final Pivot pitchPivot;
+  private final Arm pitchArm;
   private final DutyCycleEncoder pitchMotorEncoder; //Use if angle getter sucks
 
   public Hood(int pitchMotorID, int pitchMotorEncoderID) {
@@ -44,21 +44,20 @@ public class Hood extends SubsystemBase {
     // Assumed pitch motor is NEO
     SmartMotorController pitchMotorController = new SparkWrapper(pitchMotor, DCMotor.getNEO(1), pitchMotorConfig);
 
-    PivotConfig pitchMotorPivotConfig = new PivotConfig(pitchMotorController)
+    ArmConfig pitchMotorArmConfig = new ArmConfig(pitchMotorController)
         .withStartingPosition(getPitchAngle())
         .withHardLimit(Degrees.of(0), TurretConstants.PITCH_PIVOT_HARD_LIMIT)
-        .withTelemetry("Pitch Pivot", TelemetryVerbosity.HIGH)
-        .withMOI(TurretConstants.PITCH_PIVOT_DIAMETER, TurretConstants.PITCH_PIVOT_MASS);
+        .withTelemetry("Pitch Arm", TelemetryVerbosity.HIGH);
 
-    pitchPivot = new Pivot(pitchMotorPivotConfig);
+    pitchArm = new Arm(pitchMotorArmConfig);
   }
 
   public Angle getPitchAngle() {
-    return pitchPivot.getAngle();
+    return pitchArm.getAngle();
   }
 
   public Command setPitchAngleCommand(Angle angle) {
-    return pitchPivot.setAngle(angle);
+    return pitchArm.setAngle(angle);
   }
 
   public void periodic() {
