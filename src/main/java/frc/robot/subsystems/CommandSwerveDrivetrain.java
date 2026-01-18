@@ -225,6 +225,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     return run(() -> this.setControl(request.get()));
   }
 
+  @Logged
+  public Pose2d getPose() {
+    return getState().Pose;
+  }
+
   /**
    * Follows the given field-centric path sample with PID.
    *
