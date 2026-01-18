@@ -26,8 +26,8 @@ public class RobotState {
   public Command joyStickDrive() {
     return Commands.run(() -> {
       ChassisSpeeds speeds = new ChassisSpeeds(
-          m_controls.getDriveLeft() * Constants.LINEAR_MAX_SPEED.in(MetersPerSecond) * Constants.SPEED_MULTIPLIER,
           m_controls.getDriveForward() * Constants.LINEAR_MAX_SPEED.in(MetersPerSecond) * Constants.SPEED_MULTIPLIER,
+          m_controls.getDriveLeft() * Constants.LINEAR_MAX_SPEED.in(MetersPerSecond) * Constants.SPEED_MULTIPLIER,
           Math.copySign(m_controls.getDriveRotation() * m_controls.getDriveRotation(), m_controls.getDriveRotation())
               * Constants.SPEED_MULTIPLIER);
 
