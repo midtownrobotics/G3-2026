@@ -33,8 +33,8 @@ public class RobotState {
   }
 
   public void bindings() {
-    m_intakePivot.setDefaultCommand(m_intakePivot.setAngleCommand(IntakeGoal.STOW.angle));
-    m_controls.intake().whileTrue(m_intakePivot.setAngleCommand(IntakeGoal.INTAKING.angle));
+    m_controls.intake().whileTrue(m_intakePivot.setAngleCommand(IntakeGoal.INTAKING.angle))
+        .whileFalse(m_intakePivot.setAngleCommand(IntakeGoal.STOW.angle));
   }
 
   public Command joyStickDrive() {
