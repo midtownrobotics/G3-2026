@@ -7,14 +7,15 @@ import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.controls.XBoxControls;
+import frc.robot.controls.Controls;
+import frc.robot.controls.XboxControls;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 @Logged
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
-  public final XBoxControls m_controls;
+  public final Controls m_controls;
   public final CommandSwerveDrivetrain m_drive;
   public final RobotState m_state;
 
@@ -22,9 +23,8 @@ public class Robot extends TimedRobot {
     DataLogManager.start();
     Epilogue.bind(this);
 
-    m_controls = new XBoxControls(0);
-    m_drive = new CommandSwerveDrivetrain(TunerConstants.DrivetrainConstants, TunerConstants.BackLeft,
-        TunerConstants.BackRight, TunerConstants.FrontLeft, TunerConstants.FrontRight);
+    m_controls = new XboxControls(0);
+    m_drive = TunerConstants.createDrivetrain();
 
     m_state = new RobotState(m_controls, m_drive);
 

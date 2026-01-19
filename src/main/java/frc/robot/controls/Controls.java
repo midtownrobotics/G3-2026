@@ -4,7 +4,7 @@ import edu.wpi.first.epilogue.Logged;
 
 @Logged
 public interface Controls {
-  public static double DRIVER_JOYSTICK_THRESHOLD = 0.1;
+  public static double kDriverJoystickThreshold = 0.1;
 
   public double getDriveForward();
 
