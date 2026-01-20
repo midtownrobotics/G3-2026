@@ -3,19 +3,31 @@ package frc.robot;
 
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
-import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.controls.Controls;
+import frc.robot.controls.XboxControls;
+import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 
-@Logged(strategy = Strategy.OPT_IN)
+@Logged
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
+  public final Controls m_controls;
+  public final CommandSwerveDrivetrain m_drive;
+  public final RobotState m_state;
 
   public Robot() {
     DataLogManager.start();
     Epilogue.bind(this);
+
+    m_controls = new XboxControls(0);
+    m_drive = TunerConstants.createDrivetrain();
+
+    m_state = new RobotState(m_controls, m_drive);
+
   }
 
   @Override
