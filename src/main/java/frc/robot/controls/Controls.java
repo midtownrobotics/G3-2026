@@ -1,6 +1,7 @@
 package frc.robot.controls;
 
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 @Logged
 public interface Controls {
@@ -11,4 +12,12 @@ public interface Controls {
   public double getDriveLeft();
 
   public double getDriveRotation();
+
+  public Trigger intake();
+
+  public Trigger shoot();
+
+  public Trigger autoIntake();
+
+  public Trigger switchView();
 }
