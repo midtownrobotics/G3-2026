@@ -23,11 +23,11 @@ import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 @Logged(strategy = Strategy.OPT_IN)
-public class feeder extends SubsystemBase {
+public class Feeder extends SubsystemBase {
   private final SmartMotorController m_feederMotor;
   private final FlyWheel m_feeder;
 
-  public feeder() {
+  public Feeder() {
     SmartMotorControllerConfig beltMotorCfg = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.OPEN_LOOP)
         .withIdleMode(MotorMode.COAST)
@@ -45,7 +45,7 @@ public class feeder extends SubsystemBase {
         .withUpperSoftLimit(RPM.of(6000))
         .withLowerSoftLimit(RPM.of(-6000))
         .withDiameter(Inches.of(1.5))
-        .withTelemetry("TurretFeeder", TelemetryVerbosity.HIGH);
+        .withTelemetry("Feeder", TelemetryVerbosity.HIGH);
 
     m_feeder = new FlyWheel(beltConfig);
   }

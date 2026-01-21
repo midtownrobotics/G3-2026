@@ -29,7 +29,7 @@ public class IntakeRoller extends SubsystemBase {
     SmartMotorControllerConfig rollerMotorCfg = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.OPEN_LOOP)
         .withIdleMode(MotorMode.COAST)
-        .withTelemetry("RollerMotor", TelemetryVerbosity.HIGH);
+        .withTelemetry("IntakeRollerMotor", TelemetryVerbosity.HIGH);
 
     TalonFX rollerTalonFX = new TalonFX(2);
     m_rollerMotor = new TalonFXWrapper(rollerTalonFX, DCMotor.getKrakenX60(1), rollerMotorCfg);
