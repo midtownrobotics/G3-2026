@@ -33,7 +33,7 @@ public class IntakeRoller extends SubsystemBase {
         .withTelemetry("RollerMotor", TelemetryVerbosity.HIGH);
 
     SparkMax rollerSpark = new SparkMax(5, MotorType.kBrushless);
-    m_rollerMotor = new SparkWrapper(rollerSpark, DCMotor.getNEO(1), rollerMotorCfg);
+    m_rollerMotor = new SparkWrapper(rollerSpark, DCMotor.getKrakenX60(1), rollerMotorCfg);
 
     FlyWheelConfig rollerConfig = new FlyWheelConfig(m_rollerMotor)
         .withMass(Pounds.of(0.5))

@@ -41,7 +41,7 @@ public class IntakePivot extends SubsystemBase {
         .withIdleMode(MotorMode.BRAKE);
 
     SparkMax pivotSpark = new SparkMax(4, MotorType.kBrushless);
-    pivotMotor = new SparkWrapper(pivotSpark, DCMotor.getNEO(1), pivotCfg);
+    pivotMotor = new SparkWrapper(pivotSpark, DCMotor.getKrakenX60(1), pivotCfg);
 
     ArmConfig armCfg = new ArmConfig(pivotMotor)
         .withSoftLimits(Degrees.of(-20), Degrees.of(150))
