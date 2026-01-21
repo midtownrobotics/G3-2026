@@ -4,8 +4,7 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
 
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
+import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.Logged.Strategy;
@@ -19,7 +18,7 @@ import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
-import yams.motorcontrollers.local.SparkWrapper;
+import yams.motorcontrollers.remote.TalonFXWrapper;
 
 @Logged(strategy = Strategy.OPT_IN)
 public class IntakeRoller extends SubsystemBase {
@@ -32,8 +31,8 @@ public class IntakeRoller extends SubsystemBase {
         .withIdleMode(MotorMode.COAST)
         .withTelemetry("RollerMotor", TelemetryVerbosity.HIGH);
 
-    SparkMax rollerSpark = new SparkMax(5, MotorType.kBrushless);
-    m_rollerMotor = new SparkWrapper(rollerSpark, DCMotor.getNEO(1), rollerMotorCfg);
+    TalonFX rollerTalonFX = new TalonFX(6);
+    m_rollerMotor = new TalonFXWrapper(rollerTalonFX, DCMotor.getKrakenX60(1), rollerMotorCfg);
 
     FlyWheelConfig rollerConfig = new FlyWheelConfig(m_rollerMotor)
         .withMass(Pounds.of(0.5))
