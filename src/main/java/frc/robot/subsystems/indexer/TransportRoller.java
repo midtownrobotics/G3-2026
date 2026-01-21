@@ -9,6 +9,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import yams.mechanisms.config.FlyWheelConfig;
@@ -54,8 +55,8 @@ public class TransportRoller extends SubsystemBase {
     m_roller.simIterate();
   }
 
-  public Command setSpeedCommand(double dutyCycle) {
-    return m_roller.set(dutyCycle);
+  public Command setSpeedCommand(AngularVelocity speed) {
+    return m_roller.setSpeed(speed);
   }
 
   public Command stopCommand() {
