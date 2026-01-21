@@ -14,38 +14,38 @@ import edu.wpi.first.units.measure.Mass;
 
 public class TurretConstants {
   // PID config 
-  final static double YAW_P = 0;
-  final static double YAW_I = 0;
-  final static double YAW_D = 0;
-  final static double PITCH_P = 0;
-  final static double PITCH_I = 0;
-  final static double PITCH_D = 0;
-  final static double YAW_TOLERANCE = Math.PI / 10;
-  final static double PITCH_TOLERANCE = Math.PI / 10;
-  final static double YAW_PID_RAMP_RATE = 0.25;
-  final static double PITCH_PID_RAMP_RATE = 0.25;
-  final static double SHOOTER_P = 0;
-  final static double SHOOTER_I = 0;
-  final static double SHOOTER_D = 0;
-  final static double SHOOTER_TOLERANCE = Math.PI / 10;
-  final static double SHOOTER_RAMP_RATE = 0.25;
+  final static double kYawP = 0;
+  final static double kYawI = 0;
+  final static double kYawD = 0;
+  final static double kPitchP = 0;
+  final static double kPitchI = 0;
+  final static double kPitchD = 0;
+  final static double kYawTolerance = Math.PI / 10;
+  final static double kPitchTolerance = Math.PI / 10;
+  final static double kYawPIDRampRate = 0.25;
+  final static double kPitchPIDRampRate = 0.25;
+  final static double kShooterP = 0;
+  final static double kShooterI = 0;
+  final static double kShooterD = 0;
+  final static double kShooterTolerance = Math.PI / 10;
+  final static double kShooterRampRate = 0.25;
   // Motor-Pivot config
-  final static Current MOTOR_CURRENT_LIMIT = Amps.of(30);
-  final static Angle YAW_PIVOT_HARD_LIMIT = Degrees.of(720);
-  final static Angle PITCH_PIVOT_HARD_LIMIT = Degrees.of(180);
-  final static double YAW_GEAR_REDUCTION = 0;
-  final static double PITCH_GEAR_REDUCTION = 0;
-  final static Mass PITCH_PIVOT_MASS = Pounds.of(0);
-  final static Mass YAW_PIVOT_MASS = Pounds.of(0);
-  final static Distance PITCH_PIVOT_DIAMETER = Inches.of(0);
-  final static Distance YAW_PIVOT_DIAMETER = Inches.of(0);
-  final static AngularVelocity YAW_MOTOR_MAX_ANGULAR_VELOCITY = RPM.of(20);
-  final static AngularVelocity PITCH_MOTOR_MAX_ANGULAR_VELOCITY = RPM.of(20);
+  final static Current kMotorCurrentLImit = Amps.of(30);
+  final static Angle kYawPivotHardLimit = Degrees.of(720);
+  final static Angle kPitchPivotHardLimit = Degrees.of(180);
+  final static double kYawGearReduction = 0;
+  final static double kPitchGearReduction = 0;
+  final static Mass kPitchPivotMass = Pounds.of(0);
+  final static Mass kYawPivotMass = Pounds.of(0);
+  final static Distance kPitchPivotDiameter = Inches.of(0);
+  final static Distance kYawPivotDiameter = Inches.of(0);
+  final static AngularVelocity kYawMotorMaxAngularVelocity = RPM.of(20);
+  final static AngularVelocity kPitchMotorMaxAngularVelocity = RPM.of(20);
 
   // Flywheel config
-  final static Distance SHOOTER_FLYWHEEL_DIAMETER = Inches.of(4);
-  final static Mass SHOOTER_MASS = Pounds.of(0.5);
-  final static double SHOOTER_VELOCITY_LOSS = 0.5; //Remove once muzzle velocity found empirically
-  final static double SHOOTER_GEAR_REDUCTION = 0;
-  final static AngularVelocity SHOOTER_MAX_ANGULAR_VELOCITY = RPM.of(5000);
+  final static Distance kShooterFlywheelDiameter = Inches.of(4);
+  final static Mass kShooterMass = Pounds.of(0.5);
+  final static double kShooterVelocityLoss = 0.5; //Remove once muzzle velocity found empirically
+  final static double kShooterGearReduction = 0;
+  final static AngularVelocity kShooterMaxAngularVelocity = RPM.of(5000);
 }

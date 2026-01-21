@@ -9,7 +9,6 @@ import com.revrobotics.spark.SparkMax;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import yams.mechanisms.config.ArmConfig;
@@ -24,43 +23,42 @@ import yams.motorcontrollers.local.SparkWrapper;
 public class Hood extends SubsystemBase {
   private final SparkMax pitchMotor;
   private final Arm pitchArm;
-  private final DutyCycleEncoder pitchMotorEncoder; //Use if angle getter sucks
 
   public Hood(int pitchMotorID, int pitchMotorEncoderID) {
     pitchMotor = new SparkMax(pitchMotorID, MotorType.kBrushless);
-    pitchMotorEncoder = new DutyCycleEncoder(pitchMotorEncoderID);
 
     SmartMotorControllerConfig pitchMotorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
-        .withClosedLoopController(TurretConstants.PITCH_P, TurretConstants.PITCH_I, TurretConstants.PITCH_D,
-            TurretConstants.PITCH_MOTOR_MAX_ANGULAR_VELOCITY, DegreesPerSecondPerSecond.of(30))
-        .withGearing(TurretConstants.PITCH_GEAR_REDUCTION)
+        .withClosedLoopController(TurretConstants.kPitchP, TurretConstants.kPitchI, TurretConstants.kPitchD,
+            TurretConstants.kPitchMotorMaxAngularVelocity, DegreesPerSecondPerSecond.of(30))
+        .withGearing(TurretConstants.kPitchGearReduction)
         .withIdleMode(MotorMode.BRAKE)
         .withTelemetry("Pitch Motor", TelemetryVerbosity.HIGH)
-        .withStatorCurrentLimit(TurretConstants.MOTOR_CURRENT_LIMIT)
-        .withClosedLoopRampRate(Seconds.of(TurretConstants.PITCH_PID_RAMP_RATE))
-        .withOpenLoopRampRate(Seconds.of(TurretConstants.PITCH_PID_RAMP_RATE));
+        .withStatorCurrentLimit(TurretConstants.kMotorCurrentLImit)
+        .withClosedLoopRampRate(Seconds.of(TurretConstants.kPitchPIDRampRate))
+        .withOpenLoopRampRate(Seconds.of(TurretConstants.kPitchPIDRampRate));
+        
 
     // Assumed pitch motor is NEO
-    SmartMotorController pitchMotorController = new SparkWrapper(pitchMotor, DCMotor.getNEO(1), pitchMotorConfig);
+    SmartMotorController pitchMotorController = new SparkWrapper(pitchMotor, DCMotor.getKrakenX44(1), pitchMotorConfig);
 
     ArmConfig pitchMotorArmConfig = new ArmConfig(pitchMotorController)
         .withStartingPosition(getPitchAngle())
-        .withHardLimit(Degrees.of(0), TurretConstants.PITCH_PIVOT_HARD_LIMIT)
+        .withHardLimit(Degrees.of(0), TurretConstants.kPitchPivotHardLimit)
         .withTelemetry("Pitch Arm", TelemetryVerbosity.HIGH);
 
     pitchArm = new Arm(pitchMotorArmConfig);
   }
 
-  public Angle getPitchAngle() {
+  public void periodic() {
+
+  }
+
+    public Angle getPitchAngle() {
     return pitchArm.getAngle();
   }
 
   public Command setPitchAngleCommand(Angle angle) {
     return pitchArm.setAngle(angle);
-  }
-
-  public void periodic() {
-
   }
 }
