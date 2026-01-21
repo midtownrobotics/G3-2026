@@ -1,4 +1,4 @@
-package frc.robot.subsystems.Turret;
+package frc.robot.subsystems.turret;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
@@ -20,11 +20,11 @@ import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.local.SparkWrapper;
 
-public class turret extends SubsystemBase {
+public class Turret extends SubsystemBase {
   private final SparkMax yawMotor;
   private final Pivot yawPivot;
 
-  public turret(int yawMotorID, int yawMotorEncoderID) {
+  public Turret(int yawMotorID, int yawMotorEncoderID) {
     yawMotor = new SparkMax(yawMotorID, MotorType.kBrushless);
 
     SmartMotorControllerConfig yawMotorConfig = new SmartMotorControllerConfig(this)
