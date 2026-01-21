@@ -12,10 +12,10 @@ public class AutoRoutines {
     m_autoFactory = autoFactory;
   }
 
-  public AutoRoutine taxiAuto() {
-    AutoRoutine routine = m_autoFactory.newRoutine("taxi");
+  public AutoRoutine exampleMovementAuto() {
+    AutoRoutine routine = m_autoFactory.newRoutine("exampleMovementRoutine");
 
-    AutoTrajectory driveToMiddle = routine.trajectory("driveToMiddle");
+    AutoTrajectory driveToMiddle = routine.trajectory("ExampleMovement");
 
     routine.active().onTrue(
         Commands.sequence(
