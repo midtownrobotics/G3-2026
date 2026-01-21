@@ -40,7 +40,7 @@ public class IntakePivot extends SubsystemBase {
         .withIdleMode(MotorMode.BRAKE);
 
     TalonFX pivotTalonFX = new TalonFX(1);
-    pivotMotor = new TalonFXWrapper(pivotTalonFX, DCMotor.getNEO(1), pivotCfg);
+    pivotMotor = new TalonFXWrapper(pivotTalonFX, DCMotor.getKrakenX60(1), pivotCfg);
 
     ArmConfig armCfg = new ArmConfig(pivotMotor)
         .withSoftLimits(Degrees.of(-20), Degrees.of(150))
