@@ -27,8 +27,8 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 @Logged(strategy = Strategy.OPT_IN)
 
 public class IntakePivot extends SubsystemBase {
-  private final SmartMotorController pivotMotor;
-  private final Arm pivotArm;
+  private final SmartMotorController m_pivotMotor;
+  private final Arm m_pivotArm;
 
   public IntakePivot() {
     SmartMotorControllerConfig pivotCfg = new SmartMotorControllerConfig(this)
@@ -39,31 +39,31 @@ public class IntakePivot extends SubsystemBase {
         .withMotorInverted(false)
         .withIdleMode(MotorMode.BRAKE);
 
-    TalonFX pivotTalonFX = new TalonFX(1);
-    pivotMotor = new TalonFXWrapper(pivotTalonFX, DCMotor.getKrakenX60(1), pivotCfg);
+    TalonFX pivotTalonFX = new TalonFX(6);
+    m_pivotMotor = new TalonFXWrapper(pivotTalonFX, DCMotor.getKrakenX60(1), pivotCfg);
 
-    ArmConfig armCfg = new ArmConfig(pivotMotor)
+    ArmConfig armCfg = new ArmConfig(m_pivotMotor)
         .withSoftLimits(Degrees.of(-20), Degrees.of(150))
         .withStartingPosition(Degrees.of(0))
         .withLength(Inches.of(30.5))
         .withMass(Pounds.of(4.0))
         .withTelemetry("IntakePivot", TelemetryVerbosity.HIGH);
 
-    pivotArm = new Arm(armCfg);
+    m_pivotArm = new Arm(armCfg);
   }
 
   @Override
   public void periodic() {
-    pivotArm.updateTelemetry();
+    m_pivotArm.updateTelemetry();
 
   }
 
   @Override
   public void simulationPeriodic() {
-    pivotArm.simIterate();
+    m_pivotArm.simIterate();
   }
 
   public Command setAngleCommand(Angle angle) {
-    return pivotArm.setAngle(angle);
+    return m_pivotArm.setAngle(angle);
   }
 }
