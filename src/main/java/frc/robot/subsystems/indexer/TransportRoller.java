@@ -33,7 +33,7 @@ public class TransportRoller extends SubsystemBase {
         .withTelemetry("TransportRollerMotor", TelemetryVerbosity.HIGH);
 
     TalonFX rollerTalon = new TalonFX(6);
-    m_rollerMotor = new TalonFXWrapper(rollerTalon, DCMotor.getFalcon500(1), rollerMotorCfg);
+    m_rollerMotor = new TalonFXWrapper(rollerTalon, DCMotor.getKrakenX60(1), rollerMotorCfg);
 
     FlyWheelConfig rollerConfig = new FlyWheelConfig(m_rollerMotor)
         .withMass(Pounds.of(0.5))
