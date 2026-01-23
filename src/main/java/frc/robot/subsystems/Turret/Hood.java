@@ -4,6 +4,8 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -22,10 +24,11 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 public class Hood extends SubsystemBase {
   private final TalonFX m_pitchMotor;
   private final Arm m_pitchArm;
+  private final CANcoder m_pitchCANCoder;
 
   public Hood(int pitchMotorID, int pitchMotorEncoderID) {
     m_pitchMotor = new TalonFX(6);
-
+    m_pitchCANCoder = new CANcoder(5);
     SmartMotorControllerConfig pitchMotorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
         .withClosedLoopController(TurretConstants.kPitchP, TurretConstants.kPitchI, TurretConstants.kPitchD,
@@ -41,11 +44,14 @@ public class Hood extends SubsystemBase {
         pitchMotorConfig);
 
     ArmConfig pitchMotorArmConfig = new ArmConfig(pitchMotorController)
-        .withStartingPosition(Degrees.of(0))
+        .withStartingPosition(m_pitchCANCoder.getAbsolutePosition().getValue())
         .withHardLimit(Degrees.of(0), TurretConstants.kPitchPivotHardLimit)
         .withTelemetry("Pitch Arm", TelemetryVerbosity.HIGH);
 
     m_pitchArm = new Arm(pitchMotorArmConfig);
+
+    CANcoderConfiguration pitchCANCoderConfig = new CANcoderConfiguration();
+    m_pitchCANCoder.getConfigurator().apply(pitchCANCoderConfig);
   }
 
   public void periodic() {

@@ -6,6 +6,8 @@ import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Pounds;
 
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.epilogue.Logged;
@@ -29,8 +31,10 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 public class IntakePivot extends SubsystemBase {
   private final SmartMotorController m_pivotMotor;
   private final Arm m_pivotArm;
+  private final CANcoder m_intakeCANCoder;
 
   public IntakePivot() {
+    m_intakeCANCoder = new CANcoder(1);
     SmartMotorControllerConfig pivotCfg = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
         .withClosedLoopController(0.6, 0.0, 0.05, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
@@ -44,12 +48,15 @@ public class IntakePivot extends SubsystemBase {
 
     ArmConfig armCfg = new ArmConfig(m_pivotMotor)
         .withSoftLimits(Degrees.of(-20), Degrees.of(150))
-        .withStartingPosition(Degrees.of(0))
+        .withStartingPosition(m_intakeCANCoder.getAbsolutePosition().getValue())
         .withLength(Inches.of(30.5))
         .withMass(Pounds.of(4.0))
         .withTelemetry("PivotArm", TelemetryVerbosity.HIGH);
 
     m_pivotArm = new Arm(armCfg);
+
+    CANcoderConfiguration m_intakeCANCoderConfiguration = new CANcoderConfiguration();
+    m_intakeCANCoder.getConfigurator().apply(m_intakeCANCoderConfiguration);
   }
 
   @Override

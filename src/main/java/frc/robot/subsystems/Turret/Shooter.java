@@ -25,7 +25,6 @@ public class Shooter {
   public Shooter(int shooterMotorID, int shooterMotorEncoderID, int reverseShooterMotorID,
       int reverseShooterMotorEncoderID) {
     m_shooterMotor = new TalonFX(6);
-
     SmartMotorControllerConfig upperShooterMotorConfig = new SmartMotorControllerConfig()
         .withIdleMode(MotorMode.COAST)
         .withGearing(TurretConstants.kShooterGearReduction)

@@ -29,6 +29,9 @@ public class TurretConstants {
   final static double kShooterD = 0;
   final static double kShooterTolerance = Math.PI / 10;
   final static double kShooterRampRate = 0.25;
+  //CANCoder Chinese Remainder Theorem Gear Ratios
+  public static final double kCRTRatio1 = 1.0; // Replace these with actual ratio
+  public static final double kCRTRatio2 = 1.0;
   // Motor-Pivot config
   final static Current kMotorCurrentLImit = Amps.of(30);
   final static Angle kYawPivotHardLimit = Degrees.of(720);
