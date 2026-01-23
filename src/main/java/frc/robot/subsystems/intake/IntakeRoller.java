@@ -1,5 +1,6 @@
 package frc.robot.subsystems.intake;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
@@ -29,7 +30,9 @@ public class IntakeRoller extends SubsystemBase {
     SmartMotorControllerConfig rollerMotorCfg = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.OPEN_LOOP)
         .withIdleMode(MotorMode.COAST)
-        .withTelemetry("RollerMotor", TelemetryVerbosity.HIGH);
+        .withTelemetry("RollerMotor", TelemetryVerbosity.HIGH)
+        .withGearing(1)
+        .withStatorCurrentLimit(Amps.of(40));
 
     TalonFX rollerTalonFX = new TalonFX(6);
     m_rollerMotor = new TalonFXWrapper(rollerTalonFX, DCMotor.getKrakenX60(1), rollerMotorCfg);
