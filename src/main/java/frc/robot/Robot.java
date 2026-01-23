@@ -11,7 +11,6 @@ import frc.robot.controls.Controls;
 import frc.robot.controls.XboxControls;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.RobotViz;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
 
@@ -42,6 +41,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
+    m_viz.updateViz();
   }
 
   @Override
