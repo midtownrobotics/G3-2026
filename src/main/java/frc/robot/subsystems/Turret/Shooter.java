@@ -1,12 +1,11 @@
-package frc.robot.subsystems.turret;
+package frc.robot.subsystems.Turret;
 
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.function.Supplier;
 
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
+import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -17,15 +16,15 @@ import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
-import yams.motorcontrollers.local.SparkWrapper;
+import yams.motorcontrollers.remote.TalonFXWrapper;
 
 public class Shooter {
-  private final SparkMax m_shooterMotor;
+  private final TalonFX m_shooterMotor;
   private final FlyWheel m_shooterMechanism;
 
   public Shooter(int shooterMotorID, int shooterMotorEncoderID, int reverseShooterMotorID,
       int reverseShooterMotorEncoderID) {
-    m_shooterMotor = new SparkMax(shooterMotorID, MotorType.kBrushless);
+    m_shooterMotor = new TalonFX(6);
 
     SmartMotorControllerConfig upperShooterMotorConfig = new SmartMotorControllerConfig()
         .withIdleMode(MotorMode.COAST)
@@ -38,7 +37,7 @@ public class Shooter {
         .withOpenLoopRampRate(Seconds.of(TurretConstants.kShooterRampRate))
         .withStatorCurrentLimit(TurretConstants.kMotorCurrentLImit);
 
-    SparkWrapper upperShooterSmartMotorController = new SparkWrapper(m_shooterMotor, DCMotor.getKrakenX60(1),
+    TalonFXWrapper upperShooterSmartMotorController = new TalonFXWrapper(m_shooterMotor, DCMotor.getKrakenX60(1),
         upperShooterMotorConfig);
 
     FlyWheelConfig shooterFlywheelConfig = new FlyWheelConfig(upperShooterSmartMotorController)

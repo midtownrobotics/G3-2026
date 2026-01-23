@@ -1,11 +1,10 @@
-package frc.robot.subsystems.turret;
+package frc.robot.subsystems.Turret;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
+import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
@@ -18,14 +17,14 @@ import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
-import yams.motorcontrollers.local.SparkWrapper;
+import yams.motorcontrollers.remote.TalonFXWrapper;
 
 public class Hood extends SubsystemBase {
-  private final SparkMax pitchMotor;
-  private final Arm pitchArm;
+  private final TalonFX m_pitchMotor;
+  private final Arm m_pitchArm;
 
   public Hood(int pitchMotorID, int pitchMotorEncoderID) {
-    pitchMotor = new SparkMax(pitchMotorID, MotorType.kBrushless);
+    m_pitchMotor = new TalonFX(6);
 
     SmartMotorControllerConfig pitchMotorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
@@ -37,28 +36,27 @@ public class Hood extends SubsystemBase {
         .withStatorCurrentLimit(TurretConstants.kMotorCurrentLImit)
         .withClosedLoopRampRate(Seconds.of(TurretConstants.kPitchPIDRampRate))
         .withOpenLoopRampRate(Seconds.of(TurretConstants.kPitchPIDRampRate));
-        
 
-    // Assumed pitch motor is NEO
-    SmartMotorController pitchMotorController = new SparkWrapper(pitchMotor, DCMotor.getKrakenX44(1), pitchMotorConfig);
+    SmartMotorController pitchMotorController = new TalonFXWrapper(m_pitchMotor, DCMotor.getKrakenX44(1),
+        pitchMotorConfig);
 
     ArmConfig pitchMotorArmConfig = new ArmConfig(pitchMotorController)
-        .withStartingPosition(getPitchAngle())
+        .withStartingPosition(Degrees.of(0))
         .withHardLimit(Degrees.of(0), TurretConstants.kPitchPivotHardLimit)
         .withTelemetry("Pitch Arm", TelemetryVerbosity.HIGH);
 
-    pitchArm = new Arm(pitchMotorArmConfig);
+    m_pitchArm = new Arm(pitchMotorArmConfig);
   }
 
   public void periodic() {
 
   }
 
-    public Angle getPitchAngle() {
-    return pitchArm.getAngle();
+  public Angle getPitchAngle() {
+    return m_pitchArm.getAngle();
   }
 
   public Command setPitchAngleCommand(Angle angle) {
-    return pitchArm.setAngle(angle);
+    return m_pitchArm.setAngle(angle);
   }
 }

@@ -1,11 +1,10 @@
-package frc.robot.subsystems.turret;
+package frc.robot.subsystems.Turret;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
+import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
@@ -18,14 +17,14 @@ import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
-import yams.motorcontrollers.local.SparkWrapper;
+import yams.motorcontrollers.remote.TalonFXWrapper;
 
 public class Turret extends SubsystemBase {
-  private final SparkMax yawMotor;
-  private final Pivot yawPivot;
+  private final TalonFX m_yawMotor;
+  private final Pivot m_yawPivot;
 
   public Turret(int yawMotorID, int yawMotorEncoderID) {
-    yawMotor = new SparkMax(yawMotorID, MotorType.kBrushless);
+    m_yawMotor = new TalonFX(6);
 
     SmartMotorControllerConfig yawMotorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
@@ -38,17 +37,16 @@ public class Turret extends SubsystemBase {
         .withClosedLoopRampRate(Seconds.of(TurretConstants.kYawPIDRampRate))
         .withOpenLoopRampRate(Seconds.of(TurretConstants.kYawPIDRampRate));
 
-    // Assumed yaw motor is NEO
-    SmartMotorController yawMotorController = new SparkWrapper(yawMotor, DCMotor.getKrakenX60(1), yawMotorConfig);
+    SmartMotorController yawMotorController = new TalonFXWrapper(m_yawMotor, DCMotor.getKrakenX60(1), yawMotorConfig);
 
     PivotConfig yawMotorPivotConfig = new PivotConfig(yawMotorController)
-        .withStartingPosition(getYawAngle())
+        .withStartingPosition(Degrees.of(0))
         .withWrapping(Degrees.of(0), Degrees.of(360))
         .withHardLimit(Degrees.of(0), TurretConstants.kYawPivotHardLimit)
         .withTelemetry("Yaw Pivot", TelemetryVerbosity.HIGH)
         .withMOI(TurretConstants.kYawPivotDiameter, TurretConstants.kYawPivotMass);
 
-    yawPivot = new Pivot(yawMotorPivotConfig);
+    m_yawPivot = new Pivot(yawMotorPivotConfig);
   }
 
   public void periodic() {
@@ -56,10 +54,10 @@ public class Turret extends SubsystemBase {
   }
 
   public Angle getYawAngle() {
-    return yawPivot.getAngle();
+    return m_yawPivot.getAngle();
   }
 
   public Command setYawAngleCommand(Angle angle) {
-    return yawPivot.setAngle(angle);
+    return m_yawPivot.setAngle(angle);
   }
 }
