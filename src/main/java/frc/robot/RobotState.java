@@ -6,6 +6,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.controls.Controls;
@@ -50,6 +51,10 @@ public class RobotState {
           .withVelocityY(speeds.vyMetersPerSecond)
           .withRotationalRate(speeds.omegaRadiansPerSecond));
     }, m_drive);
+  }
+
+  public Angle getIntakeAngle() {
+    return m_intakePivot.getAngle();
   }
 
 }
