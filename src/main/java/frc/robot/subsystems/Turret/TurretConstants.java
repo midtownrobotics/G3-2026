@@ -14,17 +14,17 @@ import edu.wpi.first.units.measure.Mass;
 
 public class TurretConstants {
   // PID config 
-  final static double kYawP = 0;
+  final static double kYawP = 10;
   final static double kYawI = 0;
   final static double kYawD = 0;
-  final static double kPitchP = 0;
+  final static double kPitchP = 10;
   final static double kPitchI = 0;
   final static double kPitchD = 0;
   final static double kYawTolerance = Math.PI / 10;
   final static double kPitchTolerance = Math.PI / 10;
   final static double kYawPIDRampRate = 0.25;
   final static double kPitchPIDRampRate = 0.25;
-  final static double kShooterP = 0;
+  final static double kShooterP = 10;
   final static double kShooterI = 0;
   final static double kShooterD = 0;
   final static double kShooterTolerance = Math.PI / 10;
@@ -33,12 +33,11 @@ public class TurretConstants {
   final static Current kMotorCurrentLImit = Amps.of(30);
   final static Angle kYawPivotHardLimit = Degrees.of(720);
   final static Angle kPitchPivotHardLimit = Degrees.of(180);
-  final static double kYawGearReduction = 0;
-  final static double kPitchGearReduction = 0;
-  final static Mass kPitchPivotMass = Pounds.of(0);
-  final static Mass kYawPivotMass = Pounds.of(0);
-  final static Distance kPitchPivotDiameter = Inches.of(0);
-  final static Distance kYawPivotDiameter = Inches.of(0);
+  final static double kYawGearReduction = 48;
+  final static Mass kPitchPivotMass = Pounds.of(2);
+  final static Mass kYawPivotMass = Pounds.of(4.176);
+  final static Distance kPitchPivotDiameter = Inches.of(3);
+  final static Distance kYawPivotDiameter = Inches.of(6.750);
   final static AngularVelocity kYawMotorMaxAngularVelocity = RPM.of(20);
   final static AngularVelocity kPitchMotorMaxAngularVelocity = RPM.of(20);
 
@@ -46,6 +45,5 @@ public class TurretConstants {
   final static Distance kShooterFlywheelDiameter = Inches.of(4);
   final static Mass kShooterMass = Pounds.of(0.5);
   final static double kShooterVelocityLoss = 0.5; //Remove once muzzle velocity found empirically
-  final static double kShooterGearReduction = 0;
   final static AngularVelocity kShooterMaxAngularVelocity = RPM.of(5000);
 }

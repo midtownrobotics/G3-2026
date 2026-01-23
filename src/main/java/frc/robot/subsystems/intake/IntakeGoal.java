@@ -7,7 +7,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Dimensionless;
 
 public enum IntakeGoal {
-  STOW(Degrees.of(90), Percent.of(0)),
+  STOW(Degrees.of(-90), Percent.of(0)),
   INTAKING(Degrees.of(0), Percent.of(100));
 
   public final Angle angle;

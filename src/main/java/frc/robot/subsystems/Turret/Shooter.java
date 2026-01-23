@@ -5,31 +5,32 @@ import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.function.Supplier;
 
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
+import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import yams.gearing.GearBox;
+import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
-import yams.motorcontrollers.local.SparkWrapper;
+import yams.motorcontrollers.remote.TalonFXWrapper;
 
-public class Shooter {
-  private final SparkMax m_shooterMotor;
+public class Shooter extends SubsystemBase {
+  private final TalonFX m_shooterMotor;
   private final FlyWheel m_shooterMechanism;
 
-  public Shooter(int shooterMotorID, int shooterMotorEncoderID, int reverseShooterMotorID,
-      int reverseShooterMotorEncoderID) {
-    m_shooterMotor = new SparkMax(shooterMotorID, MotorType.kBrushless);
+  public Shooter(int shooterMotorID) {
+    m_shooterMotor = new TalonFX(shooterMotorID);
 
-    SmartMotorControllerConfig upperShooterMotorConfig = new SmartMotorControllerConfig()
+    SmartMotorControllerConfig upperShooterMotorConfig = new SmartMotorControllerConfig(this)
         .withIdleMode(MotorMode.COAST)
-        .withGearing(TurretConstants.kShooterGearReduction)
+        .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 2)))
         .withTelemetry("Shooter Motor", TelemetryVerbosity.HIGH)
         .withControlMode(ControlMode.CLOSED_LOOP)
         .withClosedLoopController(TurretConstants.kShooterP, TurretConstants.kShooterI, TurretConstants.kShooterD,
@@ -38,7 +39,7 @@ public class Shooter {
         .withOpenLoopRampRate(Seconds.of(TurretConstants.kShooterRampRate))
         .withStatorCurrentLimit(TurretConstants.kMotorCurrentLImit);
 
-    SparkWrapper upperShooterSmartMotorController = new SparkWrapper(m_shooterMotor, DCMotor.getKrakenX60(1),
+    TalonFXWrapper upperShooterSmartMotorController = new TalonFXWrapper(m_shooterMotor, DCMotor.getKrakenX60(1),
         upperShooterMotorConfig);
 
     FlyWheelConfig shooterFlywheelConfig = new FlyWheelConfig(upperShooterSmartMotorController)

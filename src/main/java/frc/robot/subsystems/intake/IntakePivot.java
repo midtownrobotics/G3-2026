@@ -43,13 +43,13 @@ public class IntakePivot extends SubsystemBase {
         .withGearing(48)
         .withStatorCurrentLimit(Amps.of(40));
 
-    TalonFX pivotTalonFX = new TalonFX(6);
+    TalonFX pivotTalonFX = new TalonFX(20);
     m_pivotMotor = new TalonFXWrapper(pivotTalonFX, DCMotor.getKrakenX60(1), pivotCfg);
 
     ArmConfig armCfg = new ArmConfig(m_pivotMotor)
-        .withSoftLimits(Degrees.of(-20), Degrees.of(150))
-        .withHardLimit(Degrees.of(-20), Degrees.of(150))
-        .withStartingPosition(Degrees.of(0))
+        .withSoftLimits(Degrees.of(-90), Degrees.of(0))
+        .withHardLimit(Degrees.of(-90), Degrees.of(0))
+        .withStartingPosition(IntakeGoal.STOW.angle)
         .withLength(Inches.of(30.5))
         .withMass(Pounds.of(4.0))
         .withTelemetry("PivotArm", TelemetryVerbosity.HIGH);

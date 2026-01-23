@@ -13,6 +13,9 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
+import frc.robot.subsystems.turret.Hood;
+import frc.robot.subsystems.turret.Shooter;
+import frc.robot.subsystems.turret.Turret;
 
 @Logged
 public class Robot extends TimedRobot {
@@ -23,6 +26,9 @@ public class Robot extends TimedRobot {
   private final RobotViz m_viz;
   private final IntakePivot m_intakePivot;
   private final IntakeRoller m_intakeRoller;
+  private final Turret m_turret;
+  private final Hood m_hood;
+  private final Shooter m_shooter;
 
   public Robot() {
     DataLogManager.start();
@@ -31,10 +37,15 @@ public class Robot extends TimedRobot {
     m_controls = new XboxControls(0);
 
     m_drive = TunerConstants.createDrivetrain();
+
     m_intakePivot = new IntakePivot();
     m_intakeRoller = new IntakeRoller();
 
-    m_state = new RobotState(m_controls, m_drive, m_intakePivot, m_intakeRoller);
+    m_turret = new Turret(22);
+    m_shooter = new Shooter(23);
+    m_hood = new Hood(24);
+
+    m_state = new RobotState(m_controls, m_drive, m_intakePivot, m_intakeRoller, m_turret, m_hood, m_shooter);
     m_viz = new RobotViz(m_state);
   }
 
