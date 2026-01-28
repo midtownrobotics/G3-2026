@@ -1,6 +1,5 @@
 package frc.robot.subsystems.Turret;
 
-import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
@@ -38,6 +37,7 @@ public class Hood extends SubsystemBase {
         .withTelemetry("Pitch Motor", TelemetryVerbosity.HIGH)
         .withStatorCurrentLimit(TurretConstants.kMotorCurrentLImit)
         .withClosedLoopRampRate(Seconds.of(TurretConstants.kPitchPIDRampRate))
+
         .withOpenLoopRampRate(Seconds.of(TurretConstants.kPitchPIDRampRate));
 
     SmartMotorController pitchMotorController = new TalonFXWrapper(m_pitchMotor, DCMotor.getKrakenX44(1),
@@ -45,7 +45,7 @@ public class Hood extends SubsystemBase {
 
     ArmConfig pitchMotorArmConfig = new ArmConfig(pitchMotorController)
         .withStartingPosition(m_pitchCANCoder.getAbsolutePosition().getValue())
-        .withHardLimit(Degrees.of(0), TurretConstants.kPitchPivotHardLimit)
+        .withHardLimit(TurretConstants.kPitchPivotHardMin, TurretConstants.kPitchPivotHardLimit)
         .withTelemetry("Pitch Arm", TelemetryVerbosity.HIGH);
 
     m_pitchArm = new Arm(pitchMotorArmConfig);

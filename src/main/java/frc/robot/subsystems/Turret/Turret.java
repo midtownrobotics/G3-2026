@@ -51,7 +51,7 @@ public class Turret extends SubsystemBase {
             TurretConstants.kCRTRatio1,
             TurretConstants.kCRTRatio2))
         .withWrapping(Degrees.of(0), Degrees.of(360))
-        .withHardLimit(Degrees.of(0), TurretConstants.kYawPivotHardLimit)
+        .withHardLimit(TurretConstants.kYawPivotHardMin, TurretConstants.kYawPivotHardLimit)
         .withTelemetry("Yaw Pivot", TelemetryVerbosity.HIGH)
         .withMOI(TurretConstants.kYawPivotDiameter, TurretConstants.kYawPivotMass);
 

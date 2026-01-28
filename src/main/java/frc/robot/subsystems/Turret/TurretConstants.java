@@ -34,8 +34,10 @@ public class TurretConstants {
   public static final double kCRTRatio2 = 1.0;
   // Motor-Pivot config
   final static Current kMotorCurrentLImit = Amps.of(30);
-  final static Angle kYawPivotHardLimit = Degrees.of(720);
-  final static Angle kPitchPivotHardLimit = Degrees.of(180);
+  final static Angle kYawPivotHardLimit = Degrees.of(360);
+  final static Angle kYawPivotHardMin = Degrees.of(-360);
+  final static Angle kPitchPivotHardLimit = Degrees.of(59);
+  final static Angle kPitchPivotHardMin = Degrees.of(0);
   final static double kYawGearReduction = 0;
   final static double kPitchGearReduction = 0;
   final static Mass kPitchPivotMass = Pounds.of(0);
