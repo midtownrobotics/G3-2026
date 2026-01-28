@@ -36,8 +36,12 @@ public class TurretConstants {
   final static Current kMotorCurrentLImit = Amps.of(30);
   final static Angle kYawPivotHardLimit = Degrees.of(360);
   final static Angle kYawPivotHardMin = Degrees.of(-360);
+  final static Angle kYawPivotSoftLimit = Degrees.of(350); // to be determined when robot is built
+  final static Angle kYawPivotSoftMin = Degrees.of(-350);
   final static Angle kPitchPivotHardLimit = Degrees.of(59);
   final static Angle kPitchPivotHardMin = Degrees.of(0);
+  final static Angle kPitchPivotSoftLimit = Degrees.of(57);
+  final static Angle kPitchPivotSoftMin = Degrees.of(2);
   final static double kYawGearReduction = 0;
   final static double kPitchGearReduction = 0;
   final static Mass kPitchPivotMass = Pounds.of(0);

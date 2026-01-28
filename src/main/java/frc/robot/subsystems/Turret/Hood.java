@@ -46,6 +46,7 @@ public class Hood extends SubsystemBase {
     ArmConfig pitchMotorArmConfig = new ArmConfig(pitchMotorController)
         .withStartingPosition(m_pitchCANCoder.getAbsolutePosition().getValue())
         .withHardLimit(TurretConstants.kPitchPivotHardMin, TurretConstants.kPitchPivotHardLimit)
+        .withSoftLimits(TurretConstants.kPitchPivotSoftMin, TurretConstants.kPitchPivotSoftLimit)
         .withTelemetry("Pitch Arm", TelemetryVerbosity.HIGH);
 
     m_pitchArm = new Arm(pitchMotorArmConfig);
