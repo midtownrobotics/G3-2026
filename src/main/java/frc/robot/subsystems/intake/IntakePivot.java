@@ -47,7 +47,7 @@ public class IntakePivot extends SubsystemBase {
     m_pivotMotor = new TalonFXWrapper(pivotTalonFX, DCMotor.getKrakenX60(1), pivotCfg);
 
     ArmConfig armCfg = new ArmConfig(m_pivotMotor)
-        .withSoftLimits(Degrees.of(-20), Degrees.of(150))
+        .withHardLimit(Degrees.of(87), Degrees.of(15.25))
         .withStartingPosition(m_intakeCANCoder.getAbsolutePosition().getValue())
         .withLength(Inches.of(30.5))
         .withMass(Pounds.of(4.0))
