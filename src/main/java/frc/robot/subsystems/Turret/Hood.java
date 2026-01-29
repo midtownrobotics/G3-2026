@@ -56,7 +56,14 @@ public class Hood extends SubsystemBase {
     return m_pitchArm.getAngle();
   }
 
-  public Command setPitchAngleCommand(Angle angle) {
+  public Angle setPitchAngle(Angle angle) {
     return m_pitchArm.setAngle(angle);
+  }
+
+  public Command setAngleCommand(Supplier<Angle> angleSupplier) {
+    return Commands.run(
+      () -> this.setPitchAngle(angleSupplier.get()),
+      this
+    );
   }
 }

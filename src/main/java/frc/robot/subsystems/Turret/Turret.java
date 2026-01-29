@@ -50,14 +50,21 @@ public class Turret extends SubsystemBase {
   }
 
   public void periodic() {
-
+    
   }
 
   public Angle getYawAngle() {
     return m_yawPivot.getAngle();
   }
 
-  public Command setYawAngleCommand(Angle angle) {
+  public Angle setYawAngle(Angle angle) {
     return m_yawPivot.setAngle(angle);
+  }
+
+  public Command setAngleCommand(Supplier<Angle> angleSupplier) {
+    return Commands.run(
+      () -> this.setYawAngle(angleSupplier.get()),
+      this
+    );
   }
 }
