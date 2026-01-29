@@ -20,6 +20,9 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -223,6 +226,31 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
    */
   public Command applyRequest(Supplier<SwerveRequest> request) {
     return run(() -> this.setControl(request.get()));
+  }
+
+  @Logged
+  public Pose2d getPose() {
+    return getState().Pose;
+  }
+
+  @Logged
+  public ChassisSpeeds getChassisSpeeds() {
+    return getState().Speeds;
+  }
+
+  @Logged
+  public SwerveModuleState[] getModuleStates() {
+    return getState().ModuleStates;
+  }
+
+  @Logged
+  public SwerveModuleState[] getTargetModuleStates() {
+    return getState().ModuleTargets;
+  }
+
+  @Logged
+  public SwerveModulePosition[] getModulePositions() {
+    return getState().ModulePositions;
   }
 
   /**

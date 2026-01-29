@@ -1,4 +1,4 @@
-package frc.robot.subsystems.intake;
+package frc.robot.subsystems.indexer;
 
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Pounds;
@@ -9,6 +9,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import yams.mechanisms.config.FlyWheelConfig;
@@ -21,25 +22,25 @@ import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 @Logged(strategy = Strategy.OPT_IN)
-public class IntakeRoller extends SubsystemBase {
+public class TransportRoller extends SubsystemBase {
   private final SmartMotorController m_rollerMotor;
   private final FlyWheel m_roller;
 
-  public IntakeRoller() {
+  public TransportRoller() {
     SmartMotorControllerConfig rollerMotorCfg = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.OPEN_LOOP)
         .withIdleMode(MotorMode.COAST)
-        .withTelemetry("RollerMotor", TelemetryVerbosity.HIGH);
+        .withTelemetry("TransportRollerMotor", TelemetryVerbosity.HIGH);
 
-    TalonFX rollerTalonFX = new TalonFX(6);
-    m_rollerMotor = new TalonFXWrapper(rollerTalonFX, DCMotor.getKrakenX60(1), rollerMotorCfg);
+    TalonFX rollerTalon = new TalonFX(6);
+    m_rollerMotor = new TalonFXWrapper(rollerTalon, DCMotor.getKrakenX60(1), rollerMotorCfg);
 
     FlyWheelConfig rollerConfig = new FlyWheelConfig(m_rollerMotor)
         .withMass(Pounds.of(0.5))
-        .withUpperSoftLimit(RPM.of(6000))
-        .withLowerSoftLimit(RPM.of(-6000))
+        .withUpperSoftLimit(RPM.of(5000))
+        .withLowerSoftLimit(RPM.of(-5000))
         .withDiameter(Inches.of(1.5))
-        .withTelemetry("IntakeRoller", TelemetryVerbosity.HIGH);
+        .withTelemetry("TransportRoller", TelemetryVerbosity.HIGH);
 
     m_roller = new FlyWheel(rollerConfig);
   }
@@ -54,7 +55,11 @@ public class IntakeRoller extends SubsystemBase {
     m_roller.simIterate();
   }
 
-  public Command setSpeedCommand(double dutyCycle) {
-    return m_roller.set(dutyCycle);
+  public Command setSpeedCommand(AngularVelocity speed) {
+    return m_roller.setSpeed(speed);
+  }
+
+  public Command stopCommand() {
+    return m_roller.set(0.0);
   }
 }
