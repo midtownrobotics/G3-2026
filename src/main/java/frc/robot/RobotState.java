@@ -5,9 +5,12 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.controls.Controls;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
@@ -38,4 +41,16 @@ public class RobotState {
     }, m_drive);
   }
 
+  public Pose2d getRobotPose() {
+    return m_drive.getPose();
+  }
+
+  public Trigger inAllianceZone() {
+    return new Trigger(
+        () -> DriverStation.getAlliance()
+            .map(FieldConstants::getAllianceZone)
+            .map(r -> r.contains(m_drive.getPose().getTranslation()))
+            .orElse(false))
+        .debounce(0.2);
+  }
 }

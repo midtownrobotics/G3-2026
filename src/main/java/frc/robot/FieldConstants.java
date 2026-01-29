@@ -23,16 +23,16 @@ public class FieldConstants {
   public static Translation3d kHubPosition = new Translation3d(4.6256194, 4.0346376, 1.8);
 
   public static final Rectangle2d kBlueAllianceZone = new Rectangle2d(new Translation2d(0.0, 0.0),
-      FieldConstants.kAllianceZoneOffset);
+      kAllianceZoneOffset);
   public static final Rectangle2d kRedAllianceZone = new Rectangle2d(
-      FieldConstants.kRedAllianceRightSide.getTranslation(),
-      FieldConstants.kRedAllianceRightSide.getTranslation().minus(FieldConstants.kAllianceZoneOffset));
+      kRedAllianceRightSide.getTranslation(),
+      kRedAllianceRightSide.getTranslation().minus(kAllianceZoneOffset));
 
   public static Rectangle2d getAllianceZone(Alliance alliance) {
     if (alliance == Alliance.Blue) {
-      return FieldConstants.kBlueAllianceZone;
+      return kBlueAllianceZone;
     } else {
-      return FieldConstants.kRedAllianceZone;
+      return kRedAllianceZone;
     }
   }
 }
