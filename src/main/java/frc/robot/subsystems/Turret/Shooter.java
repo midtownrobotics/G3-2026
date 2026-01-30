@@ -1,4 +1,4 @@
-package frc.robot.subsystems.Turret;
+package frc.robot.subsystems.turret;
 
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
@@ -10,6 +10,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Ports;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
 import yams.motorcontrollers.SmartMotorControllerConfig;
@@ -24,7 +25,7 @@ public class Shooter {
 
   public Shooter(int shooterMotorID, int shooterMotorEncoderID, int reverseShooterMotorID,
       int reverseShooterMotorEncoderID) {
-    m_shooterMotor = new TalonFX(6);
+    m_shooterMotor = new TalonFX(Ports.kShooterMotor);
 
     SmartMotorControllerConfig upperShooterMotorConfig = new SmartMotorControllerConfig()
         .withIdleMode(MotorMode.COAST)
