@@ -6,6 +6,7 @@ import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -19,12 +20,15 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.controls.Controls;
 import frc.robot.controls.XboxControls;
 import frc.robot.generated.TunerConstants;
+import frc.robot.sensors.Camera;
+import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 @Logged
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   public final Controls m_controls;
+  public final Vision m_vision;
   public final CommandSwerveDrivetrain m_drive;
   public final RobotState m_state;
   private final AutoFactory m_autoFactory;
@@ -39,6 +43,20 @@ public class Robot extends TimedRobot {
 
     m_controls = new XboxControls(0);
     m_drive = TunerConstants.createDrivetrain();
+
+    Camera rearFacingRightCamera = new Camera("rearFacingRightCamera", new Transform3d());
+    Camera frontFacingRightCamera = new Camera("frontFacingRightCamera", new Transform3d());
+    Camera rearFacingLeftCamera = new Camera("rearFacingLeftCamera", new Transform3d());
+    Camera frontFacingLeftCamera = new Camera("frontFacingLeftCamera", new Transform3d());
+
+    m_vision = new Vision(
+      (observation) -> m_drive.addVisionMeasurement(observation.pose().toPose2d(), observation.timestamp()), 
+      m_drive::getPose, 
+      rearFacingRightCamera,
+      frontFacingRightCamera,
+      rearFacingLeftCamera,
+      frontFacingLeftCamera
+    );
 
     m_state = new RobotState(m_controls, m_drive);
   
