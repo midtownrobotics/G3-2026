@@ -19,6 +19,7 @@ public class RobotViz extends SubsystemBase {
 
   @Override
   public void periodic() {
+    DogLog.log("RobotViz/RobotPose", m_state.getRobotPose());
     DogLog.log("RobotViz/ZeroedPoses", new Pose3d[] { new Pose3d(), new Pose3d() });
     DogLog.log("RobotViz/ComponentPoses",
         new Pose3d[] {

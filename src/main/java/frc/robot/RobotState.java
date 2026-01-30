@@ -25,7 +25,8 @@ public class RobotState {
     m_intakePivot = intakePivot;
     m_intakeRoller = intakeRoller;
 
-    m_drive.setDefaultCommand(DriveCommands.intakeDrive(drive, controls));
+    m_drive.setDefaultCommand(DriveCommands.joyStickDrive(drive, controls));
+    m_controls.snakeDrive().whileTrue(DriveCommands.snakeDrive(drive, controls));
   }
 
   public Pose2d getRobotPose() {

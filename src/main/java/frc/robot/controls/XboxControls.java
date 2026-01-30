@@ -24,8 +24,13 @@ public class XboxControls implements Controls {
 
   public double getDriveRotation() {
     return MathUtil.applyDeadband(m_controller.getRightX() * -1, kDriverJoystickThreshold);
+  }
 
   public Trigger intake() {
     return m_controller.a();
+  }
+
+  public Trigger snakeDrive() {
+    return m_controller.b();
   }
 }

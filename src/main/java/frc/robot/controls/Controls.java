@@ -14,4 +14,6 @@ public interface Controls {
   public double getDriveRotation();
 
   public Trigger intake();
+
+  public Trigger snakeDrive();
 }

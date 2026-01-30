@@ -34,7 +34,7 @@ public class IntakeRoller extends SubsystemBase {
         .withGearing(1)
         .withStatorCurrentLimit(Amps.of(40));
 
-    TalonFX rollerTalonFX = new TalonFX(6);
+    TalonFX rollerTalonFX = new TalonFX(19);
     m_rollerMotor = new TalonFXWrapper(rollerTalonFX, DCMotor.getKrakenX60(1), rollerMotorCfg);
 
     FlyWheelConfig rollerConfig = new FlyWheelConfig(m_rollerMotor)
