@@ -11,6 +11,9 @@ import frc.robot.controls.Controls;
 import frc.robot.controls.XboxControls;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.RobotViz;
+import frc.robot.subsystems.intake.IntakePivot;
+import frc.robot.subsystems.intake.IntakeRoller;
 
 @Logged
 public class Robot extends TimedRobot {
@@ -18,6 +21,7 @@ public class Robot extends TimedRobot {
   public final Controls m_controls;
   public final CommandSwerveDrivetrain m_drive;
   public final RobotState m_state;
+  private final RobotViz m_viz;
 
   public Robot() {
     DataLogManager.start();
@@ -25,9 +29,11 @@ public class Robot extends TimedRobot {
 
     m_controls = new XboxControls(0);
     m_drive = TunerConstants.createDrivetrain();
+    IntakePivot intakePivot = new IntakePivot();
+    IntakeRoller intakeRoller = new IntakeRoller();
 
-    m_state = new RobotState(m_controls, m_drive);
-
+    m_state = new RobotState(m_controls, m_drive, intakePivot, intakeRoller);
+    m_viz = new RobotViz(m_state);
   }
 
   @Override

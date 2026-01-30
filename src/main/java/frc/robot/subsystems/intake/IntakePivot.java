@@ -1,5 +1,6 @@
 package frc.robot.subsystems.intake;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
@@ -33,17 +34,21 @@ public class IntakePivot extends SubsystemBase {
   public IntakePivot() {
     SmartMotorControllerConfig pivotCfg = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
-        .withClosedLoopController(0.6, 0.0, 0.05, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
-        .withFeedforward(new ArmFeedforward(0.1, 0.4, 0.01))
+        .withClosedLoopController(30, 0.0, 0.05, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
+        .withSimClosedLoopController(100, 0.0, 0.05, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
+        .withFeedforward(new ArmFeedforward(0.0, 0.5, 0.00))
         .withTelemetry("PivotMotor", TelemetryVerbosity.HIGH)
         .withMotorInverted(false)
-        .withIdleMode(MotorMode.BRAKE);
+        .withIdleMode(MotorMode.BRAKE)
+        .withGearing(48)
+        .withStatorCurrentLimit(Amps.of(40));
 
     TalonFX pivotTalonFX = new TalonFX(6);
     m_pivotMotor = new TalonFXWrapper(pivotTalonFX, DCMotor.getKrakenX60(1), pivotCfg);
 
     ArmConfig armCfg = new ArmConfig(m_pivotMotor)
         .withSoftLimits(Degrees.of(-20), Degrees.of(150))
+        .withHardLimit(Degrees.of(-20), Degrees.of(150))
         .withStartingPosition(Degrees.of(0))
         .withLength(Inches.of(30.5))
         .withMass(Pounds.of(4.0))
@@ -65,5 +70,9 @@ public class IntakePivot extends SubsystemBase {
 
   public Command setAngleCommand(Angle angle) {
     return m_pivotArm.setAngle(angle);
+  }
+
+  public Angle getAngle() {
+    return m_pivotArm.getAngle();
   }
 }
