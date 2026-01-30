@@ -5,6 +5,8 @@ import java.util.Optional;
 
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.simulation.PhotonCameraSim;
+import org.photonvision.simulation.SimCameraProperties;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
@@ -27,12 +29,17 @@ public class Camera {
     m_robotToCamera = robotToCamera;
   }
 
-  public Transform3d getTransform() {
+  public Transform3d getRobotToCamera() {
     return m_robotToCamera;
   }
 
   public PhotonCamera getCamera() {
     return m_camera;
+  }
+
+  public PhotonCameraSim getSimCamera() {
+    SimCameraProperties properties = new SimCameraProperties();
+    return new PhotonCameraSim(this.getCamera(), properties);
   }
 
   public List<PoseObservation> getLatestObservations() {
