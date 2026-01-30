@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.commands.AutoAim;
 import frc.robot.controls.Controls;
 import frc.robot.controls.XboxControls;
 import frc.robot.generated.TunerConstants;
@@ -47,6 +48,8 @@ public class Robot extends TimedRobot {
 
     m_state = new RobotState(m_controls, m_drive, m_intakePivot, m_intakeRoller, m_turret, m_hood, m_shooter);
     m_viz = new RobotViz(m_state);
+
+    m_turret.setDefaultCommand(AutoAim.getAutoAimCommand(m_state));
   }
 
   @Override

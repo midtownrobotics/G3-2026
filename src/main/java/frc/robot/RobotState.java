@@ -75,4 +75,8 @@ public class RobotState {
     return m_turret.getYawAngle();
   }
 
+  public Turret getTurret() {
+    return m_turret;
+  }
+
 }

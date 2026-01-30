@@ -14,9 +14,9 @@ import edu.wpi.first.units.measure.Mass;
 
 public class TurretConstants {
   // PID config 
-  final static double kYawP = 10;
+  final static double kYawP = 50;
   final static double kYawI = 0;
-  final static double kYawD = 0;
+  final static double kYawD = 10;
   final static double kPitchP = 10;
   final static double kPitchI = 0;
   final static double kPitchD = 0;

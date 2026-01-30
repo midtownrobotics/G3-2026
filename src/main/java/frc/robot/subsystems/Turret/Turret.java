@@ -4,6 +4,8 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
+import java.util.function.Supplier;
+
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -50,7 +52,12 @@ public class Turret extends SubsystemBase {
   }
 
   public void periodic() {
+    m_yawPivot.updateTelemetry();
+  }
 
+  @Override
+  public void simulationPeriodic() {
+    m_yawPivot.simIterate();
   }
 
   public Angle getYawAngle() {
@@ -58,6 +65,10 @@ public class Turret extends SubsystemBase {
   }
 
   public Command setYawAngleCommand(Angle angle) {
+    return m_yawPivot.setAngle(angle);
+  }
+
+  public Command setYawAngleCommand(Supplier<Angle> angle) {
     return m_yawPivot.setAngle(angle);
   }
 }
