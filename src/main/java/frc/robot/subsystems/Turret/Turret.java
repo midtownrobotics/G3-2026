@@ -1,0 +1,101 @@
+package frc.robot.subsystems.Turret;
+
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Seconds;
+
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.TalonFX;
+
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Ports;
+import yams.mechanisms.config.PivotConfig;
+import yams.mechanisms.positional.Pivot;
+import yams.motorcontrollers.SmartMotorController;
+import yams.motorcontrollers.SmartMotorControllerConfig;
+import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
+import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
+import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
+import yams.motorcontrollers.remote.TalonFXWrapper;
+
+public class Turret extends SubsystemBase {
+  private final TalonFX m_yawMotor;
+  private final Pivot m_yawPivot;
+  private final CANcoder m_yawCANCoder1;
+  private final CANcoder m_yawCANCoder2;
+
+  public Turret() {
+    m_yawMotor = new TalonFX(Ports.kTurretYawMotorTalonFXPort);
+    m_yawCANCoder1 = new CANcoder(Ports.kTurretYawCANPort1);
+    m_yawCANCoder2 = new CANcoder(Ports.kTurretYawCANPort2);
+
+    SmartMotorControllerConfig yawMotorConfig = new SmartMotorControllerConfig(this)
+        .withControlMode(ControlMode.CLOSED_LOOP)
+        .withClosedLoopController(TurretConstants.kYawP, TurretConstants.kYawI, TurretConstants.kYawD,
+            TurretConstants.kYawMotorMaxAngularVelocity, DegreesPerSecondPerSecond.of(30))
+        .withGearing(TurretConstants.kYawGearReduction)
+        .withIdleMode(MotorMode.BRAKE)
+        .withTelemetry("Yaw Motor", TelemetryVerbosity.HIGH)
+        .withStatorCurrentLimit(TurretConstants.kMotorCurrentLImit)
+        .withClosedLoopRampRate(Seconds.of(TurretConstants.kYawPIDRampRate))
+        .withOpenLoopRampRate(Seconds.of(TurretConstants.kYawPIDRampRate));
+
+    SmartMotorController yawMotorController = new TalonFXWrapper(m_yawMotor, DCMotor.getKrakenX60(1), yawMotorConfig);
+
+    PivotConfig yawMotorPivotConfig = new PivotConfig(yawMotorController)
+        .withStartingPosition(chineseRemainderTheorem(
+            m_yawCANCoder1.getAbsolutePosition().getValueAsDouble(),
+            m_yawCANCoder2.getAbsolutePosition().getValueAsDouble(),
+            TurretConstants.kCRTRatio1,
+            TurretConstants.kCRTRatio2))
+        .withWrapping(Degrees.of(0), Degrees.of(360))
+        .withHardLimit(TurretConstants.kYawPivotHardMin, TurretConstants.kYawPivotHardLimit)
+        .withSoftLimits(TurretConstants.kYawPivotSoftMin, TurretConstants.kYawPivotSoftLimit)
+
+        .withTelemetry("Yaw Pivot", TelemetryVerbosity.HIGH)
+        .withMOI(TurretConstants.kYawPivotDiameter, TurretConstants.kYawPivotMass);
+
+    m_yawPivot = new Pivot(yawMotorPivotConfig);
+  }
+
+  private Angle chineseRemainderTheorem(double encoder1Rotations, double encoder2Rotations, double ratio1,
+      double ratio2) {
+    int m1 = (int) ratio1;
+    int m2 = (int) ratio2;
+    int a1 = (int) Math.round(encoder1Rotations * ratio1) % m1;
+    int a2 = (int) Math.round(encoder2Rotations * ratio2) % m2;
+
+    int M = m1 * m2;
+    int M1 = M / m1;
+    int M2 = M / m2;
+    int y1 = modInverse(M1, m1);
+    int y2 = modInverse(M2, m2);
+
+    int position = (a1 * M1 * y1 + a2 * M2 * y2) % M;
+    return Degrees.of((position / (double) M) * 360.0);
+  }
+
+  private int modInverse(int a, int m) {
+    a = a % m;
+    for (int x = 1; x < m; x++) {
+      if ((a * x) % m == 1) {
+        return x;
+      }
+    }
+    return 1;
+  }
+
+  public void periodic() {
+  }
+
+  public Angle getYawAngle() {
+    return m_yawPivot.getAngle();
+  }
+
+  public Command setYawAngleCommand(Angle angle) {
+    return m_yawPivot.setAngle(angle);
+  }
+}
