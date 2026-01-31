@@ -10,6 +10,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Ports;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
@@ -19,7 +20,7 @@ import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
-public class Shooter {
+public class Shooter extends SubsystemBase {
   private final TalonFX m_shooterMotor;
   private final FlyWheel m_shooterMechanism;
 
@@ -49,7 +50,13 @@ public class Shooter {
     m_shooterMechanism = new FlyWheel(shooterFlywheelConfig);
   }
 
+  @Override
   public void periodic() {
+    m_shooterMechanism.updateTelemetry();
+  }
+
+  @Override
+  public void simulationPeriodic() {
     m_shooterMechanism.simIterate();
   }
 

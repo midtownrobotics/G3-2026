@@ -51,8 +51,14 @@ public class Hood extends SubsystemBase {
     m_armMechanism = new Arm(motorArmConfig);
   }
 
+  @Override
   public void periodic() {
+    m_armMechanism.updateTelemetry();
+  }
 
+  @Override
+  public void simulationPeriodic() {
+    m_armMechanism.simIterate();
   }
 
   public Angle getAngle() {
