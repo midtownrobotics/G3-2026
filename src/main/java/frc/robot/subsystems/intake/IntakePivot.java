@@ -15,8 +15,10 @@ import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Ports;
 import yams.mechanisms.config.ArmConfig;
 import yams.mechanisms.positional.Arm;
 import yams.motorcontrollers.SmartMotorController;
@@ -34,7 +36,7 @@ public class IntakePivot extends SubsystemBase {
   private final CANcoder m_intakeCANCoder;
 
   public IntakePivot() {
-    m_intakeCANCoder = new CANcoder(1);
+    m_intakeCANCoder = new CANcoder(Ports.kIntakePivotCANPort);
     SmartMotorControllerConfig pivotCfg = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
         .withClosedLoopController(0.6, 0.0, 0.05, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
@@ -43,12 +45,12 @@ public class IntakePivot extends SubsystemBase {
         .withMotorInverted(false)
         .withIdleMode(MotorMode.BRAKE);
 
-    TalonFX pivotTalonFX = new TalonFX(6);
+    TalonFX pivotTalonFX = new TalonFX(Ports.kIntakePivotTalonFXPort);
     m_pivotMotor = new TalonFXWrapper(pivotTalonFX, DCMotor.getKrakenX60(1), pivotCfg);
 
     ArmConfig armCfg = new ArmConfig(m_pivotMotor)
         .withHardLimit(Degrees.of(87), Degrees.of(15.25))
-        .withStartingPosition(m_intakeCANCoder.getAbsolutePosition().getValue())
+        .withStartingPosition(getStartingPosition())
         .withLength(Inches.of(30.5))
         .withMass(Pounds.of(4.0))
         .withTelemetry("PivotArm", TelemetryVerbosity.HIGH);
@@ -56,6 +58,7 @@ public class IntakePivot extends SubsystemBase {
     m_pivotArm = new Arm(armCfg);
 
     CANcoderConfiguration m_intakeCANCoderConfiguration = new CANcoderConfiguration();
+    m_intakeCANCoderConfiguration.MagnetSensor.MagnetOffset = 0.0;
     m_intakeCANCoder.getConfigurator().apply(m_intakeCANCoderConfiguration);
   }
 
@@ -68,6 +71,14 @@ public class IntakePivot extends SubsystemBase {
   @Override
   public void simulationPeriodic() {
     m_pivotArm.simIterate();
+  }
+
+  private Angle getStartingPosition() {
+    if (RobotBase.isSimulation()) {
+      return Degrees.of(87);
+    } else {
+      return m_intakeCANCoder.getAbsolutePosition().getValue();
+    }
   }
 
   public Command setAngleCommand(Angle angle) {

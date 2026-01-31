@@ -11,6 +11,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Ports;
 import yams.mechanisms.config.PivotConfig;
 import yams.mechanisms.positional.Pivot;
 import yams.motorcontrollers.SmartMotorController;
@@ -26,10 +27,10 @@ public class Turret extends SubsystemBase {
   private final CANcoder m_yawCANCoder1;
   private final CANcoder m_yawCANCoder2;
 
-  public Turret(int yawMotorID, int yawMotorEncoderID1, int yawMotorEncoderID2) {
-    m_yawMotor = new TalonFX(yawMotorID);
-    m_yawCANCoder1 = new CANcoder(yawMotorEncoderID1);
-    m_yawCANCoder2 = new CANcoder(yawMotorEncoderID2);
+  public Turret() {
+    m_yawMotor = new TalonFX(Ports.kTurretYawMotorTalonFXPort);
+    m_yawCANCoder1 = new CANcoder(Ports.kTurretYawCANPort1);
+    m_yawCANCoder2 = new CANcoder(Ports.kTurretYawCANPort2);
 
     SmartMotorControllerConfig yawMotorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
@@ -62,20 +63,22 @@ public class Turret extends SubsystemBase {
 
   private Angle chineseRemainderTheorem(double encoder1Rotations, double encoder2Rotations, double ratio1,
       double ratio2) {
-    double a1 = encoder1Rotations * ratio1;
-    double a2 = encoder2Rotations * ratio2;
-    double m1 = ratio1;
-    double m2 = ratio2;
-    double M = m1 * m2;
-    double M1 = M / m1;
-    double M2 = M / m2;
-    double y1 = modInverse(M1, m1);
-    double y2 = modInverse(M2, m2);
-    double position = (a1 * M1 * y1 + a2 * M2 * y2) % M;
-    return Degrees.of((position / M) * 360.0);
+    int m1 = (int) ratio1;
+    int m2 = (int) ratio2;
+    int a1 = (int) Math.round(encoder1Rotations * ratio1) % m1;
+    int a2 = (int) Math.round(encoder2Rotations * ratio2) % m2;
+
+    int M = m1 * m2;
+    int M1 = M / m1;
+    int M2 = M / m2;
+    int y1 = modInverse(M1, m1);
+    int y2 = modInverse(M2, m2);
+
+    int position = (a1 * M1 * y1 + a2 * M2 * y2) % M;
+    return Degrees.of((position / (double) M) * 360.0);
   }
 
-  private double modInverse(double a, double m) {
+  private int modInverse(int a, int m) {
     a = a % m;
     for (int x = 1; x < m; x++) {
       if ((a * x) % m == 1) {

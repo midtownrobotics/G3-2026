@@ -11,6 +11,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Ports;
 import yams.mechanisms.config.ArmConfig;
 import yams.mechanisms.positional.Arm;
 import yams.motorcontrollers.SmartMotorController;
@@ -26,8 +27,8 @@ public class Hood extends SubsystemBase {
   private final CANcoder m_pitchCANCoder;
 
   public Hood(int pitchMotorID, int pitchMotorEncoderID) {
-    m_pitchMotor = new TalonFX(6);
-    m_pitchCANCoder = new CANcoder(5);
+    m_pitchMotor = new TalonFX(Ports.kTurretHoodTalonFXPort);
+    m_pitchCANCoder = new CANcoder(Ports.kTurretHoodCANPort);
     SmartMotorControllerConfig pitchMotorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
         .withClosedLoopController(TurretConstants.kPitchP, TurretConstants.kPitchI, TurretConstants.kPitchD,
