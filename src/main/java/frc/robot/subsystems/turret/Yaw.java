@@ -22,11 +22,11 @@ import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
-public class Turret extends SubsystemBase {
+public class Yaw extends SubsystemBase {
   private final TalonFX m_motor;
   private final Pivot m_pivotMechanism;
 
-  public Turret(int motorID, int motorEncoderID) {
+  public Yaw(int motorID, int motorEncoderID) {
     m_motor = new TalonFX(Ports.kTurretMotor);
 
     SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)

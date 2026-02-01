@@ -31,22 +31,22 @@ public class Hood extends SubsystemBase {
 
     SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
-        .withClosedLoopController(TurretConstants.kPitchP, TurretConstants.kPitchI, TurretConstants.kPitchD,
-            TurretConstants.kPitchMotorMaxAngularVelocity, DegreesPerSecondPerSecond.of(30))
-        .withGearing(TurretConstants.kPitchGearReduction)
+        .withClosedLoopController(TurretConstants.kHoodP, TurretConstants.kHoodI, TurretConstants.kHoodD,
+            TurretConstants.kHoodMotorMaxAngularVelocity, DegreesPerSecondPerSecond.of(30))
+        .withGearing(TurretConstants.kHoodGearReduction)
         .withIdleMode(MotorMode.BRAKE)
-        .withTelemetry("Pitch Motor", TelemetryVerbosity.HIGH)
+        .withTelemetry("Hood Motor", TelemetryVerbosity.HIGH)
         .withStatorCurrentLimit(TurretConstants.kMotorCurrentLImit)
-        .withClosedLoopRampRate(Seconds.of(TurretConstants.kPitchPIDRampRate))
-        .withOpenLoopRampRate(Seconds.of(TurretConstants.kPitchPIDRampRate));
+        .withClosedLoopRampRate(Seconds.of(TurretConstants.kHoodPIDRampRate))
+        .withOpenLoopRampRate(Seconds.of(TurretConstants.kHoodPIDRampRate));
 
     SmartMotorController motorController = new TalonFXWrapper(m_motor, DCMotor.getKrakenX44(1),
         motorConfig);
 
     ArmConfig motorArmConfig = new ArmConfig(motorController)
         .withStartingPosition(Degrees.of(0))
-        .withHardLimit(Degrees.of(0), TurretConstants.kPitchPivotHardLimit)
-        .withTelemetry("Pitch Arm", TelemetryVerbosity.HIGH);
+        .withHardLimit(Degrees.of(0), TurretConstants.kHoodPivotHardLimit)
+        .withTelemetry("Hood Arm", TelemetryVerbosity.HIGH);
 
     m_armMechanism = new Arm(motorArmConfig);
   }

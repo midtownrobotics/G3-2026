@@ -17,30 +17,33 @@ public class TurretConstants {
   final static double kYawP = 0;
   final static double kYawI = 0;
   final static double kYawD = 0;
-  final static double kPitchP = 0;
-  final static double kPitchI = 0;
-  final static double kPitchD = 0;
   final static double kYawTolerance = Math.PI / 10;
-  final static double kPitchTolerance = Math.PI / 10;
   final static double kYawPIDRampRate = 0.25;
-  final static double kPitchPIDRampRate = 0.25;
+
+  final static double kHoodP = 0;
+  final static double kHoodI = 0;
+  final static double kHoodD = 0;
+  final static double kHoodTolerance = Math.PI / 10;  
+  final static double kHoodPIDRampRate = 0.25;
+  
   final static double kShooterP = 0;
   final static double kShooterI = 0;
   final static double kShooterD = 0;
   final static double kShooterTolerance = Math.PI / 10;
   final static double kShooterRampRate = 0.25;
+
   // Motor-Pivot config
   final static Current kMotorCurrentLImit = Amps.of(30);
   final static Angle kYawPivotHardLimit = Degrees.of(720);
-  final static Angle kPitchPivotHardLimit = Degrees.of(180);
+  final static Angle kHoodPivotHardLimit = Degrees.of(180);
   final static double kYawGearReduction = 0;
-  final static double kPitchGearReduction = 0;
-  final static Mass kPitchPivotMass = Pounds.of(0);
+  final static double kHoodGearReduction = 0;
+  final static Mass kHoodPivotMass = Pounds.of(0);
   final static Mass kYawPivotMass = Pounds.of(0);
-  final static Distance kPitchPivotDiameter = Inches.of(0);
+  final static Distance kHoodPivotDiameter = Inches.of(0);
   final static Distance kYawPivotDiameter = Inches.of(0);
   final static AngularVelocity kYawMotorMaxAngularVelocity = RPM.of(20);
-  final static AngularVelocity kPitchMotorMaxAngularVelocity = RPM.of(20);
+  final static AngularVelocity kHoodMotorMaxAngularVelocity = RPM.of(20);
 
   // Flywheel config
   final static Distance kShooterFlywheelDiameter = Inches.of(4);
