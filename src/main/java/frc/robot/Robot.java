@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.controls.Controls;
 import frc.robot.controls.XboxControls;
@@ -21,17 +22,26 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.sensors.Camera;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.intake.IntakeGoal;
+import frc.robot.subsystems.intake.IntakePivot;
+import frc.robot.subsystems.intake.IntakeRoller;
 
 @Logged
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
-  public final Controls m_controls;
-  public final Vision m_vision;
-  public final CommandSwerveDrivetrain m_drive;
-  public final RobotState m_state;
+  private final Controls m_controls;
+
+  private final CommandSwerveDrivetrain m_drive;
+  private final Vision m_vision;  
+  
+  private final IntakePivot m_intakePivot;
+  private final IntakeRoller m_intakeRoller;
+
   private final AutoFactory m_autoFactory;
   private final AutoRoutines m_autoRoutines;
   private final AutoChooser m_autoChooser;
+  
+  private final RobotState m_state;
 
   public Robot() {
     DogLog.setOptions(new DogLogOptions().withCaptureDs(true));
@@ -41,6 +51,8 @@ public class Robot extends TimedRobot {
 
     m_controls = new XboxControls(0);
     m_drive = TunerConstants.createDrivetrain();
+    m_intakePivot = new IntakePivot();
+    m_intakeRoller = new IntakeRoller();
 
     Camera rearFacingRightCamera = new Camera("rearFacingRightCamera", new Transform3d());
     Camera frontFacingRightCamera = new Camera("frontFacingRightCamera", new Transform3d());
@@ -77,6 +89,21 @@ public class Robot extends TimedRobot {
     new Trigger(DriverStation::isAutonomousEnabled).whileTrue(m_autoChooser.selectedCommandScheduler());
 
     // RobotModeTriggers.autonomous().whileTrue(m_autoRoutines.taxiAuto().cmd());
+    m_controls.intakeFuel().whileTrue(runIntakeCommand()).onFalse(stowIntakeCommand());
+  }
+
+  private Command setIntakeGoalCommand(IntakeGoal goal) {
+    return Commands.parallel(
+        m_intakePivot.setAngleCommand(goal.angle),
+        m_intakeRoller.setVoltageCommand(goal.voltage));
+  }
+
+  private Command runIntakeCommand() {
+    return setIntakeGoalCommand(IntakeGoal.INTAKING);
+  }
+
+  private Command stowIntakeCommand() {
+    return setIntakeGoalCommand(IntakeGoal.STOW);
   }
 
   @Override
