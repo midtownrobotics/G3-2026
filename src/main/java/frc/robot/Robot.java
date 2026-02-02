@@ -71,7 +71,7 @@ public class Robot extends TimedRobot {
     new Trigger(DriverStation::isAutonomousEnabled).whileTrue(m_autoChooser.selectedCommandScheduler());
 
     // RobotModeTriggers.autonomous().whileTrue(m_autoRoutines.taxiAuto().cmd());
-    m_controls.getIntake().whileTrue(runIntakeCommand()).onFalse(stowIntakeCommand());
+    m_controls.intakeFuel().whileTrue(runIntakeCommand()).onFalse(stowIntakeCommand());
   }
 
   private Command setIntakeGoalCommand(IntakeGoal goal) {

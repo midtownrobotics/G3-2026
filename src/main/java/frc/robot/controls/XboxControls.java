@@ -29,7 +29,7 @@ public class XboxControls implements Controls {
   }
 
   @Override
-  public Trigger getIntake() {
+  public Trigger intakeFuel() {
     return m_controller.a();
   }
 }

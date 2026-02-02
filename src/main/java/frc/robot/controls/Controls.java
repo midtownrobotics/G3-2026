@@ -13,5 +13,5 @@ public interface Controls {
 
   public double getDriveRotation();
 
-  public Trigger getIntake();
+  public Trigger intakeFuel();
 }
