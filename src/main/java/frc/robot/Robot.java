@@ -41,8 +41,8 @@ public class Robot extends TimedRobot {
     m_drive = TunerConstants.createDrivetrain();
 
     m_state = new RobotState(m_controls, m_drive);
-  
-    m_autoFactory = new AutoFactory(
+
+m_autoFactory = new AutoFactory(
       m_drive::getPose, // A function that returns the current robot pose
       m_drive::resetPose, // A function that resets the current robot pose to the provided Pose2d
       m_drive::followPath, // The drive subsystem trajectory follower 
@@ -62,6 +62,21 @@ public class Robot extends TimedRobot {
     new Trigger(DriverStation::isAutonomousEnabled).whileTrue(m_autoChooser.selectedCommandScheduler());
 
     // RobotModeTriggers.autonomous().whileTrue(m_autoRoutines.taxiAuto().cmd());
+    m_controls.getIntake().whileTrue(runIntakeCommand()).onFalse(stowIntakeCommand());
+  }
+
+  private Command setIntakeGoalCommand(IntakeGoal goal) {
+    return Commands.parallel(
+        m_intakePivot.setAngleCommand(goal.angle),
+        m_intakeRoller.setSpeedCommand(goal.rollerDutyCycle.magnitude()));
+  }
+
+  private Command runIntakeCommand() {
+    return setIntakeGoalCommand(IntakeGoal.INTAKING);
+  }
+
+  private Command stowIntakeCommand() {
+    return setIntakeGoalCommand(IntakeGoal.STOW);
   }
 
   @Override
