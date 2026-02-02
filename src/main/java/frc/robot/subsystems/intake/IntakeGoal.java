@@ -1,20 +1,20 @@
 package frc.robot.subsystems.intake;
 
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Percent;
+import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.Dimensionless;
+import edu.wpi.first.units.measure.Voltage;
 
 public enum IntakeGoal {
-  STOW(Degrees.of(90), Percent.of(0)),
-  INTAKING(Degrees.of(0), Percent.of(100));
+  STOW(Degrees.of(90), Volts.of(0)),
+  INTAKING(Degrees.of(0), Volts.of(100));
 
   public final Angle angle;
-  public final Dimensionless rollerDutyCycle;
+  public final Voltage voltage;
 
-  IntakeGoal(Angle angle, Dimensionless rollerDutyCycle) {
+  IntakeGoal(Angle angle, Voltage voltage) {
     this.angle = angle;
-    this.rollerDutyCycle = rollerDutyCycle;
+    this.voltage = voltage;
   }
 }
