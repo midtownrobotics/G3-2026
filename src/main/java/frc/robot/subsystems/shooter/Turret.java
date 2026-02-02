@@ -1,4 +1,4 @@
-package frc.robot.subsystems.turret;
+package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
@@ -22,11 +22,11 @@ import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
-public class Yaw extends SubsystemBase {
+public class Turret extends SubsystemBase {
   private final TalonFX m_motor;
   private final Pivot m_pivotMechanism;
 
-  public Yaw(int motorID, int motorEncoderID) {
+  public Turret(int motorID, int motorEncoderID) {
     m_motor = new TalonFX(Ports.kTurretMotor);
 
     SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)

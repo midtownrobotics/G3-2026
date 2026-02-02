@@ -1,4 +1,4 @@
-package frc.robot.subsystems.turret;
+package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
@@ -23,9 +23,9 @@ public class TurretConstants {
   final static double kHoodP = 0;
   final static double kHoodI = 0;
   final static double kHoodD = 0;
-  final static double kHoodTolerance = Math.PI / 10;  
+  final static double kHoodTolerance = Math.PI / 10;
   final static double kHoodPIDRampRate = 0.25;
-  
+
   final static double kShooterP = 0;
   final static double kShooterI = 0;
   final static double kShooterD = 0;
