@@ -19,19 +19,16 @@ public class XboxControls implements Controls {
   }
 
   @Override
-
   public double getDriveLeft() {
     return MathUtil.applyDeadband(m_controller.getLeftX() * -1, kDriverJoystickThreshold);
   }
 
   @Override
-
   public double getDriveRotation() {
     return MathUtil.applyDeadband(m_controller.getRightX() * -1, kDriverJoystickThreshold);
   }
 
   @Override
-
   public Trigger getIntake() {
     return m_controller.a();
   }
