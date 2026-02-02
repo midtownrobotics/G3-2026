@@ -1,17 +1,16 @@
-package frc.robot.subsystems.intake;
+package frc.robot.subsystems.feeder;
 
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
 
-import java.util.function.Supplier;
-
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.Logged.Strategy;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import yams.mechanisms.config.FlyWheelConfig;
@@ -24,44 +23,42 @@ import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 @Logged(strategy = Strategy.OPT_IN)
-public class IntakeRoller extends SubsystemBase {
-  private final SmartMotorController m_rollerMotor;
-  private final FlyWheel m_roller;
+public class Feeder extends SubsystemBase {
+  private final SmartMotorController m_feederMotor;
+  private final FlyWheel m_feeder;
 
-  public IntakeRoller() {
-    SmartMotorControllerConfig rollerMotorCfg = new SmartMotorControllerConfig(this)
+  public Feeder() {
+    SmartMotorControllerConfig beltMotorCfg = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.OPEN_LOOP)
         .withIdleMode(MotorMode.COAST)
-        .withTelemetry("IntakeRollerMotor", TelemetryVerbosity.HIGH);
+        .withClosedLoopController(0.3, 0, 0.01)
+        .withFeedforward(new SimpleMotorFeedforward(0.05, 0.12, 0))
+        .withTelemetry("FeederMotor", TelemetryVerbosity.HIGH);
 
-    TalonFX rollerTalonFX = new TalonFX(6);
-    m_rollerMotor = new TalonFXWrapper(rollerTalonFX, DCMotor.getKrakenX60(1), rollerMotorCfg);
+    TalonFX beltTalonFX = new TalonFX(0);
+    m_feederMotor = new TalonFXWrapper(beltTalonFX, DCMotor.getKrakenX44(1), beltMotorCfg);
 
-    FlyWheelConfig rollerConfig = new FlyWheelConfig(m_rollerMotor)
+    FlyWheelConfig beltConfig = new FlyWheelConfig(m_feederMotor)
         .withMass(Pounds.of(0.5))
         .withUpperSoftLimit(RPM.of(6000))
         .withLowerSoftLimit(RPM.of(-6000))
-        .withDiameter(Inches.of(1.5))
-        .withTelemetry("IntakeRoller", TelemetryVerbosity.HIGH);
+        .withDiameter(Inches.of(2.0))
+        .withTelemetry("Feeder", TelemetryVerbosity.HIGH);
 
-    m_roller = new FlyWheel(rollerConfig);
+    m_feeder = new FlyWheel(beltConfig);
   }
 
   @Override
   public void periodic() {
-    m_roller.updateTelemetry();
+    m_feeder.updateTelemetry();
   }
 
   @Override
   public void simulationPeriodic() {
-    m_roller.simIterate();
+    m_feeder.simIterate();
   }
 
-  public Command setVoltageCommand(Voltage voltage) {
-    return m_roller.setVoltage(voltage);
-  }
-
-  public Command setVoltageCommand(Supplier<Voltage> voltage) {
-    return m_roller.setVoltage(voltage);
+  public Command setSpeedCommand(AngularVelocity angularVelocity) {
+    return m_feeder.setSpeed(angularVelocity);
   }
 }
