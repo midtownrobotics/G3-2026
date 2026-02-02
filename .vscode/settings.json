@@ -73,5 +73,7 @@
   "java.saveActions.organizeImports": true,
   "editor.codeActionsOnSave": {
     "source.organizeImports": "explicit"
-  }
+  },
+  "git.fetchOnPull": true,
+  "git.autofetch": "all"
 }
