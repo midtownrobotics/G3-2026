@@ -1,9 +1,9 @@
 package frc.robot;
 
-import dev.doglog.DogLog;
-import dev.doglog.DogLogOptions;
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
+import dev.doglog.DogLog;
+import dev.doglog.DogLogOptions;
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -14,8 +14,6 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.controls.Controls;
 import frc.robot.controls.XboxControls;
@@ -50,22 +48,21 @@ public class Robot extends TimedRobot {
     Camera frontFacingLeftCamera = new Camera("frontFacingLeftCamera", new Transform3d());
 
     m_vision = new Vision(
-      (observation) -> m_drive.addVisionMeasurement(observation.pose().toPose2d(), observation.timestamp()), 
-      m_drive::getPose, 
-      rearFacingRightCamera,
-      frontFacingRightCamera,
-      rearFacingLeftCamera,
-      frontFacingLeftCamera
-    );
+        (observation) -> m_drive.addVisionMeasurement(observation.pose().toPose2d(), observation.timestamp()),
+        m_drive::getPose,
+        rearFacingRightCamera,
+        frontFacingRightCamera,
+        rearFacingLeftCamera,
+        frontFacingLeftCamera);
 
     m_state = new RobotState(m_controls, m_drive);
-  
+
     m_autoFactory = new AutoFactory(
-      m_drive::getPose, // A function that returns the current robot pose
-      m_drive::resetPose, // A function that resets the current robot pose to the provided Pose2d
-      m_drive::followPath, // The drive subsystem trajectory follower 
-      true, // If alliance flipping should be enabled 
-      m_drive // The drive subsystem
+        m_drive::getPose, // A function that returns the current robot pose
+        m_drive::resetPose, // A function that resets the current robot pose to the provided Pose2d
+        m_drive::followPath, // The drive subsystem trajectory follower 
+        true, // If alliance flipping should be enabled 
+        m_drive // The drive subsystem
     );
 
     m_autoRoutines = new AutoRoutines(m_autoFactory);
