@@ -77,7 +77,7 @@ public class Robot extends TimedRobot {
   private Command setIntakeGoalCommand(IntakeGoal goal) {
     return Commands.parallel(
         m_intakePivot.setAngleCommand(goal.angle),
-        m_intakeRoller.setSpeedCommand(goal.rollerDutyCycle.magnitude()));
+        m_intakeRoller.setVoltageCommand(goal.voltage));
   }
 
   private Command runIntakeCommand() {
