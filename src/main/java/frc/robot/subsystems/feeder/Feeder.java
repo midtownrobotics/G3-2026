@@ -61,8 +61,4 @@ public class Feeder extends SubsystemBase {
   public Command setSpeedCommand(AngularVelocity angularVelocity) {
     return m_feeder.setSpeed(angularVelocity);
   }
-
-  public Command offCommand() {
-    return m_feeder.set(0.0);
-  }
 }
