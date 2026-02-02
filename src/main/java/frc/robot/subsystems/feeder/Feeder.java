@@ -1,4 +1,4 @@
-package frc.robot.subsystems.shooter;
+package frc.robot.subsystems.feeder;
 
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Pounds;
@@ -35,17 +35,15 @@ public class Feeder extends SubsystemBase {
         .withFeedforward(new SimpleMotorFeedforward(0.05, 0.12, 0))
         .withTelemetry("FeederMotor", TelemetryVerbosity.HIGH);
 
-    //I have no idea what our canbus ID is
-    TalonFX beltTalonFX = new TalonFX(3);
-    //also don't know what motors we are using so just put this here for now
-    m_feederMotor = new TalonFXWrapper(beltTalonFX, DCMotor.getKrakenX60(1), beltMotorCfg);
+    TalonFX beltTalonFX = new TalonFX(0);
+    m_feederMotor = new TalonFXWrapper(beltTalonFX, DCMotor.getKrakenX44(1), beltMotorCfg);
 
     FlyWheelConfig beltConfig = new FlyWheelConfig(m_feederMotor)
         .withMass(Pounds.of(0.5))
         .withUpperSoftLimit(RPM.of(6000))
         .withLowerSoftLimit(RPM.of(-6000))
-        .withDiameter(Inches.of(1.5))
-        .withTelemetry("Feeder", TelemetryVerbosity.HIGH);
+        .withDiameter(Inches.of(2.0))
+        .withTelemetry("TurretBelt", TelemetryVerbosity.HIGH);
 
     m_feeder = new FlyWheel(beltConfig);
   }
