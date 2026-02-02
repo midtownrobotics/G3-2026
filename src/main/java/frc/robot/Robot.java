@@ -1,11 +1,12 @@
 package frc.robot;
 
-import dev.doglog.DogLog;
-import dev.doglog.DogLogOptions;
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
+import dev.doglog.DogLog;
+import dev.doglog.DogLogOptions;
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -13,23 +14,34 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.controls.Controls;
 import frc.robot.controls.XboxControls;
 import frc.robot.generated.TunerConstants;
+import frc.robot.sensors.Camera;
+import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.intake.IntakeGoal;
+import frc.robot.subsystems.intake.IntakePivot;
+import frc.robot.subsystems.intake.IntakeRoller;
 
 @Logged
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
-  public final Controls m_controls;
-  public final CommandSwerveDrivetrain m_drive;
-  public final RobotState m_state;
+  private final Controls m_controls;
+
+  private final CommandSwerveDrivetrain m_drive;
+  private final Vision m_vision;  
+  
+  private final IntakePivot m_intakePivot;
+  private final IntakeRoller m_intakeRoller;
+
   private final AutoFactory m_autoFactory;
   private final AutoRoutines m_autoRoutines;
   private final AutoChooser m_autoChooser;
+  
+  private final RobotState m_state;
 
   public Robot() {
     DogLog.setOptions(new DogLogOptions().withCaptureDs(true));
@@ -39,15 +51,30 @@ public class Robot extends TimedRobot {
 
     m_controls = new XboxControls(0);
     m_drive = TunerConstants.createDrivetrain();
+    m_intakePivot = new IntakePivot();
+    m_intakeRoller = new IntakeRoller();
+
+    Camera rearFacingRightCamera = new Camera("rearFacingRightCamera", new Transform3d());
+    Camera frontFacingRightCamera = new Camera("frontFacingRightCamera", new Transform3d());
+    Camera rearFacingLeftCamera = new Camera("rearFacingLeftCamera", new Transform3d());
+    Camera frontFacingLeftCamera = new Camera("frontFacingLeftCamera", new Transform3d());
+
+    m_vision = new Vision(
+        (observation) -> m_drive.addVisionMeasurement(observation.pose().toPose2d(), observation.timestamp()),
+        m_drive::getPose,
+        rearFacingRightCamera,
+        frontFacingRightCamera,
+        rearFacingLeftCamera,
+        frontFacingLeftCamera);
 
     m_state = new RobotState(m_controls, m_drive);
-  
+
     m_autoFactory = new AutoFactory(
-      m_drive::getPose, // A function that returns the current robot pose
-      m_drive::resetPose, // A function that resets the current robot pose to the provided Pose2d
-      m_drive::followPath, // The drive subsystem trajectory follower 
-      true, // If alliance flipping should be enabled 
-      m_drive // The drive subsystem
+        m_drive::getPose, // A function that returns the current robot pose
+        m_drive::resetPose, // A function that resets the current robot pose to the provided Pose2d
+        m_drive::followPath, // The drive subsystem trajectory follower 
+        true, // If alliance flipping should be enabled 
+        m_drive // The drive subsystem
     );
 
     m_autoRoutines = new AutoRoutines(m_autoFactory);
@@ -62,6 +89,21 @@ public class Robot extends TimedRobot {
     new Trigger(DriverStation::isAutonomousEnabled).whileTrue(m_autoChooser.selectedCommandScheduler());
 
     // RobotModeTriggers.autonomous().whileTrue(m_autoRoutines.taxiAuto().cmd());
+    m_controls.intakeFuel().whileTrue(runIntakeCommand()).onFalse(stowIntakeCommand());
+  }
+
+  private Command setIntakeGoalCommand(IntakeGoal goal) {
+    return Commands.parallel(
+        m_intakePivot.setAngleCommand(goal.angle),
+        m_intakeRoller.setVoltageCommand(goal.voltage));
+  }
+
+  private Command runIntakeCommand() {
+    return setIntakeGoalCommand(IntakeGoal.INTAKING);
+  }
+
+  private Command stowIntakeCommand() {
+    return setIntakeGoalCommand(IntakeGoal.STOW);
   }
 
   @Override
