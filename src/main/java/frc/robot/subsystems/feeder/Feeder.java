@@ -43,7 +43,7 @@ public class Feeder extends SubsystemBase {
         .withUpperSoftLimit(RPM.of(6000))
         .withLowerSoftLimit(RPM.of(-6000))
         .withDiameter(Inches.of(2.0))
-        .withTelemetry("TurretBelt", TelemetryVerbosity.HIGH);
+        .withTelemetry("Feeder", TelemetryVerbosity.HIGH);
 
     m_feeder = new FlyWheel(beltConfig);
   }
