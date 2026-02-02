@@ -66,11 +66,11 @@ public class Yaw extends SubsystemBase {
     return m_pivotMechanism.getAngle();
   }
 
-  public Command setAngle(Angle angle) {
+  public Command setAngleCommand(Angle angle) {
     return m_pivotMechanism.setAngle(angle);
   }
 
-  public Command setAngle(Supplier<Angle> angle) {
+  public Command setAngleCommand(Supplier<Angle> angle) {
     return m_pivotMechanism.setAngle(angle);
   }
 }
