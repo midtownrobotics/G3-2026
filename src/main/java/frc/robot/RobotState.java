@@ -7,21 +7,28 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.controls.Controls;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.intake.IntakePivot;
+import frc.robot.subsystems.shooter.Turret;
 
 @Logged
 public class RobotState {
   public final Controls m_controls;
   public final CommandSwerveDrivetrain m_drive;
+  public final IntakePivot m_intakePivot;
+  public final Turret m_turret;
 
-  public RobotState(Controls controls, CommandSwerveDrivetrain drive) {
+  public RobotState(Controls controls, CommandSwerveDrivetrain drive, IntakePivot intakePivot, Turret turret) {
     m_controls = controls;
     m_drive = drive;
+    m_intakePivot = intakePivot;
+    m_turret = turret;
 
     m_drive.setDefaultCommand(joyStickDrive());
   }
@@ -43,6 +50,14 @@ public class RobotState {
 
   public Pose2d getRobotPose() {
     return m_drive.getPose();
+  }
+
+  public Angle getIntakeAngle() {
+    return m_intakePivot.getAngle();
+  }
+
+  public Angle getTurretAngle() {
+    return m_turret.getAngle();
   }
 
   public Trigger inAllianceZone() {
