@@ -63,6 +63,10 @@ public class IntakePivot extends SubsystemBase {
     m_pivotArm.simIterate();
   }
 
+  public Angle getAngle() {
+    return m_pivotArm.getAngle();
+  }
+
   public Command setAngleCommand(Angle angle) {
     return m_pivotArm.setAngle(angle);
   }
