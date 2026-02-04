@@ -14,13 +14,13 @@ import edu.wpi.first.units.measure.Mass;
 
 public class TurretConstants {
   // PID config 
-  final static double kYawP = 0;
+  final static double kYawP = 10;
   final static double kYawI = 0;
   final static double kYawD = 0;
   final static double kYawTolerance = Math.PI / 10;
   final static double kYawPIDRampRate = 0.25;
 
-  final static double kHoodP = 0;
+  final static double kHoodP = 10;
   final static double kHoodI = 0;
   final static double kHoodD = 0;
   final static double kHoodTolerance = Math.PI / 10;
@@ -36,12 +36,12 @@ public class TurretConstants {
   final static Current kMotorCurrentLImit = Amps.of(30);
   final static Angle kYawPivotHardLimit = Degrees.of(720);
   final static Angle kHoodPivotHardLimit = Degrees.of(180);
-  final static double kYawGearReduction = 0;
-  final static double kHoodGearReduction = 0;
-  final static Mass kHoodPivotMass = Pounds.of(0);
-  final static Mass kYawPivotMass = Pounds.of(0);
-  final static Distance kHoodPivotDiameter = Inches.of(0);
-  final static Distance kYawPivotDiameter = Inches.of(0);
+  final static double kYawGearReduction = 48;
+  final static double kHoodGearReduction = 48;
+  final static Mass kHoodPivotMass = Pounds.of(5);
+  final static Mass kYawPivotMass = Pounds.of(20);
+  final static Distance kHoodPivotDiameter = Inches.of(6);
+  final static Distance kYawPivotDiameter = Inches.of(12);
   final static AngularVelocity kYawMotorMaxAngularVelocity = RPM.of(20);
   final static AngularVelocity kHoodMotorMaxAngularVelocity = RPM.of(20);
 
