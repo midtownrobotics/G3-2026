@@ -4,8 +4,11 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
 
+import com.ctre.phoenix6.configs.CANrangeConfiguration;
+import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import dev.doglog.DogLog;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -13,6 +16,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Ports;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
 import yams.motorcontrollers.SmartMotorController;
@@ -26,6 +30,7 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 public class Feeder extends SubsystemBase {
   private final SmartMotorController m_feederMotor;
   private final FlyWheel m_feeder;
+  private final CANrange m_fuelSensor;
 
   public Feeder() {
     SmartMotorControllerConfig beltMotorCfg = new SmartMotorControllerConfig(this)
@@ -46,10 +51,17 @@ public class Feeder extends SubsystemBase {
         .withTelemetry("Feeder", TelemetryVerbosity.HIGH);
 
     m_feeder = new FlyWheel(beltConfig);
+
+    CANrangeConfiguration fuelSensorConfig = new CANrangeConfiguration();
+
+    m_fuelSensor = new CANrange(Ports.kFeederFuelSensor);
+    m_fuelSensor.getConfigurator().apply(fuelSensorConfig);
   }
 
   @Override
   public void periodic() {
+    DogLog.log("Feeder/FuelSensor/Distance", m_fuelSensor.getDistance().getValueAsDouble());
+    DogLog.log("Feeder/FuelSensor/DistanceSTD", m_fuelSensor.getDistanceStdDev().getValueAsDouble());
     m_feeder.updateTelemetry();
   }
 
