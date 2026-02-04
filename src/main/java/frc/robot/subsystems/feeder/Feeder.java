@@ -44,7 +44,7 @@ public class Feeder extends SubsystemBase {
         .withGearing(0.25)
         .withTelemetry("FeederMotor", TelemetryVerbosity.HIGH);
 
-    TalonFX beltTalonFX = new TalonFX(0);
+    TalonFX beltTalonFX = new TalonFX(Ports.kFeederBeltTalonFXPort);
     m_feederMotor = new TalonFXWrapper(beltTalonFX, DCMotor.getKrakenX44(1), beltMotorCfg);
 
     FlyWheelConfig beltConfig = new FlyWheelConfig(m_feederMotor)
