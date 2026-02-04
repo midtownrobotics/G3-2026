@@ -27,7 +27,7 @@ public class Turret extends SubsystemBase {
   private final Pivot m_pivotMechanism;
 
   public Turret(int motorID, int motorEncoderID) {
-    m_motor = new TalonFX(Ports.kTurretMotor);
+    m_motor = new TalonFX(Ports.kTurretShooterMotorTalonFXPort);
 
     SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)

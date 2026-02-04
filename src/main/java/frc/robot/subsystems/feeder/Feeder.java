@@ -13,6 +13,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Ports;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
 import yams.motorcontrollers.SmartMotorController;
@@ -35,7 +36,7 @@ public class Feeder extends SubsystemBase {
         .withFeedforward(new SimpleMotorFeedforward(0.05, 0.12, 0))
         .withTelemetry("FeederMotor", TelemetryVerbosity.HIGH);
 
-    TalonFX beltTalonFX = new TalonFX(0);
+    TalonFX beltTalonFX = new TalonFX(Ports.kFeederBeltTalonFXPort);
     m_feederMotor = new TalonFXWrapper(beltTalonFX, DCMotor.getKrakenX44(1), beltMotorCfg);
 
     FlyWheelConfig beltConfig = new FlyWheelConfig(m_feederMotor)

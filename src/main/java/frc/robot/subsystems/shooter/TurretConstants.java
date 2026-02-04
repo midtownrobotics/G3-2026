@@ -35,7 +35,12 @@ public class TurretConstants {
   // Motor-Pivot config
   final static Current kMotorCurrentLImit = Amps.of(30);
   final static Angle kYawPivotHardLimit = Degrees.of(720);
+  final static Angle kYawPivotHardMin = Degrees.of(720);
+  final static Angle kYawPivotSoftMin = Degrees.of(720);
+  final static Angle kYawPivotSoftLimit = Degrees.of(720);
+
   final static Angle kHoodPivotHardLimit = Degrees.of(180);
+
   final static double kYawGearReduction = 48;
   final static double kHoodGearReduction = 48;
   final static Mass kHoodPivotMass = Pounds.of(5);
@@ -51,4 +56,7 @@ public class TurretConstants {
   final static double kShooterVelocityLoss = 0.5; //Remove once muzzle velocity found empirically
   final static double kShooterGearReduction = 0;
   final static AngularVelocity kShooterMaxAngularVelocity = RPM.of(5000);
+
+  final static double kCRTRatio1 = 0;
+  final static double kCRTRatio2 = 0;
 }

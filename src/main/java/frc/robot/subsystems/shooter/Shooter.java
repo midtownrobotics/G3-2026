@@ -26,7 +26,7 @@ public class Shooter extends SubsystemBase {
 
   public Shooter(int shooterMotorID, int shooterMotorEncoderID, int reverseShooterMotorID,
       int reverseShooterMotorEncoderID) {
-    m_shooterMotor = new TalonFX(Ports.kShooterMotor);
+    m_shooterMotor = new TalonFX(Ports.kTurretShooterMotorTalonFXPort);
 
     SmartMotorControllerConfig upperShooterMotorConfig = new SmartMotorControllerConfig()
         .withIdleMode(MotorMode.COAST)
