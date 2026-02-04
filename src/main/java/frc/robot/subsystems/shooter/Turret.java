@@ -4,10 +4,12 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -35,20 +37,20 @@ public class Turret extends SubsystemBase {
             TurretConstants.kYawMotorMaxAngularVelocity, DegreesPerSecondPerSecond.of(30))
         .withGearing(TurretConstants.kYawGearReduction)
         .withIdleMode(MotorMode.BRAKE)
-        .withTelemetry("Yaw Motor", TelemetryVerbosity.HIGH)
+        .withTelemetry("TurretMotor", TelemetryVerbosity.HIGH)
         .withStatorCurrentLimit(TurretConstants.kMotorCurrentLImit)
         .withClosedLoopRampRate(Seconds.of(TurretConstants.kYawPIDRampRate))
         .withOpenLoopRampRate(Seconds.of(TurretConstants.kYawPIDRampRate));
 
     SmartMotorController motorController = new TalonFXWrapper(m_motor, DCMotor.getKrakenX60(1), motorConfig);
 
-    PivotConfig motorPivotConfig = new PivotConfig(motorController)
+    PivotConfig pivotConfig = new PivotConfig(motorController)
         .withStartingPosition(Degrees.of(0))
-        .withHardLimit(Degrees.of(0), TurretConstants.kYawPivotHardLimit)
-        .withTelemetry("Yaw Pivot", TelemetryVerbosity.HIGH)
+        .withHardLimit(Degrees.of(-255), Degrees.of(255))
+        .withTelemetry("Turret", TelemetryVerbosity.HIGH)
         .withMOI(TurretConstants.kYawPivotDiameter, TurretConstants.kYawPivotMass);
 
-    m_pivotMechanism = new Pivot(motorPivotConfig);
+    m_pivotMechanism = new Pivot(pivotConfig);
   }
 
   @Override
@@ -70,6 +72,25 @@ public class Turret extends SubsystemBase {
   }
 
   public Command setAngleCommand(Supplier<Angle> angle) {
-    return m_pivotMechanism.setAngle(angle);
+    Supplier<Angle> newAngle = mapSupplier(angle, this::findNearestAngle);
+    return m_pivotMechanism.setAngle(newAngle);
+  }
+
+  private Angle findNearestAngle(Angle angle) {
+    double targetDegrees = angle.in(Degrees);
+    double currentDegrees = getAngle().in(Degrees);
+
+    // Normalize target relative to current angle, then clamp to limits
+    double delta = ((targetDegrees - currentDegrees) % 360 + 540) % 360 - 180;
+    double bestAngle = currentDegrees + delta;
+
+    // Clamp to turret limits
+    bestAngle = MathUtil.clamp(bestAngle, -255, 255);
+
+    return Degrees.of(bestAngle);
+  }
+
+  private static <T> Supplier<T> mapSupplier(Supplier<T> supplier, Function<T, T> mapper) {
+    return () -> mapper.apply(supplier.get());
   }
 }
