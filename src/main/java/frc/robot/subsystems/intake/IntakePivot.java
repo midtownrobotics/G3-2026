@@ -36,6 +36,7 @@ public class IntakePivot extends SubsystemBase {
         .withClosedLoopController(0.6, 0.0, 0.05, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
         .withFeedforward(new ArmFeedforward(0.1, 0.4, 0.01))
         .withTelemetry("IntakePivotMotor", TelemetryVerbosity.HIGH)
+        .withGearing(48)
         .withMotorInverted(false)
         .withIdleMode(MotorMode.BRAKE);
 
@@ -44,6 +45,7 @@ public class IntakePivot extends SubsystemBase {
 
     ArmConfig armCfg = new ArmConfig(m_pivotMotor)
         .withSoftLimits(Degrees.of(-20), Degrees.of(150))
+        .withHardLimit(Degrees.of(20), Degrees.of(150))
         .withStartingPosition(Degrees.of(0))
         .withLength(Inches.of(30.5))
         .withMass(Pounds.of(4.0))

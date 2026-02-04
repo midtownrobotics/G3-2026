@@ -1,4 +1,4 @@
-package frc.robot.subsystems;
+package frc.robot;
 
 import static edu.wpi.first.units.Units.Radians;
 
@@ -6,17 +6,14 @@ import dev.doglog.DogLog;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.RobotState;
 
-public class RobotViz extends SubsystemBase {
+public class RobotViz {
   public RobotState m_state;
 
   public RobotViz(RobotState state) {
     m_state = state;
   }
 
-  @Override
   public void periodic() {
     DogLog.log("RobotViz/ZeroedPoses", new Pose3d[] { new Pose3d(), new Pose3d() });
     DogLog.log("RobotViz/ComponentPoses",

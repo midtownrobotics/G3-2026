@@ -44,7 +44,6 @@ public class Turret extends SubsystemBase {
 
     PivotConfig motorPivotConfig = new PivotConfig(motorController)
         .withStartingPosition(Degrees.of(0))
-        .withWrapping(Degrees.of(0), Degrees.of(360))
         .withHardLimit(Degrees.of(0), TurretConstants.kYawPivotHardLimit)
         .withTelemetry("Yaw Pivot", TelemetryVerbosity.HIGH)
         .withMOI(TurretConstants.kYawPivotDiameter, TurretConstants.kYawPivotMass);
