@@ -27,7 +27,7 @@ public class Hood extends SubsystemBase {
   private final Arm m_armMechanism;
 
   public Hood(int motorID, int encoderID) {
-    m_motor = new TalonFX(Ports.kHoodMotor);
+    m_motor = new TalonFX(Ports.kTurretHoodTalonFXPort);
 
     SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)

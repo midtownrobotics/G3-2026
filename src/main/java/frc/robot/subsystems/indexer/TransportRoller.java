@@ -12,6 +12,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Ports;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
 import yams.motorcontrollers.SmartMotorController;
@@ -32,7 +33,7 @@ public class TransportRoller extends SubsystemBase {
         .withIdleMode(MotorMode.COAST)
         .withTelemetry("TransportRollerMotor", TelemetryVerbosity.HIGH);
 
-    TalonFX rollerTalon = new TalonFX(6);
+    TalonFX rollerTalon = new TalonFX(Ports.kIndexerTransportRollerTalonFXPort);
     m_rollerMotor = new TalonFXWrapper(rollerTalon, DCMotor.getKrakenX60(1), rollerMotorCfg);
 
     FlyWheelConfig rollerConfig = new FlyWheelConfig(m_rollerMotor)
