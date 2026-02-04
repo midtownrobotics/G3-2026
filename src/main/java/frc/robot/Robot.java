@@ -22,6 +22,7 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.sensors.Camera;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.intake.IntakeGoal;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
@@ -44,6 +45,8 @@ public class Robot extends TimedRobot {
   private final AutoRoutines m_autoRoutines;
   private final AutoChooser m_autoChooser;
 
+  private final Feeder m_feeder;
+
   private final RobotState m_state;
 
   private final RobotViz m_viz;
@@ -59,6 +62,7 @@ public class Robot extends TimedRobot {
     m_intakePivot = new IntakePivot();
     m_intakeRoller = new IntakeRoller();
     m_turret = new Turret(0, 0);
+    m_feeder = new Feeder();
 
     Camera rearFacingRightCamera = new Camera("rearFacingRightCamera", new Transform3d());
     Camera frontFacingRightCamera = new Camera("frontFacingRightCamera", new Transform3d());

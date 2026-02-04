@@ -38,6 +38,7 @@ public class Feeder extends SubsystemBase {
         .withIdleMode(MotorMode.COAST)
         .withClosedLoopController(0.3, 0, 0.01)
         .withFeedforward(new SimpleMotorFeedforward(0.05, 0.12, 0))
+        .withGearing(0.25)
         .withTelemetry("FeederMotor", TelemetryVerbosity.HIGH);
 
     TalonFX beltTalonFX = new TalonFX(0);
@@ -60,8 +61,9 @@ public class Feeder extends SubsystemBase {
 
   @Override
   public void periodic() {
-    DogLog.log("Feeder/FuelSensor/Distance", m_fuelSensor.getDistance().getValueAsDouble());
-    DogLog.log("Feeder/FuelSensor/DistanceSTD", m_fuelSensor.getDistanceStdDev().getValueAsDouble());
+    DogLog.log("Feeder/FuelSensor/Distance", m_fuelSensor.getDistance().getValue());
+    DogLog.log("Hello", "World!");
+    DogLog.log("Feeder/FuelSensor/DistanceSTD", m_fuelSensor.getDistanceStdDev().getValue());
     m_feeder.updateTelemetry();
   }
 
