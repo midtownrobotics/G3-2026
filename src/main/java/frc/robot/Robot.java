@@ -59,10 +59,10 @@ public class Robot extends TimedRobot {
 
     m_controls = new XboxControls(0);
     m_drive = TunerConstants.createDrivetrain();
+    m_feeder = new Feeder();
     m_intakePivot = new IntakePivot();
     m_intakeRoller = new IntakeRoller();
     m_turret = new Turret(0, 0);
-    m_feeder = new Feeder();
 
     Camera rearFacingRightCamera = new Camera("rearFacingRightCamera", new Transform3d());
     Camera frontFacingRightCamera = new Camera("frontFacingRightCamera", new Transform3d());

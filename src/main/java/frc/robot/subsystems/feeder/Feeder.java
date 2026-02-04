@@ -1,8 +1,10 @@
 package frc.robot.subsystems.feeder;
 
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Milliseconds;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Seconds;
 
 import com.ctre.phoenix6.configs.CANrangeConfiguration;
 import com.ctre.phoenix6.hardware.CANrange;
@@ -16,6 +18,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Ports;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
@@ -59,10 +62,17 @@ public class Feeder extends SubsystemBase {
     m_fuelSensor.getConfigurator().apply(fuelSensorConfig);
   }
 
+  private boolean getFuelSensorTripped() {
+    return m_fuelSensor.getDistance().getValue().gte(FeederConstants.kFuelSensorTriggerDistance);
+  }
+
+  public Trigger fuelSensorTripped() {
+    return new Trigger(this::getFuelSensorTripped).debounce(FeederConstants.kFuelSensorTriggerDebounce.in(Seconds));
+  }
+
   @Override
   public void periodic() {
     DogLog.log("Feeder/FuelSensor/Distance", m_fuelSensor.getDistance().getValue());
-    DogLog.log("Hello", "World!");
     DogLog.log("Feeder/FuelSensor/DistanceSTD", m_fuelSensor.getDistanceStdDev().getValue());
     m_feeder.updateTelemetry();
   }
