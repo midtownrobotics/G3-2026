@@ -22,9 +22,11 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.sensors.Camera;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.RobotViz;
 import frc.robot.subsystems.intake.IntakeGoal;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
+import frc.robot.subsystems.shooter.Turret;
 
 @Logged
 public class Robot extends TimedRobot {
@@ -32,16 +34,20 @@ public class Robot extends TimedRobot {
   private final Controls m_controls;
 
   private final CommandSwerveDrivetrain m_drive;
-  private final Vision m_vision;  
-  
+  private final Vision m_vision;
+
   private final IntakePivot m_intakePivot;
   private final IntakeRoller m_intakeRoller;
+
+  private final Turret m_turret;
 
   private final AutoFactory m_autoFactory;
   private final AutoRoutines m_autoRoutines;
   private final AutoChooser m_autoChooser;
-  
+
   private final RobotState m_state;
+
+  private final RobotViz m_viz;
 
   public Robot() {
     DogLog.setOptions(new DogLogOptions().withCaptureDs(true));
@@ -53,6 +59,7 @@ public class Robot extends TimedRobot {
     m_drive = TunerConstants.createDrivetrain();
     m_intakePivot = new IntakePivot();
     m_intakeRoller = new IntakeRoller();
+    m_turret = new Turret(0, 0);
 
     Camera rearFacingRightCamera = new Camera("rearFacingRightCamera", new Transform3d());
     Camera frontFacingRightCamera = new Camera("frontFacingRightCamera", new Transform3d());
@@ -67,7 +74,9 @@ public class Robot extends TimedRobot {
         rearFacingLeftCamera,
         frontFacingLeftCamera);
 
-    m_state = new RobotState(m_controls, m_drive);
+    m_state = new RobotState(m_controls, m_drive, m_intakePivot, m_turret);
+
+    m_viz = new RobotViz(m_state);
 
     m_autoFactory = new AutoFactory(
         m_drive::getPose, // A function that returns the current robot pose
