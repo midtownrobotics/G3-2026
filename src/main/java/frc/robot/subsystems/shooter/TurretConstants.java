@@ -51,4 +51,8 @@ public class TurretConstants {
   final static double kShooterVelocityLoss = 0.5; //Remove once muzzle velocity found empirically
   final static double kShooterGearReduction = 0;
   final static AngularVelocity kShooterMaxAngularVelocity = RPM.of(5000);
+  //chinese remainder theorem ratios
+  final static double kYawCANCoder1Ratio = 0;
+  final static double kYawCANCoder2Ratio = 0;
+
 }
