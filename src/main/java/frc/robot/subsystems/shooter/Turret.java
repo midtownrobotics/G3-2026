@@ -73,7 +73,9 @@ public class Turret extends SubsystemBase {
         .withAbsoluteEncoderOffsets(Rotations.of(0.0), Rotations.of(0.0));
 
     m_easyCRTSolver = new EasyCRT(easyCRT);
-    m_easyCRTSolver.getAngleOptional(); //update mechanism angle here with a .ifpresent() func
+    m_easyCRTSolver.getAngleOptional().ifPresent(angleCRT -> {
+      motorController.setEncoderPosition(angleCRT);
+    });
 
   }
 
