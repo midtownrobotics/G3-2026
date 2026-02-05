@@ -91,6 +91,9 @@ public class Turret extends SubsystemBase {
       bestAngle = bestAngle + 360.0;
     }
 
+    // In case we're waaaaay wrong
+    bestAngle = MathUtil.clamp(bestAngle, -255, 255);
+
     return Degrees.of(bestAngle);
   }
 
