@@ -85,6 +85,13 @@ public class Turret extends SubsystemBase {
     double bestAngle = currentDegrees + delta;
 
     // Clamp to turret limits
+    if (bestAngle > 255.0) {
+      bestAngle = bestAngle - 360.0;
+    } else if (bestAngle < -255.0) {
+      bestAngle = bestAngle + 360.0;
+    }
+
+    // In case we're waaaaay wrong
     bestAngle = MathUtil.clamp(bestAngle, -255, 255);
 
     return Degrees.of(bestAngle);
