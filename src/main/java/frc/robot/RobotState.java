@@ -1,6 +1,7 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -8,6 +9,7 @@ import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -50,6 +52,29 @@ public class RobotState {
 
   public Pose2d getRobotPose() {
     return m_drive.getPose();
+  }
+
+  public Pose2d getTurretPose() {
+    return getRobotPose().transformBy(Constants.kRobotToTurret);
+  }
+
+  public ChassisSpeeds getRobotRelativeSpeeds() {
+    return m_drive.getChassisSpeeds();
+  }
+
+  public ChassisSpeeds getFieldRelativeSpeeds() {
+    return ChassisSpeeds.fromRobotRelativeSpeeds(getRobotRelativeSpeeds(), getRobotPose().getRotation());
+  }
+
+  public ChassisSpeeds getFieldRelativeTurretSpeeds() {
+    ChassisSpeeds robotSpeeds = getFieldRelativeSpeeds();
+    double h = Constants.kRobotToTurret.getTranslation().getNorm();
+    double theta = getRobotPose().getRotation().getRadians();
+    double omega = getFieldRelativeSpeeds().omegaRadiansPerSecond;
+    LinearVelocity xDt = MetersPerSecond.of(-h * Math.sin(theta) * omega);
+    LinearVelocity yDt = MetersPerSecond.of(h * Math.cos(theta) * omega);
+    ChassisSpeeds robotRelativeTurretSpeeds = new ChassisSpeeds(xDt, yDt, RadiansPerSecond.zero());
+    return robotSpeeds.plus(robotRelativeTurretSpeeds);
   }
 
   public Angle getIntakeAngle() {
