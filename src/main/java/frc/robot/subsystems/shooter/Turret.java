@@ -32,6 +32,7 @@ public class Turret extends SubsystemBase {
   private final Pivot m_pivotMechanism;
   private final CANcoder m_yawCANCoder1;
   private final CANcoder m_yawCANCoder2;
+  private final EasyCRT m_easyCRTSolver;
 
   public Turret(int motorID, int motorEncoderID) {
     m_motor = new TalonFX(Ports.kTurretYawMotorTalonFXPort);
@@ -68,10 +69,12 @@ public class Turret extends SubsystemBase {
 
     EasyCRTConfig easyCRT = new EasyCRTConfig(CAN1Supplier, CAN2Supplier)
         .withEncoderRatios(TurretConstants.kYawCANCoder1Ratio, TurretConstants.kYawCANCoder2Ratio)
+        .withAbsoluteEncoderInversions(false, false)
         .withAbsoluteEncoderOffsets(Rotations.of(0.0), Rotations.of(0.0));
 
-    EasyCRT m_easyCRTSolver = new EasyCRT(easyCRT);
-    m_easyCRTSolver.getAngleOptional();
+    m_easyCRTSolver = new EasyCRT(easyCRT);
+    m_easyCRTSolver.getAngleOptional(); //update mechanism angle here with a .ifpresent() func
+
   }
 
   @Override
