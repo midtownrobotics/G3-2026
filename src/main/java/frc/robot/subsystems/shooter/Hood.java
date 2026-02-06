@@ -1,7 +1,9 @@
 package frc.robot.subsystems.shooter;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.function.Supplier;
@@ -28,24 +30,23 @@ public class Hood extends SubsystemBase {
 
   public Hood(int motorID, int encoderID) {
     m_motor = new TalonFX(Ports.kTurretHoodTalonFXPort);
-
     SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
-        .withClosedLoopController(TurretConstants.kHoodP, TurretConstants.kHoodI, TurretConstants.kHoodD,
-            TurretConstants.kHoodMotorMaxAngularVelocity, DegreesPerSecondPerSecond.of(30))
-        .withGearing(TurretConstants.kHoodGearReduction)
+        .withClosedLoopController(10, 0, 0,
+            RPM.of(20), DegreesPerSecondPerSecond.of(30))
+        .withGearing(48)
         .withIdleMode(MotorMode.BRAKE)
         .withTelemetry("Hood Motor", TelemetryVerbosity.HIGH)
-        .withStatorCurrentLimit(TurretConstants.kMotorCurrentLImit)
-        .withClosedLoopRampRate(Seconds.of(TurretConstants.kHoodPIDRampRate))
-        .withOpenLoopRampRate(Seconds.of(TurretConstants.kHoodPIDRampRate));
+        .withStatorCurrentLimit(Amps.of(30))
+        .withClosedLoopRampRate(Seconds.of(0.25))
+        .withOpenLoopRampRate(Seconds.of(0.25));
 
     SmartMotorController motorController = new TalonFXWrapper(m_motor, DCMotor.getKrakenX44(1),
         motorConfig);
 
     ArmConfig motorArmConfig = new ArmConfig(motorController)
         .withStartingPosition(Degrees.of(0))
-        .withHardLimit(Degrees.of(0), TurretConstants.kHoodPivotHardLimit)
+        .withHardLimit(Degrees.of(0), Degrees.of(180))
         .withTelemetry("Hood Arm", TelemetryVerbosity.HIGH);
 
     m_armMechanism = new Arm(motorArmConfig);
