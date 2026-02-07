@@ -2,8 +2,8 @@ package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
-import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.function.Supplier;
@@ -33,7 +33,7 @@ public class Hood extends SubsystemBase {
     SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
         .withClosedLoopController(10, 0, 0,
-            RPM.of(20), DegreesPerSecondPerSecond.of(30))
+            DegreesPerSecond.of(950), DegreesPerSecondPerSecond.of(30))
         .withGearing(48)
         .withIdleMode(MotorMode.BRAKE)
         .withTelemetry("Hood Motor", TelemetryVerbosity.HIGH)
@@ -46,7 +46,7 @@ public class Hood extends SubsystemBase {
 
     ArmConfig motorArmConfig = new ArmConfig(motorController)
         .withStartingPosition(Degrees.of(0))
-        .withHardLimit(Degrees.of(0), Degrees.of(180))
+        .withHardLimit(Degrees.of(0), Degrees.of(60))
         .withTelemetry("Hood Arm", TelemetryVerbosity.HIGH);
 
     m_armMechanism = new Arm(motorArmConfig);

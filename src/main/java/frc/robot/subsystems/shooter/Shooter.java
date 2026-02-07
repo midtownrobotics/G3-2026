@@ -1,10 +1,10 @@
 package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.function.Supplier;
@@ -38,18 +38,17 @@ public class Shooter extends SubsystemBase {
         .withTelemetry("Shooter Motor", TelemetryVerbosity.HIGH)
         .withControlMode(ControlMode.CLOSED_LOOP)
         .withClosedLoopController(0, 0, 0,
-            RPM.of(5000), DegreesPerSecondPerSecond.of(0))
+            RPM.of(5000), RPM.of(0).per(Second))
         .withClosedLoopRampRate(Seconds.of(0.25))
         .withOpenLoopRampRate(Seconds.of(0.25))
-        .withStatorCurrentLimit(Amps.of(30));
+        .withStatorCurrentLimit(Amps.of(75));
 
     TalonFXWrapper upperShooterSmartMotorController = new TalonFXWrapper(m_shooterMotor, DCMotor.getKrakenX60(1),
         upperShooterMotorConfig);
 
     FlyWheelConfig shooterFlywheelConfig = new FlyWheelConfig(upperShooterSmartMotorController)
         .withDiameter(Inches.of(4))
-        .withMass(Pounds.of(0.5))
-        .withMOI(Inches.of(4), Pounds.of(0.5));
+        .withMass(Pounds.of(0.5));
 
     m_shooterMechanism = new FlyWheel(shooterFlywheelConfig);
   }
