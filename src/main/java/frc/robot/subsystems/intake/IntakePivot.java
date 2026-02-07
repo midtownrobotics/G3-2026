@@ -42,6 +42,7 @@ public class IntakePivot extends SubsystemBase {
         .withFeedforward(new ArmFeedforward(0.1, 0.4, 0.01))
         .withTelemetry("PivotMotor", TelemetryVerbosity.HIGH)
         .withMotorInverted(false)
+        .withGearing(1.0/37.5)
         .withIdleMode(MotorMode.BRAKE);
 
     TalonFX pivotTalonFX = new TalonFX(Ports.kIntakePivotTalonFXPort);

@@ -1,11 +1,15 @@
 package frc.robot.sensors;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.photonvision.simulation.VisionSystemSim;
 
+import dev.doglog.DogLog;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -18,20 +22,31 @@ public class Vision extends SubsystemBase {
   private final List<Camera> m_cameras;
   private final Consumer<PoseObservation> m_addVisionMeasurement;
   private final Supplier<Pose2d> m_poseSupplier;
+  private final AprilTagFieldLayout m_fieldLayout;
   private VisionSystemSim m_visionSim;
 
   StructArrayPublisher<Pose3d> posePublisher = NetworkTableInstance.getDefault()
-      .getStructArrayTopic("Vision/poses", Pose3d.struct).publish();
+      .getStructArrayTopic("Vision/RobotPoses", Pose3d.struct).publish();
+
+  StructArrayPublisher<Pose3d> tagPosePublisher = NetworkTableInstance.getDefault()
+      .getStructArrayTopic("Vision/TagPoses", Pose3d.struct).publish();
 
   public Vision(Consumer<PoseObservation> addVisionMeasurement, Supplier<Pose2d> poseSupplier, Camera... cameras) {
     m_cameras = List.of(cameras);
     m_addVisionMeasurement = addVisionMeasurement;
     m_poseSupplier = poseSupplier;
+    m_fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
+
+    DogLog.log("Vision/CameraPoses/", m_cameras.stream().map(c -> new Pose3d(m_poseSupplier.get()).transformBy(c.getRobotToCamera())).toArray(Pose3d[]::new));
 
     if (Robot.isSimulation()) {
       m_visionSim = new VisionSystemSim("main");
       m_cameras.forEach(c -> m_visionSim.addCamera(c.getSimCamera(), c.getRobotToCamera()));
     }
+  }
+
+  public List<Camera> getCameras() {
+    return m_cameras;
   }
 
   @Override
@@ -47,6 +62,15 @@ public class Vision extends SubsystemBase {
         .flatMap(List::stream)
         .map((obs) -> obs.pose()).toArray(Pose3d[]::new));
 
+    List<Pose3d> visibleTagPoses = m_cameras.stream()
+        .flatMap((cam) -> cam.getTargetsInView().stream())
+        .distinct()
+        .map((tagId) -> m_fieldLayout.getTagPose(tagId))
+        .filter(opt -> opt.isPresent())
+        .map(opt -> opt.get())
+        .toList();
+
+    tagPosePublisher.accept(visibleTagPoses.toArray(new Pose3d[0]));
   }
 
   @Override
