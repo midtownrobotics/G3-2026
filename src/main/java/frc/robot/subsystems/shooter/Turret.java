@@ -1,7 +1,11 @@
 package frc.robot.subsystems.shooter;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.function.Function;
@@ -33,14 +37,14 @@ public class Turret extends SubsystemBase {
 
     SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
-        .withClosedLoopController(TurretConstants.kYawP, TurretConstants.kYawI, TurretConstants.kYawD,
-            TurretConstants.kYawMotorMaxAngularVelocity, DegreesPerSecondPerSecond.of(30))
-        .withGearing(TurretConstants.kYawGearReduction)
+        .withClosedLoopController(10, 0, 0,
+            DegreesPerSecond.of(950), DegreesPerSecondPerSecond.of(30))
+        .withGearing(48)
         .withIdleMode(MotorMode.BRAKE)
         .withTelemetry("TurretMotor", TelemetryVerbosity.HIGH)
-        .withStatorCurrentLimit(TurretConstants.kMotorCurrentLImit)
-        .withClosedLoopRampRate(Seconds.of(TurretConstants.kYawPIDRampRate))
-        .withOpenLoopRampRate(Seconds.of(TurretConstants.kYawPIDRampRate));
+        .withStatorCurrentLimit(Amps.of(30))
+        .withClosedLoopRampRate(Seconds.of(0.25))
+        .withOpenLoopRampRate(Seconds.of(0.25));
 
     SmartMotorController motorController = new TalonFXWrapper(m_motor, DCMotor.getKrakenX60(1), motorConfig);
 
@@ -48,7 +52,7 @@ public class Turret extends SubsystemBase {
         .withStartingPosition(Degrees.of(0))
         .withHardLimit(Degrees.of(-255), Degrees.of(255))
         .withTelemetry("Turret", TelemetryVerbosity.HIGH)
-        .withMOI(TurretConstants.kYawPivotDiameter, TurretConstants.kYawPivotMass);
+        .withMOI(Inches.of(12), Pounds.of(20));
 
     m_pivotMechanism = new Pivot(pivotConfig);
   }
