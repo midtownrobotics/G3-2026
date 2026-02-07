@@ -1,11 +1,16 @@
 package frc.robot.subsystems.feeder;
 
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Milliseconds;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Seconds;
 
+import com.ctre.phoenix6.configs.CANrangeConfiguration;
+import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import dev.doglog.DogLog;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -13,6 +18,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Ports;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
@@ -27,6 +33,7 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 public class Feeder extends SubsystemBase {
   private final SmartMotorController m_feederMotor;
   private final FlyWheel m_feeder;
+  private final CANrange m_fuelSensor;
 
   public Feeder() {
     SmartMotorControllerConfig beltMotorCfg = new SmartMotorControllerConfig(this)
@@ -34,6 +41,7 @@ public class Feeder extends SubsystemBase {
         .withIdleMode(MotorMode.COAST)
         .withClosedLoopController(0.3, 0, 0.01)
         .withFeedforward(new SimpleMotorFeedforward(0.05, 0.12, 0))
+        .withGearing(0.25)
         .withTelemetry("FeederMotor", TelemetryVerbosity.HIGH);
 
     TalonFX beltTalonFX = new TalonFX(Ports.kFeederBeltTalonFXPort);
@@ -47,10 +55,25 @@ public class Feeder extends SubsystemBase {
         .withTelemetry("Feeder", TelemetryVerbosity.HIGH);
 
     m_feeder = new FlyWheel(beltConfig);
+
+    CANrangeConfiguration fuelSensorConfig = new CANrangeConfiguration();
+
+    m_fuelSensor = new CANrange(Ports.kFeederFuelSensor);
+    m_fuelSensor.getConfigurator().apply(fuelSensorConfig);
+  }
+
+  private boolean getFuelSensorTripped() {
+    return m_fuelSensor.getDistance().getValue().lte(FeederConstants.kFuelSensorTriggerDistance);
+  }
+
+  public Trigger fuelSensorTripped() {
+    return new Trigger(this::getFuelSensorTripped).debounce(FeederConstants.kFuelSensorTriggerDebounce.in(Seconds));
   }
 
   @Override
   public void periodic() {
+    DogLog.log("Feeder/FuelSensor/Distance", m_fuelSensor.getDistance().getValue());
+    DogLog.log("Feeder/FuelSensor/DistanceSTD", m_fuelSensor.getDistanceStdDev().getValue());
     m_feeder.updateTelemetry();
   }
 
