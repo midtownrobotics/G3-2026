@@ -63,7 +63,7 @@ public class Feeder extends SubsystemBase {
   }
 
   private boolean getFuelSensorTripped() {
-    return m_fuelSensor.getDistance().getValue().gte(FeederConstants.kFuelSensorTriggerDistance);
+    return m_fuelSensor.getDistance().getValue().lte(FeederConstants.kFuelSensorTriggerDistance);
   }
 
   public Trigger fuelSensorTripped() {
