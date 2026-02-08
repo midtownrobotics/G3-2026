@@ -11,6 +11,9 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Mass;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 
 public class TurretConstants {
   // PID config 
@@ -59,6 +62,8 @@ public class TurretConstants {
 
   final static double kCRTRatio1 = 0;
   final static double kCRTRatio2 = 0;
+
+  public static final Transform2d kRobotToTurret = new Transform2d(new Translation2d(-0.1, 0.2), new Rotation2d());
 
   // Hub tracking compensation constants
   /** Default projectile exit velocity in meters/second (should be calibrated empirically) */
