@@ -1,6 +1,7 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Radians;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -10,7 +11,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
-import static edu.wpi.first.units.Units.Radians;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -19,6 +20,7 @@ import frc.robot.controls.Controls;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.shooter.Turret;
+import frc.robot.subsystems.shooter.TurretConstants;
 
 @Logged
 public class RobotState {
@@ -114,8 +116,7 @@ public class RobotState {
     ChassisSpeeds turretSpeeds = getFieldRelativeTurretSpeeds();
     Translation2d turretVelocity = new Translation2d(
         turretSpeeds.vxMetersPerSecond,
-        turretSpeeds.vyMetersPerSecond
-    );
+        turretSpeeds.vyMetersPerSecond);
 
     // Convert to radial coordinates relative to the hub
     RadialCoordinates radialCoords = GeometryUtil.toRadialCoordinates(turretPosition, turretVelocity);
@@ -162,7 +163,6 @@ public class RobotState {
   public Angle getCompensatedHubAngleRobotRelative() {
     return getCompensatedHubAngleRobotRelative(
         TurretConstants.kDefaultProjectileVelocity,
-        TurretConstants.kTrackingLatency
-    );
+        TurretConstants.kTrackingLatency);
   }
 }

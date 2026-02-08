@@ -6,14 +6,14 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
 
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Mass;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
 
 public class TurretConstants {
   // PID config 
@@ -67,8 +67,8 @@ public class TurretConstants {
 
   // Hub tracking compensation constants
   /** Default projectile exit velocity in meters/second (should be calibrated empirically) */
-  final static double kDefaultProjectileVelocity = 10.0;
+  public final static double kDefaultProjectileVelocity = 10.0;
 
   /** System latency for hub tracking compensation in seconds (vision + processing + mechanical) */
-  final static double kTrackingLatency = 0.05; // 50ms
+  public final static double kTrackingLatency = 0.05; // 50ms
 }
