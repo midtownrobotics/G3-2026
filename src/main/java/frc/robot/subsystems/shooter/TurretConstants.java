@@ -59,4 +59,11 @@ public class TurretConstants {
 
   final static double kCRTRatio1 = 0;
   final static double kCRTRatio2 = 0;
+
+  // Hub tracking compensation constants
+  /** Default projectile exit velocity in meters/second (should be calibrated empirically) */
+  final static double kDefaultProjectileVelocity = 10.0;
+
+  /** System latency for hub tracking compensation in seconds (vision + processing + mechanical) */
+  final static double kTrackingLatency = 0.05; // 50ms
 }

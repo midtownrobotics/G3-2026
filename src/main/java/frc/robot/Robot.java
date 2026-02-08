@@ -81,6 +81,9 @@ public class Robot extends TimedRobot {
 
     m_viz = new RobotViz(m_state);
 
+    // Set turret to always track the hub
+    m_turret.setDefaultCommand(m_turret.setAngleCommand(() -> m_state.getCompensatedHubAngleRobotRelative()));
+
     m_autoFactory = new AutoFactory(
         m_drive::getPose, // A function that returns the current robot pose
         m_drive::resetPose, // A function that resets the current robot pose to the provided Pose2d
