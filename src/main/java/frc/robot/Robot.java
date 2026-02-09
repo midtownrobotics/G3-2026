@@ -1,9 +1,5 @@
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Radians;
-
-import java.util.function.Supplier;
-
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
 import dev.doglog.DogLog;
@@ -11,8 +7,6 @@ import dev.doglog.DogLogOptions;
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -94,14 +88,7 @@ public class Robot extends TimedRobot {
     m_autoRoutines = new AutoRoutines(m_autoFactory);
     m_autoChooser = new AutoChooser("Do Nothing");
 
-    final Supplier<Angle> turretAngleToHub = () -> {
-      Translation2d hubPosition = GeometryUtil.flip(FieldConstants.kHubPosition.toTranslation2d());
-      final Translation2d diff = m_state.getRobotPose().getTranslation().minus(hubPosition);
-
-      return diff.getAngle().minus(m_state.getRobotPose().getRotation()).getMeasure().plus(Radians.of(Math.PI));
-    };
-
-    m_turret.setDefaultCommand(m_turret.setAngleCommand(turretAngleToHub));
+    m_turret.setDefaultCommand(m_state.turretTrack());
     generateAutoChooser();
   }
 
