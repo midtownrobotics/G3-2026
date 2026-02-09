@@ -14,6 +14,7 @@ import dev.doglog.DogLog;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -34,6 +35,7 @@ public class Feeder extends SubsystemBase {
   private final SmartMotorController m_feederMotor;
   private final FlyWheel m_feeder;
   private final CANrange m_fuelSensor;
+  private final LinearFilter m_fuelSensorFilter;
 
   public Feeder() {
     SmartMotorControllerConfig beltMotorCfg = new SmartMotorControllerConfig(this)
@@ -41,7 +43,7 @@ public class Feeder extends SubsystemBase {
         .withIdleMode(MotorMode.COAST)
         .withClosedLoopController(0.3, 0, 0.01)
         .withFeedforward(new SimpleMotorFeedforward(0.05, 0.12, 0))
-        .withGearing(0.25)
+        .withGearing(4)
         .withTelemetry("FeederMotor", TelemetryVerbosity.HIGH);
 
     TalonFX beltTalonFX = new TalonFX(Ports.kFeederBeltTalonFXPort);
@@ -60,14 +62,16 @@ public class Feeder extends SubsystemBase {
 
     m_fuelSensor = new CANrange(Ports.kFeederFuelSensor);
     m_fuelSensor.getConfigurator().apply(fuelSensorConfig);
+
+    m_fuelSensorFilter = LinearFilter.movingAverage(5);
   }
 
   private boolean getFuelSensorTripped() {
-    return m_fuelSensor.getDistance().getValue().lte(FeederConstants.kFuelSensorTriggerDistance);
+    return m_fuelSensorFilter.calculate(m_fuelSensor.getDistance().getValue().baseUnitMagnitude()) < Inches.of(5).baseUnitMagnitude();
   }
 
   public Trigger fuelSensorTripped() {
-    return new Trigger(this::getFuelSensorTripped).debounce(FeederConstants.kFuelSensorTriggerDebounce.in(Seconds));
+    return new Trigger(this::getFuelSensorTripped).debounce(Milliseconds.of(100).in(Seconds));
   }
 
   @Override
