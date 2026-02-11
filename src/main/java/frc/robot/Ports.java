@@ -8,6 +8,7 @@ public class Ports {
   public static int kFeederBeltTalonFXPort = 25;
   public static int kTurretHoodTalonFXPort = 26;
   public static int kTurretShooterMotorTalonFXPort = 27;
+  public static int kTurretFollowerMotorTalonFXPort = 33; //change when defined
   public static int kTurretYawMotorTalonFXPort = 28;
   public static int kIndexerTransportRollerTalonFXPort = 29;
 

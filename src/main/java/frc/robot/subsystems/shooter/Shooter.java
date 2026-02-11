@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -22,11 +23,13 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 
 public class Shooter extends SubsystemBase {
   private final TalonFX m_shooterMotor;
+  private final TalonFX m_followerMotor;
   private final FlyWheel m_shooterMechanism;
 
   public Shooter(int shooterMotorID, int shooterMotorEncoderID, int reverseShooterMotorID,
       int reverseShooterMotorEncoderID) {
     m_shooterMotor = new TalonFX(Ports.kTurretShooterMotorTalonFXPort);
+    m_followerMotor = new TalonFX(Ports.kTurretFollowerMotorTalonFXPort);
 
     SmartMotorControllerConfig upperShooterMotorConfig = new SmartMotorControllerConfig()
         .withIdleMode(MotorMode.COAST)
@@ -37,7 +40,9 @@ public class Shooter extends SubsystemBase {
             TurretConstants.kShooterMaxAngularVelocity, DegreesPerSecondPerSecond.of(0))
         .withClosedLoopRampRate(Seconds.of(TurretConstants.kShooterRampRate))
         .withOpenLoopRampRate(Seconds.of(TurretConstants.kShooterRampRate))
-        .withStatorCurrentLimit(TurretConstants.kMotorCurrentLImit);
+        .withStatorCurrentLimit(TurretConstants.kMotorCurrentLImit)
+        .withFollowers(
+            Pair.of(m_followerMotor, true));
 
     TalonFXWrapper upperShooterSmartMotorController = new TalonFXWrapper(m_shooterMotor, DCMotor.getKrakenX60(1),
         upperShooterMotorConfig);
