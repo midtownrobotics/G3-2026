@@ -4,8 +4,7 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
-import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Pounds;
+import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.function.Function;
@@ -52,7 +51,7 @@ public class Turret extends SubsystemBase {
         .withStartingPosition(Degrees.of(0))
         .withHardLimit(Degrees.of(-255), Degrees.of(255))
         .withTelemetry("Turret", TelemetryVerbosity.HIGH)
-        .withMOI(Inches.of(12), Pounds.of(20));
+        .withMOI(KilogramSquareMeters.of(0.1457345474));
 
     m_pivotMechanism = new Pivot(pivotConfig);
   }

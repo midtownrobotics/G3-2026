@@ -46,7 +46,7 @@ public class Hood extends SubsystemBase {
 
     ArmConfig motorArmConfig = new ArmConfig(motorController)
         .withStartingPosition(Degrees.of(0))
-        .withHardLimit(Degrees.of(0), Degrees.of(60))
+        .withHardLimit(Degrees.of(0), Degrees.of(59))
         .withTelemetry("Hood Arm", TelemetryVerbosity.HIGH);
 
     m_armMechanism = new Arm(motorArmConfig);
