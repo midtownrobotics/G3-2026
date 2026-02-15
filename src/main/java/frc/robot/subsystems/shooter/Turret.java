@@ -4,12 +4,15 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.MathUtil;
@@ -26,13 +29,20 @@ import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
+import yams.units.EasyCRT;
+import yams.units.EasyCRTConfig;
 
 public class Turret extends SubsystemBase {
   private final TalonFX m_motor;
   private final Pivot m_pivotMechanism;
+  private final CANcoder m_yawCANCoder1;
+  private final CANcoder m_yawCANCoder2;
+  private final EasyCRT m_easyCRTSolver;
 
   public Turret(int motorID, int motorEncoderID) {
     m_motor = new TalonFX(Ports.kTurretShooterMotorTalonFXPort);
+    m_yawCANCoder1 = new CANcoder(Ports.kTurretCANCoder1Port);
+    m_yawCANCoder2 = new CANcoder(Ports.kTurretCANCoder2Port);
 
     SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
@@ -53,7 +63,25 @@ public class Turret extends SubsystemBase {
         .withTelemetry("Turret", TelemetryVerbosity.HIGH)
         .withMOI(KilogramSquareMeters.of(0.1457345474));
 
+    CANcoderConfiguration yawCANCoderConfig = new CANcoderConfiguration();
+    m_yawCANCoder1.getConfigurator().apply(yawCANCoderConfig);
+    m_yawCANCoder2.getConfigurator().apply(yawCANCoderConfig);
+
     m_pivotMechanism = new Pivot(pivotConfig);
+
+    Supplier<Angle> CAN1Supplier = () -> Rotations.of(m_yawCANCoder1.getAbsolutePosition().getValueAsDouble());
+    Supplier<Angle> CAN2Supplier = () -> Rotations.of(m_yawCANCoder2.getAbsolutePosition().getValueAsDouble());
+
+    EasyCRTConfig easyCRT = new EasyCRTConfig(CAN1Supplier, CAN2Supplier)
+        .withEncoderRatios(0.0, 0.0)
+        .withAbsoluteEncoderInversions(false, false)
+        .withAbsoluteEncoderOffsets(Rotations.of(0.0), Rotations.of(0.0));
+
+    m_easyCRTSolver = new EasyCRT(easyCRT);
+    m_easyCRTSolver.getAngleOptional().ifPresent(angleCRT -> {
+      motorController.setEncoderPosition(angleCRT);
+    });
+
   }
 
   @Override

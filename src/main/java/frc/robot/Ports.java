@@ -12,6 +12,6 @@ public class Ports {
   public static int kIndexerTransportRollerTalonFXPort = 29;
 
   public static int kIntakePivotCANPort = 30;
-  public static int kTurretYawCANPort1 = 31;
-  public static int kTurretYawCANPort2 = 32;
+  public static int kTurretCANCoder1Port = 31;
+  public static int kTurretCANCoder2Port  = 32;
 }

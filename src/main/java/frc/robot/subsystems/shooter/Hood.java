@@ -30,6 +30,7 @@ public class Hood extends SubsystemBase {
 
   public Hood(int motorID, int encoderID) {
     m_motor = new TalonFX(Ports.kTurretHoodTalonFXPort);
+
     SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
         .withClosedLoopController(10, 0, 0,
