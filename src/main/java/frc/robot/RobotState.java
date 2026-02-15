@@ -1,16 +1,12 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
-
-import java.util.function.Supplier;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.LinearVelocity;
@@ -96,16 +92,5 @@ public class RobotState {
             .map(r -> r.contains(m_drive.getPose().getTranslation()))
             .orElse(false))
         .debounce(0.2);
-  }
-
-  public Command turretTrack() {
-    final Supplier<Angle> turretAngleToHub = () -> {
-      Translation2d hubPosition = GeometryUtil.flip(FieldConstants.kHubPosition.toTranslation2d());
-      final Translation2d diff = getRobotPose().getTranslation().minus(hubPosition);
-
-      return diff.getAngle().minus(getRobotPose().getRotation()).getMeasure().plus(Radians.of(Math.PI));
-    };
-
-    return m_turret.setAngleCommand(turretAngleToHub);
   }
 }

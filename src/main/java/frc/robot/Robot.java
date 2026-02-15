@@ -88,7 +88,6 @@ public class Robot extends TimedRobot {
     m_autoRoutines = new AutoRoutines(m_autoFactory);
     m_autoChooser = new AutoChooser("Do Nothing");
 
-    m_turret.setDefaultCommand(m_state.turretTrack());
     generateAutoChooser();
   }
 
