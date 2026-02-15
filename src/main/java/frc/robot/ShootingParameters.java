@@ -98,7 +98,7 @@ public class ShootingParameters {
       return false;
     }
 
-    if (parameters.hoodAngle.isNear(m_state.getHoodAngle(), kHoodAngleTolerance)) {
+    if (parameters.hoodAngle.isNear(m_state.getHoodAngle(), kTurretAngleTolerance)) {
       return false;
     }
 
