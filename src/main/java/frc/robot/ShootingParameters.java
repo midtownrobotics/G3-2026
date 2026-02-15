@@ -153,7 +153,7 @@ public class ShootingParameters {
     m_lockOutStatus = LockOutStatus.kNotLockedOut;
   }
 
-  public Parameters getParameters(Translation2d target) {
+  public Parameters getParameters() {
     return m_currentCycleParameters;
   }
 
