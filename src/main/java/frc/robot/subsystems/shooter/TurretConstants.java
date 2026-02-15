@@ -14,7 +14,7 @@ import edu.wpi.first.units.measure.Mass;
 
 public class TurretConstants {
   // PID config 
-  final static double kYawP = 10;
+  final static double kYawP = 100;
   final static double kYawI = 0;
   final static double kYawD = 0;
   final static double kYawTolerance = Math.PI / 10;
@@ -22,7 +22,7 @@ public class TurretConstants {
 
   final static double kHoodP = 10;
   final static double kHoodI = 0;
-  final static double kHoodD = 0;
+  final static double kHoodD = 1;
   final static double kHoodTolerance = Math.PI / 10;
   final static double kHoodPIDRampRate = 0.25;
 
@@ -47,7 +47,7 @@ public class TurretConstants {
   final static Mass kYawPivotMass = Pounds.of(20);
   final static Distance kHoodPivotDiameter = Inches.of(6);
   final static Distance kYawPivotDiameter = Inches.of(12);
-  final static AngularVelocity kYawMotorMaxAngularVelocity = RPM.of(20);
+  final static AngularVelocity kYawMotorMaxAngularVelocity = RPM.of(1000);
   final static AngularVelocity kHoodMotorMaxAngularVelocity = RPM.of(20);
 
   // Flywheel config
