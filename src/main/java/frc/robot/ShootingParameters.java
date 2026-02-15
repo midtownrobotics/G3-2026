@@ -54,7 +54,7 @@ public class ShootingParameters {
 
   private Pose2d getVelocityCompensatedRobotPose(Translation2d target, Time ToF, Time oldToF) {
     final ChassisSpeeds speeds = m_state.getFieldRelativeTurretSpeeds();
-    final Pose2d pose = m_state.getRobotPose();
+    final Pose2d pose = m_state.getTurretPose();
 
     final var tranform = new Transform2d(
         new Translation2d(speeds.vxMetersPerSecond * ToF.in(Seconds),
@@ -72,7 +72,7 @@ public class ShootingParameters {
   }
 
   public Parameters getParameters(Translation2d target) {
-    var pose = getVelocityCompensatedRobotPose(target, getTimeOfFlight(target, m_state.getRobotPose()),
+    var pose = getVelocityCompensatedRobotPose(target, getTimeOfFlight(target, m_state.getTurretPose()),
         Seconds.of(Double.MAX_VALUE));
 
     return new Parameters(getTurretAngle(target, pose),
