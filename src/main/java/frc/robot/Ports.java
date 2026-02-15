@@ -5,6 +5,6 @@ public class Ports {
   public static int kTurretYawMotorTalonFXPort = 21;
   public static int kTurretHoodTalonFXPort = 22;
 
-  public static int kTurretYawCANPort1 = 23;
-  public static int kTurretYawCANPort2 = 24;
+  public static int kTurretCANCoder1Port = 23;
+  public static int kTurretCANCoder2Port = 24;
 }

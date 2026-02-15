@@ -36,8 +36,8 @@ public class Turret extends SubsystemBase {
 
   public Turret(int motorID, int motorEncoderID) {
     m_motor = new TalonFX(Ports.kTurretYawMotorTalonFXPort);
-    m_yawCANCoder1 = new CANcoder(Ports.kTurretYawCANPort1);
-    m_yawCANCoder2 = new CANcoder(Ports.kTurretYawCANPort2);
+    m_yawCANCoder1 = new CANcoder(Ports.kTurretCANCoder1Port);
+    m_yawCANCoder2 = new CANcoder(Ports.kTurretCANCoder2Port);
 
     SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
@@ -67,11 +67,8 @@ public class Turret extends SubsystemBase {
     Supplier<Angle> CAN1Supplier = () -> Rotations.of(m_yawCANCoder1.getAbsolutePosition().getValueAsDouble());
     Supplier<Angle> CAN2Supplier = () -> Rotations.of(m_yawCANCoder2.getAbsolutePosition().getValueAsDouble());
 
-    double kYawCANCoder1Ratio = 0;
-    double kYawCANCoder2Ratio = 0;
-
     EasyCRTConfig easyCRT = new EasyCRTConfig(CAN1Supplier, CAN2Supplier)
-        .withEncoderRatios(kYawCANCoder1Ratio, kYawCANCoder2Ratio)
+        .withEncoderRatios(0.0, 0.0)
         .withAbsoluteEncoderInversions(false, false)
         .withAbsoluteEncoderOffsets(Rotations.of(0.0), Rotations.of(0.0));
 
