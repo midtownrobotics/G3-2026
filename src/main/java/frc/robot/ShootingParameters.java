@@ -72,8 +72,10 @@ public class ShootingParameters {
   }
 
   public Parameters getParameters(Translation2d target) {
-    var pose = getVelocityCompensatedRobotPose(target, getTimeOfFlight(target, m_state.getTurretPose()),
-        Seconds.of(Double.MAX_VALUE));
+    var pose = Constants.kUseOnTheFlyShooting
+        ? getVelocityCompensatedRobotPose(target, getTimeOfFlight(target, m_state.getTurretPose()),
+            Seconds.of(Double.MAX_VALUE))
+        : m_state.getTurretPose();
 
     return new Parameters(getTurretAngle(target, pose),
         getHoodAngle(target, pose),
