@@ -36,6 +36,7 @@ public class ShootingParameters {
   private final RobotState m_state;
 
   private Parameters m_currentCycleParameters;
+  private LockOutStatus m_lockOutStatus;
 
   private final Supplier<Translation2d> m_target;
 
@@ -43,6 +44,14 @@ public class ShootingParameters {
     public Parameters(Angle turretAngle, Angle hoodAngle, AngularVelocity flywheelVelocity) {
       this(turretAngle, hoodAngle, flywheelVelocity, true);
     }
+  }
+
+  public enum LockOutStatus {
+    kTurretNotWithinTolerance,
+    kHoodNotWithinTolerance,
+    kFlyWheelNotWithinTolerance,
+    kCannotFindValidShot,
+    kNotLockedOut
   }
 
   public ShootingParameters(RobotState state, Supplier<Translation2d> target) {
@@ -95,14 +104,17 @@ public class ShootingParameters {
 
   public boolean shootingParametersAreWithinTolerance(Parameters parameters) {
     if (parameters.turretAngle.isNear(m_state.getTurretAngle(), kHoodAngleTolerance)) {
+      m_lockOutStatus = LockOutStatus.kTurretNotWithinTolerance;
       return false;
     }
 
     if (parameters.hoodAngle.isNear(m_state.getHoodAngle(), kTurretAngleTolerance)) {
+      m_lockOutStatus = LockOutStatus.kHoodNotWithinTolerance;
       return false;
     }
 
     if (parameters.flywheelVelocity.isNear(m_state.getFlyWheelVelocity(), kFlywhweelVelocityTolerance)) {
+      m_lockOutStatus = LockOutStatus.kFlyWheelNotWithinTolerance;
       return false;
     }
 
@@ -122,6 +134,7 @@ public class ShootingParameters {
           getHoodAngle(target, uncompensatedPose),
           getFlyWheelVelocity(target, uncompensatedPose),
           true);
+      m_lockOutStatus = LockOutStatus.kCannotFindValidShot;
       return;
     }
 
@@ -137,10 +150,14 @@ public class ShootingParameters {
     m_currentCycleParameters = new Parameters(getTurretAngle(target, pose.get()),
         getHoodAngle(target, pose.get()),
         getFlyWheelVelocity(target, pose.get()));
-
+    m_lockOutStatus = LockOutStatus.kNotLockedOut;
   }
 
   public Parameters getParameters(Translation2d target) {
     return m_currentCycleParameters;
+  }
+
+  public LockOutStatus getLockOutStatus() {
+    return m_lockOutStatus;
   }
 }
