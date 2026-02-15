@@ -39,6 +39,7 @@ public class IntakePivot extends SubsystemBase {
     SmartMotorControllerConfig pivotCfg = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
         .withClosedLoopController(0.6, 0.0, 0.05, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
+        .withSimClosedLoopController(3.0, 0.0, 0.05, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
         .withFeedforward(new ArmFeedforward(0.1, 0.4, 0.01))
         .withGearing(48)
         .withTelemetry("PivotMotor", TelemetryVerbosity.HIGH)

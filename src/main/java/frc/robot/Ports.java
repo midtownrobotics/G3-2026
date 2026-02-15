@@ -1,6 +1,8 @@
 package frc.robot;
 
 public class Ports {
+  public static int kFeederFuelSensor = 52;
+
   public static int kIntakePivotTalonFXPort = 23;
   public static int kIntakeRollerTalonFXPort = 24;
   public static int kFeederBeltTalonFXPort = 25;
