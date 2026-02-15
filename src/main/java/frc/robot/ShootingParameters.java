@@ -140,7 +140,7 @@ public class ShootingParameters {
 
   }
 
-  public Parameters getParameters(Translation2d target) {
+  public Parameters getParameters() {
     return m_currentCycleParameters;
   }
 }
