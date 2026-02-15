@@ -67,8 +67,11 @@ public class Turret extends SubsystemBase {
     Supplier<Angle> CAN1Supplier = () -> Rotations.of(m_yawCANCoder1.getAbsolutePosition().getValueAsDouble());
     Supplier<Angle> CAN2Supplier = () -> Rotations.of(m_yawCANCoder2.getAbsolutePosition().getValueAsDouble());
 
+    double kYawCANCoder1Ratio = 0;
+    double kYawCANCoder2Ratio = 0;
+
     EasyCRTConfig easyCRT = new EasyCRTConfig(CAN1Supplier, CAN2Supplier)
-        .withEncoderRatios(TurretConstants.kYawCANCoder1Ratio, TurretConstants.kYawCANCoder2Ratio)
+        .withEncoderRatios(kYawCANCoder1Ratio, kYawCANCoder2Ratio)
         .withAbsoluteEncoderInversions(false, false)
         .withAbsoluteEncoderOffsets(Rotations.of(0.0), Rotations.of(0.0));
 
