@@ -4,6 +4,8 @@ import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
+import java.util.function.Supplier;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -26,10 +28,15 @@ public class ShootingParameters {
 
   private final RobotState m_state;
 
+  private Parameters m_currentCycleParameters;
+
+  private final Supplier<Translation2d> m_target;
+
   public record Parameters(Angle turretAngle, Angle hoodAngle, AngularVelocity flywheelVelocity) {
   }
 
-  public ShootingParameters(RobotState state) {
+  public ShootingParameters(RobotState state, Supplier<Translation2d> target) {
+    m_target = target;
     m_state = state;
   }
 
@@ -71,14 +78,20 @@ public class ShootingParameters {
     return getVelocityCompensatedRobotPose(target, newToF, ToF);
   }
 
-  public Parameters getParameters(Translation2d target) {
+  public void periodic() {
+    Translation2d target = m_target.get();
     var pose = Constants.kUseOnTheFlyShooting
         ? getVelocityCompensatedRobotPose(target, getTimeOfFlight(target, m_state.getTurretPose()),
             Seconds.of(Double.MAX_VALUE))
         : m_state.getTurretPose();
 
-    return new Parameters(getTurretAngle(target, pose),
+    m_currentCycleParameters = new Parameters(getTurretAngle(target, pose),
         getHoodAngle(target, pose),
         getFlyWheelVelocity(target, pose));
+
+  }
+
+  public Parameters getParameters(Translation2d target) {
+    return m_currentCycleParameters;
   }
 }

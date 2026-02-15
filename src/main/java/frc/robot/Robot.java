@@ -47,6 +47,7 @@ public class Robot extends TimedRobot {
   private final RobotState m_state;
 
   private final RobotViz m_viz;
+  private final ShootingParameters m_shootingParameters;
 
   public Robot() {
     DogLog.setOptions(new DogLogOptions().withCaptureDs(true));
@@ -76,6 +77,8 @@ public class Robot extends TimedRobot {
     m_state = new RobotState(m_controls, m_drive, m_intakePivot, m_turret);
 
     m_viz = new RobotViz(m_state);
+
+    m_shootingParameters = new ShootingParameters(m_state, () -> FieldConstants.kHubPosition.toTranslation2d());
 
     m_autoFactory = new AutoFactory(
         m_drive::getPose, // A function that returns the current robot pose
@@ -119,6 +122,7 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     m_viz.periodic();
+    m_shootingParameters.periodic();
 
     DogLog.log("Autonomous", DriverStation.isAutonomousEnabled());
   }
