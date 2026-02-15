@@ -93,6 +93,22 @@ public class ShootingParameters {
     return getVelocityCompensatedRobotPose(target, newToF, ToF, iterations + 1);
   }
 
+  public boolean shootingParametersAreWithinTolerance(Parameters parameters) {
+    if (parameters.turretAngle.isNear(m_state.getTurretAngle(), kHoodAngleTolerance)) {
+      return false;
+    }
+
+    if (parameters.hoodAngle.isNear(m_state.getHoodAngle(), kHoodAngleTolerance)) {
+      return false;
+    }
+
+    if (parameters.flywheelVelocity.isNear(m_state.getFlyWheelVelocity(), kFlywhweelVelocityTolerance)) {
+      return false;
+    }
+
+    return true;
+  }
+
   public void periodic() {
     final Translation2d target = m_target.get();
     final Optional<Pose2d> pose = Constants.kUseOnTheFlyShooting
@@ -101,6 +117,15 @@ public class ShootingParameters {
         : Optional.of(m_state.getTurretPose());
 
     if (pose.isEmpty()) {
+      final Pose2d uncompensatedPose = m_state.getTurretPose();
+      m_currentCycleParameters = new Parameters(getTurretAngle(target, uncompensatedPose),
+          getHoodAngle(target, uncompensatedPose),
+          getFlyWheelVelocity(target, uncompensatedPose),
+          true);
+      return;
+    }
+
+    if (!shootingParametersAreWithinTolerance(m_currentCycleParameters)) {
       final Pose2d uncompensatedPose = m_state.getTurretPose();
       m_currentCycleParameters = new Parameters(getTurretAngle(target, uncompensatedPose),
           getHoodAngle(target, uncompensatedPose),
