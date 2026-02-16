@@ -42,15 +42,14 @@ public class Robot extends TimedRobot {
   private final IntakeRoller m_intakeRoller;
 
   private final Turret m_turret;
+  private final TransportRoller m_transportRoller;
+  private final Shooter m_shooter;
 
   private final AutoFactory m_autoFactory;
   private final AutoRoutines m_autoRoutines;
   private final AutoChooser m_autoChooser;
 
   private final Feeder m_feeder;
-
-  private final TransportRoller m_transportRoller;
-  private final Shooter m_shooter;
 
   private final RobotState m_state;
 
@@ -67,9 +66,10 @@ public class Robot extends TimedRobot {
     m_feeder = new Feeder();
     m_intakePivot = new IntakePivot();
     m_intakeRoller = new IntakeRoller();
-    m_turret = new Turret(0, 0);
+    m_turret = new Turret(Ports.kTurretYawMotorTalonFXPort, Ports.kTurretYawCANPort1);
     m_transportRoller = new TransportRoller();
-    m_shooter = new Shooter(0, 0, 0, 0);
+    m_shooter = new Shooter(Ports.kTurretShooterMotorTalonFXPort, Ports.kTurretYawCANPort1, Ports.kTurretYawCANPort2,
+        Ports.kTurretHoodTalonFXPort);
 
     Camera rearFacingRightCamera = new Camera("rearFacingRightCamera", new Transform3d());
     Camera frontFacingRightCamera = new Camera("frontFacingRightCamera", new Transform3d());
@@ -84,16 +84,8 @@ public class Robot extends TimedRobot {
         rearFacingLeftCamera,
         frontFacingLeftCamera);
 
-    m_state = new RobotState(
-        m_controls,
-        m_drive,
-        m_intakePivot,
-        m_intakeRoller,
-        m_turret,
-        m_feeder,
-        m_vision,
-        m_transportRoller,
-        m_shooter);
+    m_state = new RobotState(m_controls, m_drive, m_intakePivot, m_intakeRoller, m_turret, m_feeder, m_vision,
+        m_transportRoller, m_shooter);
 
     m_viz = new RobotViz(m_state);
 
