@@ -23,9 +23,11 @@ import frc.robot.sensors.Camera;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
+import frc.robot.subsystems.indexer.TransportRoller;
 import frc.robot.subsystems.intake.IntakeGoal;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
+import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.Turret;
 
 @Logged
@@ -47,6 +49,9 @@ public class Robot extends TimedRobot {
 
   private final Feeder m_feeder;
 
+  private final TransportRoller m_transportRoller;
+  private final Shooter m_shooter;
+
   private final RobotState m_state;
 
   private final RobotViz m_viz;
@@ -63,6 +68,8 @@ public class Robot extends TimedRobot {
     m_intakePivot = new IntakePivot();
     m_intakeRoller = new IntakeRoller();
     m_turret = new Turret(0, 0);
+    m_transportRoller = new TransportRoller();
+    m_shooter = new Shooter(0, 0, 0, 0);
 
     Camera rearFacingRightCamera = new Camera("rearFacingRightCamera", new Transform3d());
     Camera frontFacingRightCamera = new Camera("frontFacingRightCamera", new Transform3d());
@@ -77,17 +84,25 @@ public class Robot extends TimedRobot {
         rearFacingLeftCamera,
         frontFacingLeftCamera);
 
-    m_state = new RobotState(m_controls, m_drive, m_intakePivot, m_turret);
+    m_state = new RobotState(
+        m_controls,
+        m_drive,
+        m_intakePivot,
+        m_intakeRoller,
+        m_turret,
+        m_feeder,
+        m_vision,
+        m_transportRoller,
+        m_shooter);
 
     m_viz = new RobotViz(m_state);
 
     m_autoFactory = new AutoFactory(
-        m_drive::getPose, // A function that returns the current robot pose
-        m_drive::resetPose, // A function that resets the current robot pose to the provided Pose2d
-        m_drive::followPath, // The drive subsystem trajectory follower 
-        true, // If alliance flipping should be enabled 
-        m_drive // The drive subsystem
-    );
+        m_drive::getPose,
+        m_drive::resetPose,
+        m_drive::followPath,
+        true,
+        m_drive);
 
     m_autoRoutines = new AutoRoutines(m_autoFactory);
     m_autoChooser = new AutoChooser("Do Nothing");
@@ -100,7 +115,6 @@ public class Robot extends TimedRobot {
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
     new Trigger(DriverStation::isAutonomousEnabled).whileTrue(m_autoChooser.selectedCommandScheduler());
 
-    // RobotModeTriggers.autonomous().whileTrue(m_autoRoutines.taxiAuto().cmd());
     m_controls.intakeFuel().whileTrue(runIntakeCommand()).onFalse(stowIntakeCommand());
   }
 
