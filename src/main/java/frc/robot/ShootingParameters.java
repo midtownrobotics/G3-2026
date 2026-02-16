@@ -107,17 +107,17 @@ public class ShootingParameters {
   }
 
   public boolean shootingParametersAreWithinTolerance(Parameters parameters) {
-    if (parameters.turretAngle.isNear(m_state.getTurretAngle(), kHoodAngleTolerance)) {
+    if (!parameters.turretAngle.isNear(m_state.getTurretAngle(), kHoodAngleTolerance)) {
       m_lockOutStatus = LockOutStatus.kTurretNotWithinTolerance;
       return false;
     }
 
-    if (parameters.hoodAngle.isNear(m_state.getHoodAngle(), kTurretAngleTolerance)) {
+    if (!parameters.hoodAngle.isNear(m_state.getHoodAngle(), kTurretAngleTolerance)) {
       m_lockOutStatus = LockOutStatus.kHoodNotWithinTolerance;
       return false;
     }
 
-    if (parameters.flywheelVelocity.isNear(m_state.getFlyWheelVelocity(), kFlywhweelVelocityTolerance)) {
+    if (!parameters.flywheelVelocity.isNear(m_state.getFlyWheelVelocity(), kFlywhweelVelocityTolerance)) {
       m_lockOutStatus = LockOutStatus.kFlywheelNotWithinTolerance;
       return false;
     }

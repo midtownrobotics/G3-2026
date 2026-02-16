@@ -4,11 +4,13 @@ import java.util.Optional;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Dashboard {
   private final RobotState m_state;
   private final ShootingParameters m_parameters;
+  private final Field2d m_field = new Field2d();
 
   public Dashboard(RobotState state, ShootingParameters parameters) {
     m_state = state;
@@ -27,6 +29,10 @@ public class Dashboard {
         m_parameters.getLockOutStatus() != ShootingParameters.LockOutStatus.kFlywheelNotWithinTolerance);
 
     SmartDashboard.putBoolean("GameData/isHubActive", isHubActive());
+
+    m_field.setRobotPose(m_state.getRobotPose());
+
+    SmartDashboard.putData("Field", m_field);
   }
 
   private boolean isHubActive() {
