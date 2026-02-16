@@ -55,6 +55,7 @@ public class Robot extends TimedRobot {
 
   private final RobotViz m_viz;
   private final ShootingParameters m_shootingParameters;
+  private final Dashboard m_dashboard;
 
   public Robot() {
     DogLog.setOptions(new DogLogOptions().withCaptureDs(true));
@@ -102,6 +103,8 @@ public class Robot extends TimedRobot {
     m_autoChooser = new AutoChooser("Do Nothing");
 
     generateAutoChooser();
+
+    m_dashboard = new Dashboard(m_state, m_shootingParameters);
   }
 
   private void generateAutoChooser() {
@@ -133,6 +136,7 @@ public class Robot extends TimedRobot {
     CommandScheduler.getInstance().run();
     m_viz.periodic();
     m_shootingParameters.periodic();
+    m_dashboard.periodic();
 
     DogLog.log("Autonomous", DriverStation.isAutonomousEnabled());
   }

@@ -20,7 +20,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Time;
 
 public class ShootingParameters {
-  private static final Time kTimeOfFlightTolerance = Seconds.of(0.1);
+  private static final Time kTimeOfFlightTolerance = Seconds.of(0.02);
   private static final int kMaximumIterations = 100;
   private static final Angle kHoodAngleTolerance = Degrees.of(5);
   private static final Angle kTurretAngleTolerance = Degrees.of(5);
@@ -35,8 +35,8 @@ public class ShootingParameters {
 
   private final RobotState m_state;
 
-  private Parameters m_currentCycleParameters;
-  private LockOutStatus m_lockOutStatus;
+  private Parameters m_currentCycleParameters = new Parameters(Degrees.of(0), Degrees.of(0), RPM.of(0));
+  private LockOutStatus m_lockOutStatus = LockOutStatus.kTurretNotWithinTolerance;
 
   private final Supplier<Translation2d> m_target;
 
@@ -49,12 +49,16 @@ public class ShootingParameters {
   public enum LockOutStatus {
     kTurretNotWithinTolerance,
     kHoodNotWithinTolerance,
-    kFlyWheelNotWithinTolerance,
+    kFlywheelNotWithinTolerance,
     kCannotFindValidShot,
     kNotLockedOut
   }
 
   public ShootingParameters(RobotState state, Supplier<Translation2d> target) {
+    m_timeOfFlightMap.put(5d, 0.1);
+    m_flywheelVelocityMap.put(5d, 2000d);
+    m_hoodAngleMap.put(5d, 30d);
+
     m_target = target;
     m_state = state;
   }
@@ -114,7 +118,7 @@ public class ShootingParameters {
     }
 
     if (parameters.flywheelVelocity.isNear(m_state.getFlyWheelVelocity(), kFlywhweelVelocityTolerance)) {
-      m_lockOutStatus = LockOutStatus.kFlyWheelNotWithinTolerance;
+      m_lockOutStatus = LockOutStatus.kFlywheelNotWithinTolerance;
       return false;
     }
 

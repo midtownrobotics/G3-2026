@@ -31,9 +31,9 @@ public class Shooter extends SubsystemBase {
       int reverseShooterMotorEncoderID) {
     m_shooterMotor = new TalonFX(Ports.kTurretShooterMotorTalonFXPort);
 
-    SmartMotorControllerConfig upperShooterMotorConfig = new SmartMotorControllerConfig()
+    SmartMotorControllerConfig upperShooterMotorConfig = new SmartMotorControllerConfig(this)
         .withIdleMode(MotorMode.COAST)
-        .withGearing(0)
+        .withGearing(2.0 / 3.0)
         .withTelemetry("Shooter Motor", TelemetryVerbosity.HIGH)
         .withControlMode(ControlMode.CLOSED_LOOP)
         .withClosedLoopController(0, 0, 0,
