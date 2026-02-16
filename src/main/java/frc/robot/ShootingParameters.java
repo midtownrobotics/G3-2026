@@ -41,7 +41,7 @@ public class ShootingParameters {
 
   public record Parameters(Angle turretAngle, Angle hoodAngle, AngularVelocity flywheelVelocity, boolean noShot) {
     public Parameters(Angle turretAngle, Angle hoodAngle, AngularVelocity flywheelVelocity) {
-      this(turretAngle, hoodAngle, flywheelVelocity, true);
+      this(turretAngle, hoodAngle, flywheelVelocity, false);
     }
   }
 
@@ -94,11 +94,11 @@ public class ShootingParameters {
   }
 
   public boolean shootingParametersAreWithinTolerance(Parameters parameters) {
-    if (parameters.turretAngle.isNear(m_state.getTurretAngle(), kHoodAngleTolerance)) {
+    if (parameters.turretAngle.isNear(m_state.getTurretAngle(), kTurretAngleTolerance)) {
       return false;
     }
 
-    if (parameters.hoodAngle.isNear(m_state.getHoodAngle(), kTurretAngleTolerance)) {
+    if (parameters.hoodAngle.isNear(m_state.getHoodAngle(), kHoodAngleTolerance)) {
       return false;
     }
 
