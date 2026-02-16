@@ -26,6 +26,8 @@ import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.intake.IntakeGoal;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
+import frc.robot.subsystems.shooter.Hood;
+import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.Turret;
 
 @Logged
@@ -40,6 +42,8 @@ public class Robot extends TimedRobot {
   private final IntakeRoller m_intakeRoller;
 
   private final Turret m_turret;
+  private final Hood m_hood;
+  private final Shooter m_shooter;
 
   private final AutoFactory m_autoFactory;
   private final AutoRoutines m_autoRoutines;
@@ -50,6 +54,7 @@ public class Robot extends TimedRobot {
   private final RobotState m_state;
 
   private final RobotViz m_viz;
+  private final ShootingParameters m_shootingParameters;
 
   public Robot() {
     DogLog.setOptions(new DogLogOptions().withCaptureDs(true));
@@ -63,6 +68,8 @@ public class Robot extends TimedRobot {
     m_intakePivot = new IntakePivot();
     m_intakeRoller = new IntakeRoller();
     m_turret = new Turret(0, 0);
+    m_hood = new Hood(0, 0);
+    m_shooter = new Shooter(0, 0, 0, 0);
 
     Camera rearFacingRightCamera = new Camera("rearFacingRightCamera", new Transform3d());
     Camera frontFacingRightCamera = new Camera("frontFacingRightCamera", new Transform3d());
@@ -77,9 +84,11 @@ public class Robot extends TimedRobot {
         rearFacingLeftCamera,
         frontFacingLeftCamera);
 
-    m_state = new RobotState(m_controls, m_drive, m_intakePivot, m_turret);
+    m_state = new RobotState(m_controls, m_drive, m_intakePivot, m_turret, m_hood, m_shooter);
 
     m_viz = new RobotViz(m_state);
+
+    m_shootingParameters = new ShootingParameters(m_state, () -> FieldConstants.kHubPosition.toTranslation2d());
 
     m_autoFactory = new AutoFactory(
         m_drive::getPose, // A function that returns the current robot pose
@@ -91,6 +100,7 @@ public class Robot extends TimedRobot {
 
     m_autoRoutines = new AutoRoutines(m_autoFactory);
     m_autoChooser = new AutoChooser("Do Nothing");
+
     generateAutoChooser();
   }
 
@@ -122,6 +132,7 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     m_viz.periodic();
+    m_shootingParameters.periodic();
 
     DogLog.log("Autonomous", DriverStation.isAutonomousEnabled());
   }
