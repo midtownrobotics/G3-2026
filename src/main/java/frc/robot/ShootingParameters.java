@@ -66,7 +66,8 @@ public class ShootingParameters {
   }
 
   private Angle getTurretAngle(Translation2d target, Pose2d pose) {
-    return pose.minus(new Pose2d(target, new Rotation2d())).getRotation().getMeasure();
+    return new Pose2d(target, new Rotation2d()).minus(pose).getTranslation().getAngle().minus(pose.getRotation())
+        .getMeasure();
   }
 
   private Optional<Pose2d> getVelocityCompensatedRobotPose(Translation2d target, Time ToF, Time oldToF,
@@ -94,15 +95,15 @@ public class ShootingParameters {
   }
 
   public boolean shootingParametersAreWithinTolerance(Parameters parameters) {
-    if (parameters.turretAngle.isNear(m_state.getTurretAngle(), kTurretAngleTolerance)) {
+    if (!parameters.turretAngle.isNear(m_state.getTurretAngle(), kTurretAngleTolerance)) {
       return false;
     }
 
-    if (parameters.hoodAngle.isNear(m_state.getHoodAngle(), kHoodAngleTolerance)) {
+    if (!parameters.hoodAngle.isNear(m_state.getHoodAngle(), kHoodAngleTolerance)) {
       return false;
     }
 
-    if (parameters.flywheelVelocity.isNear(m_state.getFlyWheelVelocity(), kFlywhweelVelocityTolerance)) {
+    if (!parameters.flywheelVelocity.isNear(m_state.getFlyWheelVelocity(), kFlywhweelVelocityTolerance)) {
       return false;
     }
 
