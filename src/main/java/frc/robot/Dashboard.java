@@ -1,5 +1,9 @@
 package frc.robot;
 
+import java.util.Optional;
+
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Dashboard {
@@ -21,5 +25,47 @@ public class Dashboard {
         m_parameters.getLockOutStatus() != ShootingParameters.LockOutStatus.kHoodNotWithinTolerance);
     SmartDashboard.putBoolean("ShootingParameters/flywheelWithinTolerance",
         m_parameters.getLockOutStatus() != ShootingParameters.LockOutStatus.kFlywheelNotWithinTolerance);
+
+    SmartDashboard.putBoolean("GameData/isHubActive", isHubActive());
+  }
+
+  private boolean isHubActive() {
+    final Optional<Alliance> alliance = DriverStation.getAlliance();
+    if (alliance.isEmpty())
+      return false;
+
+    if (DriverStation.isAutonomousEnabled())
+      return true;
+    if (!DriverStation.isTeleopEnabled())
+      return false;
+
+    double matchTime = DriverStation.getMatchTime();
+    String gameData = DriverStation.getGameSpecificMessage();
+
+    if (gameData.isEmpty())
+      return true;
+
+    boolean redInactiveFirst;
+    switch (gameData.charAt(0)) {
+      case 'R' -> redInactiveFirst = true;
+      case 'B' -> redInactiveFirst = false;
+      default -> {
+        return true;
+      }
+    }
+
+    boolean shift1Active = (alliance.get() == Alliance.Red) ? !redInactiveFirst : redInactiveFirst;
+
+    if (matchTime > 130)
+      return true;
+    if (matchTime > 105)
+      return shift1Active;
+    if (matchTime > 80)
+      return !shift1Active;
+    if (matchTime > 55)
+      return shift1Active;
+    if (matchTime > 30)
+      return !shift1Active;
+    return true;
   }
 }
