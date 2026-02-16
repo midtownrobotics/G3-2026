@@ -24,6 +24,7 @@ import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.intake.IntakeGoal;
+import frc.robot.subsystems.intake.IntakeObstacleProtection;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
 import frc.robot.subsystems.shooter.Turret;
@@ -92,6 +93,10 @@ public class Robot extends TimedRobot {
     m_autoRoutines = new AutoRoutines(m_autoFactory);
     m_autoChooser = new AutoChooser("Do Nothing");
     generateAutoChooser();
+
+    if (Constants.kEnableObstacleProtection == true) {
+      new IntakeObstacleProtection(m_drive, m_intakePivot);
+    }
   }
 
   private void generateAutoChooser() {
