@@ -10,9 +10,12 @@ import org.photonvision.simulation.SimCameraProperties;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
 
+@Logged(strategy = Strategy.OPT_IN)
 public class Camera {
   private PhotonCamera m_camera;
   private PhotonPoseEstimator m_estimator;
@@ -42,6 +45,7 @@ public class Camera {
     return new PhotonCameraSim(this.getCamera(), properties);
   }
 
+  @Logged
   public List<PoseObservation> getLatestObservations() {
     return m_camera.getAllUnreadResults().stream()
         .map(m_estimator::estimateCoprocMultiTagPose)

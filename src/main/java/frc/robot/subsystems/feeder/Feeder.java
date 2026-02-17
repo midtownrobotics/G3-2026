@@ -66,8 +66,10 @@ public class Feeder extends SubsystemBase {
     m_fuelSensorFilter = LinearFilter.movingAverage(5);
   }
 
+  @Logged
   private boolean getFuelSensorTripped() {
-    return m_fuelSensorFilter.calculate(m_fuelSensor.getDistance().getValue().baseUnitMagnitude()) < Inches.of(5).baseUnitMagnitude();
+    return m_fuelSensorFilter.calculate(m_fuelSensor.getDistance().getValue().baseUnitMagnitude()) < Inches.of(5)
+        .baseUnitMagnitude();
   }
 
   public Trigger fuelSensorTripped() {

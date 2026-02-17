@@ -4,8 +4,8 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
-import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
+import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.function.Function;
@@ -15,6 +15,8 @@ import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
@@ -32,6 +34,7 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 import yams.units.EasyCRT;
 import yams.units.EasyCRTConfig;
 
+@Logged(strategy = Strategy.OPT_IN)
 public class Turret extends SubsystemBase {
   private final TalonFX m_motor;
   private final Pivot m_pivotMechanism;
@@ -94,6 +97,7 @@ public class Turret extends SubsystemBase {
     m_pivotMechanism.simIterate();
   }
 
+  @Logged
   public Angle getAngle() {
     return m_pivotMechanism.getAngle();
   }
