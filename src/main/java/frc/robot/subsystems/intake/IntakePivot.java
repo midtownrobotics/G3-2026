@@ -46,17 +46,13 @@ public class IntakePivot extends SubsystemBase {
     m_intakeCANCoder = new CANcoder(Ports.kIntakePivotCANPort.canId(), Ports.kIntakePivotCANPort.canbus());
     SmartMotorControllerConfig pivotCfg = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
-        .withClosedLoopController(50.0, 0.0, 0.0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(1000))
+        .withClosedLoopController(70.0, 0.0, 0.0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(1000))
         .withSimClosedLoopController(3.0, 0.0, 0.05, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(1000))
-        .withFeedforward(new ArmFeedforward(0.0, 0.0, 0.0))
+        .withFeedforward(new ArmFeedforward(0.0, 0.5, 0.0))
         .withGearing(new MechanismGearing(GearBox.fromStages("50:12", "60:20", "48:16")))
         .withTelemetry("PivotMotor", TelemetryVerbosity.HIGH)
         .withMotorInverted(true)
         .withIdleMode(MotorMode.BRAKE);
-    // .withExternalEncoder(m_intakeCANCoder)
-    // .withExternalEncoderGearing(16.0 / 48.0)
-    // .withExternalEncoderInverted(true)
-    // .withUseExternalFeedbackEncoder(false);
 
     TalonFX pivotTalonFX = new TalonFX(Ports.kIntakePivotTalonFXPort.canId(), Ports.kIntakePivotTalonFXPort.canbus());
     m_pivotMotor = new TalonFXWrapper(pivotTalonFX, DCMotor.getKrakenX60(1), pivotCfg);
