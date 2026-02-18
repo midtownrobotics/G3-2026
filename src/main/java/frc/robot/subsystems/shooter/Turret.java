@@ -39,10 +39,10 @@ public class Turret extends SubsystemBase {
   private final CANcoder m_yawCANCoder2;
   private final EasyCRT m_easyCRTSolver;
 
-  public Turret(int motorID, int motorEncoderID) {
-    m_motor = new TalonFX(Ports.kTurretShooterMotorTalonFXPort);
-    m_yawCANCoder1 = new CANcoder(Ports.kTurretCANCoder1Port);
-    m_yawCANCoder2 = new CANcoder(Ports.kTurretCANCoder2Port);
+  public Turret() {
+    m_motor = new TalonFX(Ports.kTurretYawMotorTalonFXPort.canId(), Ports.kTurretYawMotorTalonFXPort.canbus());
+    m_yawCANCoder1 = new CANcoder(Ports.kTurretCANCoder1Port.canId(), Ports.kTurretCANCoder1Port.canbus());
+    m_yawCANCoder2 = new CANcoder(Ports.kTurretCANCoder2Port.canId(), Ports.kTurretCANCoder2Port.canbus());
 
     SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
@@ -52,8 +52,9 @@ public class Turret extends SubsystemBase {
         .withIdleMode(MotorMode.BRAKE)
         .withTelemetry("TurretMotor", TelemetryVerbosity.HIGH)
         .withStatorCurrentLimit(Amps.of(30))
-        .withClosedLoopRampRate(Seconds.of(0.25))
-        .withOpenLoopRampRate(Seconds.of(0.25));
+        // .withClosedLoopRampRate(Seconds.of(0.25))
+        // .withOpenLoopRampRate(Seconds.of(0.25))
+        ;
 
     SmartMotorController motorController = new TalonFXWrapper(m_motor, DCMotor.getKrakenX60(1), motorConfig);
 

@@ -1,0 +1,26 @@
+{
+  "NetworkTables": {
+    "types": {
+      "/FMSInfo": "FMSInfo",
+      "/SmartDashboard/Mechanisms/Commands/IntakePivot/Live Tuning": "Command",
+      "/SmartDashboard/Mechanisms/Commands/IntakeRoller/Live Tuning": "Command",
+      "/SmartDashboard/Mechanisms/Commands/IntakeRollerMotor/Down": "Command",
+      "/SmartDashboard/Mechanisms/Commands/IntakeRollerMotor/Up": "Command",
+      "/SmartDashboard/Mechanisms/Commands/IntakeRollerMotor/ZeroEncoder": "Command",
+      "/SmartDashboard/Mechanisms/Commands/PivotMotor/Down": "Command",
+      "/SmartDashboard/Mechanisms/Commands/PivotMotor/Up": "Command",
+      "/SmartDashboard/Mechanisms/Commands/PivotMotor/ZeroEncoder": "Command",
+      "/SmartDashboard/Mechanisms/Commands/Shooter Motor/Down": "Command",
+      "/SmartDashboard/Mechanisms/Commands/Shooter Motor/Up": "Command",
+      "/SmartDashboard/Mechanisms/Commands/Shooter Motor/ZeroEncoder": "Command",
+      "/SmartDashboard/Mechanisms/Commands/Shooter/Live Tuning": "Command"
+    }
+  },
+  "NetworkTables Info": {
+    "visible": true
+  },
+  "NetworkTables Settings": {
+    "mode": "Client (NT4)",
+    "serverTeam": "1648"
+  }
+}

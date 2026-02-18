@@ -36,7 +36,7 @@ public class IntakeRoller extends SubsystemBase {
         .withGearing(1)
         .withTelemetry("IntakeRollerMotor", TelemetryVerbosity.HIGH);
 
-    TalonFX rollerTalonFX = new TalonFX(Ports.kIntakeRollerTalonFXPort);
+    TalonFX rollerTalonFX = new TalonFX(Ports.kIntakeRollerTalonFXPort.canId(), Ports.kIntakeRollerTalonFXPort.canbus());
     m_rollerMotor = new TalonFXWrapper(rollerTalonFX, DCMotor.getKrakenX60(1), rollerMotorCfg);
 
     FlyWheelConfig rollerConfig = new FlyWheelConfig(m_rollerMotor)

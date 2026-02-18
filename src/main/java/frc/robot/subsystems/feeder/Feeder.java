@@ -46,7 +46,7 @@ public class Feeder extends SubsystemBase {
         .withGearing(4)
         .withTelemetry("FeederMotor", TelemetryVerbosity.HIGH);
 
-    TalonFX beltTalonFX = new TalonFX(Ports.kFeederBeltTalonFXPort);
+    TalonFX beltTalonFX = new TalonFX(Ports.kFeederBeltTalonFXPort.canId(), Ports.kFeederBeltTalonFXPort.canbus());
     m_feederMotor = new TalonFXWrapper(beltTalonFX, DCMotor.getKrakenX44(1), beltMotorCfg);
 
     FlyWheelConfig beltConfig = new FlyWheelConfig(m_feederMotor)
@@ -60,7 +60,7 @@ public class Feeder extends SubsystemBase {
 
     CANrangeConfiguration fuelSensorConfig = new CANrangeConfiguration();
 
-    m_fuelSensor = new CANrange(Ports.kFeederFuelSensor);
+    m_fuelSensor = new CANrange(Ports.kFeederFuelSensor.canId(), Ports.kFeederFuelSensor.canbus());
     m_fuelSensor.getConfigurator().apply(fuelSensorConfig);
 
     m_fuelSensorFilter = LinearFilter.movingAverage(5);

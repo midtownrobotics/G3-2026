@@ -24,14 +24,14 @@ import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 public class Shooter extends SubsystemBase {
-  private final TalonFX m_shooterMotor;
-  private final FlyWheel m_shooterMechanism;
+  private TalonFX m_shooterMotor;
+  private FlyWheel m_shooterMechanism;
 
-  public Shooter(int shooterMotorID, int shooterMotorEncoderID, int reverseShooterMotorID,
-      int reverseShooterMotorEncoderID) {
-    m_shooterMotor = new TalonFX(Ports.kTurretShooterMotorTalonFXPort);
+  public Shooter() {
 
-    SmartMotorControllerConfig upperShooterMotorConfig = new SmartMotorControllerConfig()
+    m_shooterMotor = new TalonFX(Ports.kTurretShooterMotorTalonFXPort.canId(), Ports.kTurretShooterMotorTalonFXPort.canbus());
+
+    SmartMotorControllerConfig upperShooterMotorConfig = new SmartMotorControllerConfig(this)
         .withIdleMode(MotorMode.COAST)
         .withGearing(0)
         .withTelemetry("Shooter Motor", TelemetryVerbosity.HIGH)

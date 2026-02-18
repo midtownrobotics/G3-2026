@@ -33,7 +33,7 @@ public class TransportRoller extends SubsystemBase {
         .withIdleMode(MotorMode.COAST)
         .withTelemetry("TransportRollerMotor", TelemetryVerbosity.HIGH);
 
-    TalonFX rollerTalon = new TalonFX(Ports.kIndexerTransportRollerTalonFXPort);
+    TalonFX rollerTalon = new TalonFX(Ports.kIndexerTransportRollerTalonFXPort.canId(), Ports.kIndexerTransportRollerTalonFXPort.canbus());
     m_rollerMotor = new TalonFXWrapper(rollerTalon, DCMotor.getKrakenX60(1), rollerMotorCfg);
 
     FlyWheelConfig rollerConfig = new FlyWheelConfig(m_rollerMotor)
