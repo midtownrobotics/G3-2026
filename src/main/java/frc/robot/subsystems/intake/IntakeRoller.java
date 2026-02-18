@@ -3,6 +3,7 @@ package frc.robot.subsystems.intake;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.function.Supplier;
 
@@ -31,12 +32,14 @@ public class IntakeRoller extends SubsystemBase {
 
   public IntakeRoller() {
     SmartMotorControllerConfig rollerMotorCfg = new SmartMotorControllerConfig(this)
+        .withOpenLoopRampRate(Seconds.of(2))
         .withControlMode(ControlMode.OPEN_LOOP)
         .withIdleMode(MotorMode.COAST)
         .withGearing(1)
         .withTelemetry("IntakeRollerMotor", TelemetryVerbosity.HIGH);
 
-    TalonFX rollerTalonFX = new TalonFX(Ports.kIntakeRollerTalonFXPort.canId(), Ports.kIntakeRollerTalonFXPort.canbus());
+    TalonFX rollerTalonFX = new TalonFX(Ports.kIntakeRollerTalonFXPort.canId(),
+        Ports.kIntakeRollerTalonFXPort.canbus());
     m_rollerMotor = new TalonFXWrapper(rollerTalonFX, DCMotor.getKrakenX60(1), rollerMotorCfg);
 
     FlyWheelConfig rollerConfig = new FlyWheelConfig(m_rollerMotor)
