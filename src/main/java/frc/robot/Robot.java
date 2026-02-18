@@ -1,5 +1,9 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
+
+import java.io.IOException;
+
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
 import dev.doglog.DogLog;
@@ -94,9 +98,15 @@ public class Robot extends TimedRobot {
     m_autoChooser = new AutoChooser("Do Nothing");
     generateAutoChooser();
 
-    if (Constants.kEnableObstacleProtection == true) {
-      new IntakeObstacleProtection(m_drive, m_intakePivot);
+    if (Constants.kEnableObstacleProtection) {
+      try {
+        IntakeObstacleProtection.getTrigger(m_state)
+            .onTrue(m_intakePivot.setAngleCommand(Degrees.of(87)));
+      } catch (IOException e) {
+        throw new RuntimeException("obstacle protection failed", e);
+      }
     }
+
   }
 
   private void generateAutoChooser() {

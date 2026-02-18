@@ -1,8 +1,7 @@
 package frc.robot.subsystems.intake;
 
-import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Seconds;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -10,73 +9,81 @@ import java.nio.file.Files;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.RobotState;
 
 public class IntakeObstacleProtection {
-  private final CommandSwerveDrivetrain m_drive;
-  private final IntakePivot m_intakePivot;
+  private static final Time kTimeThreshold = Seconds.of(1.5);
+  private static final Distance kMaxScanDistance = Meters.of(3.0);
 
-  private static final LinearVelocity kSpeedThreshold = MetersPerSecond.of(2.44);
-  private static final Distance kCheckingDistance = Meters.of(2.74);
-
-  private boolean[][] m_grid;
-  private double m_nodeSize;
-
-  public IntakeObstacleProtection(CommandSwerveDrivetrain drive, IntakePivot intake) {
-    m_drive = drive;
-    m_intakePivot = intake;
-
-    try {
-      String json = Files.readString(Filesystem.getDeployDirectory().toPath().resolve("navgrid.json"));
-      JsonNode root = new ObjectMapper().readTree(json);
-      m_nodeSize = root.get("nodeSizeMeters").asDouble();
-      JsonNode grid = root.get("grid");
-
-      m_grid = new boolean[grid.size()][grid.get(0).size()];
-      for (int rows = 0; rows < grid.size(); rows++) {
-        for (int columns = 0; columns < grid.get(0).size(); columns++) {
-          m_grid[rows][columns] = grid.get(rows).get(columns).asBoolean();
-        }
-      }
-    } catch (IOException e) {
-      System.err.println("navgrid didn't read" + e.getMessage());
-      m_grid = null;
-    }
-
-    Trigger obstacleDetected = new Trigger(this::detectObstacle);
-    obstacleDetected.onTrue(m_intakePivot.setAngleCommand(Degrees.of(87)));
+  private IntakeObstacleProtection() {
   }
 
-  private boolean detectObstacle() {
-    if (m_grid == null) {
+  public static Trigger getTrigger(RobotState robotState) throws IOException {
+    String json = Files.readString(Filesystem.getDeployDirectory().toPath().resolve("navgrid.json"));
+    JsonNode root = new ObjectMapper().readTree(json);
+    double nodeSize = root.get("nodeSizeMeters").asDouble();
+    JsonNode gridNode = root.get("grid");
+
+    boolean[][] grid = new boolean[gridNode.size()][gridNode.get(0).size()];
+    for (int row = 0; row < gridNode.size(); row++) {
+      for (int col = 0; col < gridNode.get(0).size(); col++) {
+        grid[row][col] = gridNode.get(row).get(col).asBoolean();
+      }
+    }
+
+    return new Trigger(() -> isObstacleTooClose(robotState, grid, nodeSize));
+  }
+
+  private static boolean isObstacleTooClose(RobotState robotState, boolean[][] grid, double nodeSize) {
+    ChassisSpeeds speeds = robotState.getRobotSpeed();
+
+    double totalSpeed = Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
+
+    if (totalSpeed <= 0) {
       return false;
     }
 
-    ChassisSpeeds speeds = m_drive.getChassisSpeeds();
-    double velocity = Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
+    Rotation2d heading = robotState.getRobotPose().getRotation();
+    double directionX = heading.getCos();
+    double directionY = heading.getSin();
 
-    if (velocity < kSpeedThreshold.in(MetersPerSecond)) {
+    Translation2d robotPosition = robotState.getRobotPose().getTranslation();
+    double distanceToObstacle = distanceToNearestObstacle(robotPosition, directionX, directionY, grid,
+        nodeSize);
+
+    if (distanceToObstacle == -1) {
       return false;
     }
 
-    Pose2d pose = m_drive.getPose();
-    Translation2d ahead = pose.getTranslation()
-        .plus(new Translation2d(kCheckingDistance.in(Meters), pose.getRotation()));
+    return distanceToObstacle / totalSpeed < kTimeThreshold.in(Seconds);
+  }
 
-    int col = (int) (ahead.getX() / m_nodeSize);
-    int row = (int) (ahead.getY() / m_nodeSize);
+  private static double distanceToNearestObstacle(
+      Translation2d robotPosition, double velocityDirectionX, double velocityDirectionY, boolean[][] grid,
+      double nodeSize) {
 
-    if (row < 0 || row >= m_grid.length || col < 0 || col >= m_grid[0].length) {
-      return false;
+    double maxDist = kMaxScanDistance.in(Meters);
+
+    for (double distance = 0; distance <= maxDist; distance += nodeSize) {
+      int col = (int) ((robotPosition.getX() + velocityDirectionX * distance) / nodeSize);
+      int row = (int) ((robotPosition.getY() + velocityDirectionY * distance) / nodeSize);
+
+      if (row < 0 || row >= grid.length || col < 0 || col >= grid[0].length) {
+        return -1;
+      }
+
+      if (!grid[row][col]) {
+        return distance;
+      }
     }
 
-    return m_grid[row][col] == false;
+    return -1;
   }
 }

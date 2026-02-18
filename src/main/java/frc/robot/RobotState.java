@@ -52,6 +52,10 @@ public class RobotState {
     return m_drive.getPose();
   }
 
+  public ChassisSpeeds getRobotSpeed() {
+    return m_drive.getChassisSpeeds();
+  }
+
   public Angle getIntakeAngle() {
     return m_intakePivot.getAngle();
   }
