@@ -46,9 +46,9 @@ public class IntakePivot extends SubsystemBase {
     m_intakeCANCoder = new CANcoder(Ports.kIntakePivotCANPort.canId(), Ports.kIntakePivotCANPort.canbus());
     SmartMotorControllerConfig pivotCfg = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
-        .withClosedLoopController(0.6, 0.0, 0.05, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
-        .withSimClosedLoopController(3.0, 0.0, 0.05, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
-        .withFeedforward(new ArmFeedforward(0.1, 0.4, 0.01))
+        .withClosedLoopController(50.0, 0.0, 0.0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(1000))
+        .withSimClosedLoopController(3.0, 0.0, 0.05, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(1000))
+        .withFeedforward(new ArmFeedforward(0.0, 0.0, 0.0))
         .withGearing(new MechanismGearing(GearBox.fromStages("50:12", "60:20", "48:16")))
         .withTelemetry("PivotMotor", TelemetryVerbosity.HIGH)
         .withMotorInverted(true)
@@ -62,10 +62,9 @@ public class IntakePivot extends SubsystemBase {
     m_pivotMotor = new TalonFXWrapper(pivotTalonFX, DCMotor.getKrakenX60(1), pivotCfg);
 
     ArmConfig armCfg = new ArmConfig(m_pivotMotor)
-        .withHardLimit(Degrees.of(87), Degrees.of(15.25))
-        .withSoftLimits(Degrees.of(75), Degrees.of(25))
-        // .withStartingPosition(
-        //     m_intakeCANCoder.getAbsolutePosition().getValue().times(16.0 / 48.0).plus(Degrees.of(-46)))
+        .withHardLimit(Degrees.of(0), Degrees.of(70))
+        .withSoftLimits(Degrees.of(0), Degrees.of(60))
+        .withStartingPosition(getAbsoluteAngle())
         .withLength(Inches.of(30.5))
         .withMass(Pounds.of(4.0))
         .withTelemetry("IntakePivot", TelemetryVerbosity.HIGH);
@@ -78,8 +77,8 @@ public class IntakePivot extends SubsystemBase {
   }
 
   private Angle getAbsoluteAngle() {
-    // Adjust WRAP_OFFSET so that when the arm is all the way down, armDeg reads 0.
-    final double WRAP_OFFSET = 107; // tune this
+    // Set this to the value of "Intake/IntakeAbsoluteEncoderOffset" when the intake is all the way down.
+    final double WRAP_OFFSET = 46.8;
 
     double encoderDeg = m_intakeCANCoder.getAbsolutePosition().getValue().in(Degrees);
     if (encoderDeg < 0)
@@ -91,10 +90,22 @@ public class IntakePivot extends SubsystemBase {
     return Degrees.of(armDeg);
   }
 
+  private Angle getAbsoluteOffsetAt0() {
+    double encoderDeg = m_intakeCANCoder.getAbsolutePosition().getValue().in(Degrees);
+    if (encoderDeg < 0)
+      encoderDeg += 360.0;
+    double armDeg = encoderDeg / 3.0;
+
+    armDeg = (armDeg + 120.0) % 120.0;
+    armDeg = armDeg > 105 ? -(120-armDeg) : armDeg;
+    return Degrees.of(armDeg);
+  }
+
   @Override
   public void periodic() {
     m_pivotArm.updateTelemetry();
-    DogLog.log("IntakeAbsoluteEncoder", getAbsoluteAngle().in(Degrees));
+    DogLog.log("Intake/IntakeAbsoluteEncoder", getAbsoluteAngle().in(Degrees));
+    DogLog.log("Intake/IntakeAbsoluteEncoderOffset", getAbsoluteOffsetAt0().in(Degrees));
   }
 
   @Override
