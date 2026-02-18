@@ -1,21 +1,25 @@
 package frc.robot;
 
+import com.ctre.phoenix6.swerve.SwerveRequest;
+
 import dev.doglog.DogLog;
 import dev.doglog.DogLogOptions;
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.controls.Controls;
 import frc.robot.controls.XboxControls;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.intake.IntakeGoal;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
-import frc.robot.subsystems.shooter.Hood;
 import frc.robot.subsystems.shooter.Shooter;
 
 @Logged
@@ -23,7 +27,7 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   private final Controls m_controls;
 
-  // private final CommandSwerveDrivetrain m_drive;
+  private final CommandSwerveDrivetrain m_drive;
   // private final Vision m_vision;
 
   private final IntakePivot m_intakePivot;
@@ -51,7 +55,7 @@ public class Robot extends TimedRobot {
     Epilogue.bind(this);
 
     m_controls = new XboxControls(0);
-    // m_drive = TunerConstants.createDrivetrain();
+    m_drive = TunerConstants.createDrivetrain();
     // m_feeder = new Feeder();
     m_intakePivot = new IntakePivot();
     m_intakeRoller = new IntakeRoller();
@@ -60,6 +64,11 @@ public class Robot extends TimedRobot {
     m_shooter = new Shooter();
 
     SmartDashboard.putData("IntakeSysIdCommand", m_intakePivot.getSysIDCommand());
+    SmartDashboard.putData("Intake Command", runIntakeCommand());
+    SmartDashboard.putData("Intake Stow Command", stowIntakeCommand());
+
+    m_controls.intakeFuel().onTrue(runIntakeCommand()).onFalse(stowIntakeCommand());
+    m_drive.setDefaultCommand(joyStickDrive());
 
     // Camera rearFacingRightCamera = new Camera("rearFacingRightCamera", new Transform3d());
     // Camera frontFacingRightCamera = new Camera("frontFacingRightCamera", new Transform3d());
@@ -104,22 +113,39 @@ public class Robot extends TimedRobot {
   //   m_controls.intakeFuel().whileTrue(runIntakeCommand()).onFalse(stowIntakeCommand());
   // }
 
-  // private Command setIntakeGoalCommand(IntakeGoal goal) {
-  //   return Commands.parallel(
-  //       m_intakePivot.setAngleCommand(goal.angle),
-  //       m_intakeRoller.setVoltageCommand(goal.voltage));
-  // }
+  private Command setIntakeGoalCommand(IntakeGoal goal) {
+    return Commands.parallel(
+        m_intakePivot.setAngleCommand(goal.angle),
+        m_intakeRoller.setVoltageCommand(goal.voltage));
+  }
 
-  // private Command runIntakeCommand() {
-  //   return setIntakeGoalCommand(IntakeGoal.INTAKING);
-  // }
+  private Command runIntakeCommand() {
+    return setIntakeGoalCommand(IntakeGoal.INTAKING);
+  }
 
-  // private Command stowIntakeCommand() {
-  //   return setIntakeGoalCommand(IntakeGoal.STOW);
-  // }
+  private Command stowIntakeCommand() {
+    return setIntakeGoalCommand(IntakeGoal.STOW);
+  }
+
+  private Command joyStickDrive() {
+    return Commands.run(() -> {
+      ChassisSpeeds speeds = new ChassisSpeeds(
+          m_controls.getDriveForward() * Constants.kLinearSpeedMultiplier,
+          m_controls.getDriveLeft() * Constants.kLinearSpeedMultiplier,
+          Math.copySign(m_controls.getDriveRotation() * m_controls.getDriveRotation(),
+              Constants.kRotationalSpeedMultiplier)
+              * Constants.kLinearSpeedMultiplier);
+
+      m_drive.setControl(new SwerveRequest.FieldCentric()
+          .withVelocityX(speeds.vxMetersPerSecond)
+          .withVelocityY(speeds.vyMetersPerSecond)
+          .withRotationalRate(speeds.omegaRadiansPerSecond));
+    }, m_drive);
+  }
 
   @Override
   public void robotPeriodic() {
+
     CommandScheduler.getInstance().run();
     // m_viz.periodic();
     // m_shootingParameters.periodic();

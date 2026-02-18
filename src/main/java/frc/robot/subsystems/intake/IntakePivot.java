@@ -5,12 +5,12 @@ import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Pounds;
-import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
@@ -70,11 +70,16 @@ public class IntakePivot extends SubsystemBase {
     m_intakeCANCoder.getConfigurator().apply(canCoderConfig);
 
     m_pivotArm = new Arm(armCfg);
+
+    var mmConfigs = new MotionMagicConfigs();
+    pivotTalonFX.getConfigurator().refresh(mmConfigs);
+    mmConfigs.MotionMagicJerk = 10;
+    pivotTalonFX.getConfigurator().apply(mmConfigs);
   }
 
   private Angle getAbsoluteAngle() {
     // Set this to the value of "Intake/IntakeAbsoluteEncoderOffset" when the intake is all the way down.
-    final double WRAP_OFFSET = 46.8;
+    final double WRAP_OFFSET = 40;
 
     double encoderDeg = m_intakeCANCoder.getAbsolutePosition().getValue().in(Degrees);
     if (encoderDeg < 0)
@@ -82,7 +87,7 @@ public class IntakePivot extends SubsystemBase {
     double armDeg = encoderDeg / 3.0;
 
     armDeg = (armDeg - WRAP_OFFSET + 120.0) % 120.0;
-    armDeg = armDeg > 105 ? -(120-armDeg) : armDeg;
+    armDeg = armDeg > 105 ? -(120 - armDeg) : armDeg;
     return Degrees.of(armDeg);
   }
 
@@ -93,7 +98,7 @@ public class IntakePivot extends SubsystemBase {
     double armDeg = encoderDeg / 3.0;
 
     armDeg = (armDeg + 120.0) % 120.0;
-    armDeg = armDeg > 105 ? -(120-armDeg) : armDeg;
+    armDeg = armDeg > 105 ? -(120 - armDeg) : armDeg;
     return Degrees.of(armDeg);
   }
 

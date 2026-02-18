@@ -8,7 +8,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.LinearVelocity;
 
 public class Constants {
-  public static final double kSpeedMultiplier = 12;
+  public static final double kLinearSpeedMultiplier = 1;
+  public static final double kRotationalSpeedMultiplier = 1;
   public static final LinearVelocity kLinearMaxSpeed = MetersPerSecond.of(7);
   public static final boolean kUseOnTheFlyShooting = false;
 

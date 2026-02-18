@@ -30,6 +30,6 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger intakeFuel() {
-    return m_controller.a();
+    return m_controller.rightTrigger();
   }
 }
