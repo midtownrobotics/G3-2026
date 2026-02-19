@@ -133,8 +133,7 @@ public class Robot extends TimedRobot {
           m_controls.getDriveForward() * Constants.kLinearSpeedMultiplier,
           m_controls.getDriveLeft() * Constants.kLinearSpeedMultiplier,
           Math.copySign(m_controls.getDriveRotation() * m_controls.getDriveRotation(),
-              Constants.kRotationalSpeedMultiplier)
-              * Constants.kLinearSpeedMultiplier);
+              m_controls.getDriveRotation()) * Constants.kRotationalSpeedMultiplier);
 
       m_drive.setControl(new SwerveRequest.FieldCentric()
           .withVelocityX(speeds.vxMetersPerSecond)

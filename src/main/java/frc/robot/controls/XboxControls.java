@@ -15,12 +15,12 @@ public class XboxControls implements Controls {
 
   @Override
   public double getDriveForward() {
-    return MathUtil.applyDeadband(m_controller.getLeftY() * -1, kDriverJoystickThreshold);
+    return MathUtil.applyDeadband(m_controller.getLeftY(), kDriverJoystickThreshold);
   }
 
   @Override
   public double getDriveLeft() {
-    return MathUtil.applyDeadband(m_controller.getLeftX() * -1, kDriverJoystickThreshold);
+    return MathUtil.applyDeadband(m_controller.getLeftX(), kDriverJoystickThreshold);
   }
 
   @Override
