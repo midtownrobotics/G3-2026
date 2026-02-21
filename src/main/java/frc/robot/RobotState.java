@@ -20,6 +20,7 @@ import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.indexer.TransportRoller;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
+import frc.robot.subsystems.shooter.Hood;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.Turret;
 
@@ -44,7 +45,8 @@ public class RobotState {
       Feeder feeder,
       Vision vision,
       TransportRoller transportRoller,
-      Shooter shooter) {
+      Shooter shooter,
+      Hood hood) {
     m_controls = controls;
     m_drive = drive;
     m_intakePivot = intakePivot;

@@ -27,8 +27,7 @@ public class Shooter extends SubsystemBase {
   private final TalonFX m_shooterMotor;
   private final FlyWheel m_shooterMechanism;
 
-  public Shooter(int shooterMotorID, int shooterMotorEncoderID, int reverseShooterMotorID,
-      int reverseShooterMotorEncoderID) {
+  public Shooter() {
     m_shooterMotor = new TalonFX(Ports.kTurretShooterMotorTalonFXPort);
 
     SmartMotorControllerConfig upperShooterMotorConfig = new SmartMotorControllerConfig()

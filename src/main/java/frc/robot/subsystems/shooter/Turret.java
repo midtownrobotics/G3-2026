@@ -4,8 +4,8 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
-import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
+import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.function.Function;
@@ -39,7 +39,7 @@ public class Turret extends SubsystemBase {
   private final CANcoder m_yawCANCoder2;
   private final EasyCRT m_easyCRTSolver;
 
-  public Turret(int motorID, int motorEncoderID) {
+  public Turret() {
     m_motor = new TalonFX(Ports.kTurretShooterMotorTalonFXPort);
     m_yawCANCoder1 = new CANcoder(Ports.kTurretCANCoder1Port);
     m_yawCANCoder2 = new CANcoder(Ports.kTurretCANCoder2Port);
