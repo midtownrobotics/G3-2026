@@ -14,4 +14,8 @@ public interface TrimControls {
   public Trigger increaseVelocityCompensation();
 
   public Trigger decreaseVelocityCompensation();
+
+  public Trigger increaseTurretAngle();
+
+  public Trigger decreaseTurretAngle();
 }

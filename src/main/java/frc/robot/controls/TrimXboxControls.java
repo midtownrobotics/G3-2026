@@ -40,4 +40,14 @@ public class TrimXboxControls implements TrimControls {
     return m_controller.leftBumper();
   }
 
+  @Override
+  public Trigger increaseTurretAngle() {
+    return m_controller.povRight();
+  }
+
+  @Override
+  public Trigger decreaseTurretAngle() {
+    return m_controller.povLeft();
+  }
+
 }
