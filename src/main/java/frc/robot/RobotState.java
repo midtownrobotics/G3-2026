@@ -24,12 +24,12 @@ import frc.robot.subsystems.shooter.Turret;
 
 @Logged
 public class RobotState {
-  public final Controls m_controls;
-  public final CommandSwerveDrivetrain m_drive;
-  public final IntakePivot m_intakePivot;
-  public final Turret m_turret;
-  public final Hood m_hood;
-  public final Shooter m_shooter;
+  private final Controls m_controls;
+  private final CommandSwerveDrivetrain m_drive;
+  private final IntakePivot m_intakePivot;
+  private final Turret m_turret;
+  private final Hood m_hood;
+  private final Shooter m_shooter;
 
   public RobotState(Controls controls, CommandSwerveDrivetrain drive, IntakePivot intakePivot, Turret turret,
       Hood hood, Shooter shooter) {

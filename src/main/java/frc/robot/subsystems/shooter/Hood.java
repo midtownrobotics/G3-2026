@@ -10,6 +10,8 @@ import java.util.function.Supplier;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -24,6 +26,7 @@ import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
+@Logged(strategy = Strategy.OPT_IN)
 public class Hood extends SubsystemBase {
   private final TalonFX m_motor;
   private final Arm m_armMechanism;
@@ -63,6 +66,7 @@ public class Hood extends SubsystemBase {
     m_armMechanism.simIterate();
   }
 
+  @Logged
   public Angle getAngle() {
     return m_armMechanism.getAngle();
   }

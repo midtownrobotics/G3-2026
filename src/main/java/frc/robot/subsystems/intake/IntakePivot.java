@@ -66,7 +66,6 @@ public class IntakePivot extends SubsystemBase {
   @Override
   public void periodic() {
     m_pivotArm.updateTelemetry();
-
   }
 
   @Override
@@ -78,6 +77,7 @@ public class IntakePivot extends SubsystemBase {
     return m_pivotArm.setAngle(angle);
   }
 
+  @Logged
   public Angle getAngle() {
     return m_pivotArm.getAngle();
   }

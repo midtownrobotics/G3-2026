@@ -11,9 +11,13 @@ import org.photonvision.targeting.PhotonPipelineResult;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import frc.lib.LoggerUtil;
 
+@Logged(strategy = Strategy.OPT_IN)
 public class Camera {
   private PhotonCamera m_camera;
   private PhotonPoseEstimator m_estimator;
@@ -44,11 +48,14 @@ public class Camera {
   }
 
   public List<PoseObservation> getLatestObservations() {
-    return m_camera.getAllUnreadResults().stream()
+    List<PoseObservation> observations = m_camera.getAllUnreadResults().stream()
         .map(m_estimator::estimateCoprocMultiTagPose)
         .flatMap(Optional::stream)
         .map((est) -> new PoseObservation(est.timestampSeconds, est.estimatedPose, est.targetsUsed.size()))
         .toList();
+
+    LoggerUtil.log("latestObservations", observations);
+    return observations;
   }
 
   public boolean hasTargets() {
