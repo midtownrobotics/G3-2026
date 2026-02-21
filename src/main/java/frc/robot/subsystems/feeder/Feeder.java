@@ -10,7 +10,6 @@ import com.ctre.phoenix6.configs.CANrangeConfiguration;
 import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
 
-import dev.doglog.DogLog;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -20,6 +19,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.lib.LoggerUtil;
 import frc.robot.Ports;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
@@ -66,7 +66,6 @@ public class Feeder extends SubsystemBase {
     m_fuelSensorFilter = LinearFilter.movingAverage(5);
   }
 
-  @Logged
   private boolean getFuelSensorTripped() {
     return m_fuelSensorFilter.calculate(m_fuelSensor.getDistance().getValue().baseUnitMagnitude()) < Inches.of(5)
         .baseUnitMagnitude();
@@ -78,8 +77,9 @@ public class Feeder extends SubsystemBase {
 
   @Override
   public void periodic() {
-    DogLog.log("Feeder/FuelSensor/Distance", m_fuelSensor.getDistance().getValue());
-    DogLog.log("Feeder/FuelSensor/DistanceSTD", m_fuelSensor.getDistanceStdDev().getValue());
+    LoggerUtil.log("FuelSensor/distance", m_fuelSensor.getDistance().getValue());
+    LoggerUtil.log("FuelSensor/distanceSTD", m_fuelSensor.getDistanceStdDev().getValue());
+    LoggerUtil.log("sensorTripped", getFuelSensorTripped());
     m_feeder.updateTelemetry();
   }
 
