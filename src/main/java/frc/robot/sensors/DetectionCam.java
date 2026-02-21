@@ -1,18 +1,30 @@
 package frc.robot.sensors;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Meters;
+
 import org.photonvision.PhotonCamera;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.targeting.PhotonPipelineResult;
-import org.photonvision.targeting.PhotonTrackedTarget;
 
+import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.epilogue.Logged.Strategy;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
+
+@Logged(strategy = Strategy.OPT_IN)
 public class DetectionCam {
   private PhotonCamera m_camera;
 
-  private static final double FUEL_CAM_FOV_HORIZONTAL = 60.0; // degrees
-
-  public static final double FUEL_DIAMETER_METERS = 0.150114; // 5.91 inches
-  public static final double FOCAL_LENGTH_PIXELS = 500.0;
+  private static final Angle kFuelCamFovHorizontal = Degrees.of(70.0);
+  private static final Angle kFuelCamFovVertical = Degrees.of(44);
+  public static final Distance kFuelDiameter = Meters.of(0.150114);
+  public static final double kFocalLengthPixels = 500.0;
+  private final Alert m_fuelDetectedOutsideOfBounds = new Alert("Fuel Detected Outside Of Bounds", AlertType.kWarning);
 
   public DetectionCam(String name) {
     m_camera = new PhotonCamera(name);
@@ -31,43 +43,30 @@ public class DetectionCam {
     return m_camera.getLatestResult();
   }
 
-  public double getFuelX() {
+  public double[] getFuelsX() {
     PhotonPipelineResult result = m_camera.getLatestResult();
-    if (result.hasTargets()) {
-      PhotonTrackedTarget target = result.getBestTarget();
-      double yaw = target.getYaw();
-      double normalizedX = yaw / (FUEL_CAM_FOV_HORIZONTAL / 2.0);
+
+    return result.getTargets().stream().mapToDouble((target) -> {
+      Angle yaw = Degrees.of(target.getYaw());
+      double normalizedX = yaw.div(kFuelCamFovHorizontal.div(2.0)).in(Units.Value);
+      m_fuelDetectedOutsideOfBounds.set(normalizedX > 1.0 || normalizedX < -1.0);
       return Math.max(-1.0, Math.min(1.0, normalizedX));
-    }
-    return 0.0;
+    }).toArray();
+  }
+
+  public double[] getFuelsY() {
+    PhotonPipelineResult result = m_camera.getLatestResult();
+
+    return result.getTargets().stream().mapToDouble((target) -> {
+      Angle yaw = Degrees.of(target.getPitch());
+      double normalizedY = yaw.div(kFuelCamFovVertical.div(2.0)).in(Units.Value);
+      m_fuelDetectedOutsideOfBounds.set(normalizedY > 1.0 || normalizedY < -1.0);
+      return Math.max(-1.0, Math.min(1.0, normalizedY));
+    }).toArray();
   }
 
   public boolean hasTargets() {
     PhotonPipelineResult result = m_camera.getLatestResult();
     return result.hasTargets();
-  }
-
-  public PhotonTrackedTarget getBestTarget() {
-    PhotonPipelineResult result = m_camera.getLatestResult();
-    if (result.hasTargets()) {
-      return result.getBestTarget();
-    }
-    return null;
-  }
-
-  public double getTargetYaw() {
-    PhotonPipelineResult result = m_camera.getLatestResult();
-    if (result.hasTargets()) {
-      return result.getBestTarget().getYaw();
-    }
-    return 0.0;
-  }
-
-  public double getTargetPitch() {
-    PhotonPipelineResult result = m_camera.getLatestResult();
-    if (result.hasTargets()) {
-      return result.getBestTarget().getPitch();
-    }
-    return 0.0;
   }
 }
