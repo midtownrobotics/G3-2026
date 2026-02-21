@@ -2,6 +2,7 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Radians;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -11,8 +12,10 @@ import dev.doglog.DogLog;
 import dev.doglog.DogLogOptions;
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -114,13 +117,12 @@ public class Robot extends TimedRobot {
       var controls = new ConventionalXboxControls(0);
       configureConventionalBindings(controls);
       m_controls = controls;
-      m_drive.setDefaultCommand(joyStickDrive());
+      m_drive.setDefaultCommand(Constants.kUseWeirdSnakeDrive ? snakeDrive() : joyStickDrive());
     } else {
       var controls = new FourWayXboxControls(0);
       configureFourWayBindings(controls);
       m_controls = controls;
-      m_drive.setDefaultCommand(joyStickDrive());
-
+      m_drive.setDefaultCommand(Constants.kUseWeirdSnakeDrive ? snakeDrive() : joyStickDrive());
     }
 
     generateAutoChooser();
@@ -185,11 +187,50 @@ public class Robot extends TimedRobot {
     }, m_drive);
   }
 
+  public Command snakeDrive() {
+
+    return Commands.run(() -> {
+      final PIDController headingController = new PIDController(100, 0, 0);
+      final boolean snakeDriveActive = !(Math.abs(m_controls.getDriveRotation()) > 0);
+
+      ChassisSpeeds speeds;
+      if (snakeDriveActive) {
+        headingController.enableContinuousInput(-Math.PI, Math.PI);
+
+        speeds = new ChassisSpeeds(
+            m_controls.getDriveForward() * Constants.kSpeedMultiplier,
+            m_controls.getDriveLeft() * Constants.kSpeedMultiplier,
+            0);
+
+        Angle headingAngle = Radians.of(Math.atan2(speeds.vyMetersPerSecond, speeds.vxMetersPerSecond) + Math.PI);
+
+        if (Math.abs(speeds.vyMetersPerSecond) > 0.1 || Math.abs(speeds.vxMetersPerSecond) > 0.1) {
+          speeds.omegaRadiansPerSecond = headingController.calculate(m_drive.getPose().getRotation().getRadians(),
+              headingAngle.in(Radians));
+        }
+      } else {
+        speeds = new ChassisSpeeds(
+            m_controls.getDriveForward() * Constants.kLinearMaxSpeed.in(MetersPerSecond) * Constants.kSpeedMultiplier,
+            m_controls.getDriveLeft() * Constants.kLinearMaxSpeed.in(MetersPerSecond) * Constants.kSpeedMultiplier,
+            Math.copySign(m_controls.getDriveRotation() * m_controls.getDriveRotation(), m_controls.getDriveRotation())
+                * Constants.kSpeedMultiplier);
+
+      }
+
+      m_drive.setControl(new SwerveRequest.FieldCentric()
+          .withVelocityX(speeds.vxMetersPerSecond)
+          .withVelocityY(speeds.vyMetersPerSecond)
+          .withRotationalRate(speeds.omegaRadiansPerSecond));
+
+      headingController.close();
+    }, m_drive);
+  }
+
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     m_viz.periodic();
-    m_shootingParameters.periodic();
+    // m_shootingParameters.periodic();
 
     DogLog.log("Autonomous", DriverStation.isAutonomousEnabled());
   }
