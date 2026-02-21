@@ -3,6 +3,8 @@ package frc.robot;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 
+import java.util.Optional;
+
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import choreo.auto.AutoChooser;
@@ -28,6 +30,8 @@ import frc.robot.controls.ConventionalXboxControls;
 import frc.robot.controls.DriveControls;
 import frc.robot.controls.FourWayControls;
 import frc.robot.controls.FourWayXboxControls;
+import frc.robot.controls.TrimControls;
+import frc.robot.controls.TrimXboxControls;
 import frc.robot.generated.TunerConstants;
 import frc.robot.sensors.Camera;
 import frc.robot.sensors.Vision;
@@ -44,6 +48,7 @@ import frc.robot.subsystems.shooter.Turret;
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   private final DriveControls m_controls;
+  private final Optional<TrimControls> m_trimControls;
 
   private final CommandSwerveDrivetrain m_drive;
   private final Vision m_vision;
@@ -120,7 +125,13 @@ public class Robot extends TimedRobot {
       configureFourWayBindings(controls);
       m_controls = controls;
       m_drive.setDefaultCommand(joyStickDrive());
+    }
 
+    if (Constants.kUseTrimControls) {
+      m_trimControls = Optional.of(new TrimXboxControls(0));
+      configureTrimControlBindings(m_trimControls.get());
+    } else {
+      m_trimControls = Optional.empty();
     }
 
     generateAutoChooser();
@@ -154,6 +165,19 @@ public class Robot extends TimedRobot {
     controls.snowBlow().onTrue(Commands.parallel(
         runIntakeCommand(),
         m_shooter.setSpeedCommand(RPM.of(6000))));
+  }
+
+  public void configureTrimControlBindings(TrimControls controls) {
+    controls.increaseFlywheelVelocity().onTrue(Commands.runOnce(m_shootingParameters::increaseFlywheelVelocity));
+    controls.decreaseFlywheelVelocity().onTrue(Commands.runOnce(m_shootingParameters::decreaseFlywheelVelocity));
+
+    controls.increaseHoodAngle().onTrue(Commands.runOnce(m_shootingParameters::increaseHoodAngle));
+    controls.decreaseHoodAngle().onTrue(Commands.runOnce(m_shootingParameters::decreaseHoodAngle));
+
+    controls.increaseVelocityCompensation()
+        .onTrue(Commands.runOnce(m_shootingParameters::increaseVelocityCompensation));
+    controls.decreaseVelocityCompensation()
+        .onTrue(Commands.runOnce(m_shootingParameters::decreaseVelocityCompensation));
   }
 
   private Command setIntakeGoalCommand(IntakeGoal goal) {

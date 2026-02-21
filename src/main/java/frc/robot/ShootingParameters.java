@@ -25,6 +25,7 @@ public class ShootingParameters {
   private static final Angle kHoodAngleTolerance = Degrees.of(5);
   private static final Angle kTurretAngleTolerance = Degrees.of(5);
   private static final AngularVelocity kFlywhweelVelocityTolerance = RPM.of(50);
+  private static final double kTrimStep = 0.05;
 
   // Takes in a distance in meters and outputs a time in seconds
   private final InterpolatingDoubleTreeMap m_timeOfFlightMap = new InterpolatingDoubleTreeMap();
@@ -32,6 +33,10 @@ public class ShootingParameters {
   private final InterpolatingDoubleTreeMap m_hoodAngleMap = new InterpolatingDoubleTreeMap();
   // Takes in a distance in meters and outputs an angular velocity in radians per second
   private final InterpolatingDoubleTreeMap m_flywheelVelocityMap = new InterpolatingDoubleTreeMap();
+
+  private double m_flywheelVelocityModifier = 1;
+  private double m_hoodAngleModifier = 1;
+  private double m_velocityCompensationModifier = 1;
 
   private final RobotState m_state;
 
@@ -52,17 +57,17 @@ public class ShootingParameters {
 
   private Time getTimeOfFlight(Translation2d target, Pose2d pose) {
     final Double distance = pose.getTranslation().getDistance(target);
-    return Seconds.of(m_timeOfFlightMap.get(distance));
+    return Seconds.of(m_timeOfFlightMap.get(distance)).times(m_velocityCompensationModifier);
   }
 
   private Angle getHoodAngle(Translation2d target, Pose2d pose) {
     final Double distance = pose.getTranslation().getDistance(target);
-    return Radians.of(m_hoodAngleMap.get(distance));
+    return Radians.of(m_hoodAngleMap.get(distance)).times(m_hoodAngleModifier);
   }
 
   private AngularVelocity getFlyWheelVelocity(Translation2d target, Pose2d pose) {
     final Double distance = pose.getTranslation().getDistance(target);
-    return RadiansPerSecond.of(m_flywheelVelocityMap.get(distance));
+    return RadiansPerSecond.of(m_flywheelVelocityMap.get(distance)).times(m_flywheelVelocityModifier);
   }
 
   private Angle getTurretAngle(Translation2d target, Pose2d pose) {
@@ -143,5 +148,29 @@ public class ShootingParameters {
 
   public Parameters getParameters() {
     return m_currentCycleParameters;
+  }
+
+  public void increaseFlywheelVelocity() {
+    m_flywheelVelocityModifier += kTrimStep;
+  }
+
+  public void decreaseFlywheelVelocity() {
+    m_flywheelVelocityModifier -= kTrimStep;
+  }
+
+  public void increaseHoodAngle() {
+    m_hoodAngleModifier += kTrimStep;
+  }
+
+  public void decreaseHoodAngle() {
+    m_hoodAngleModifier -= kTrimStep;
+  }
+
+  public void increaseVelocityCompensation() {
+    m_velocityCompensationModifier += kTrimStep;
+  }
+
+  public void decreaseVelocityCompensation() {
+    m_velocityCompensationModifier -= kTrimStep;
   }
 }
