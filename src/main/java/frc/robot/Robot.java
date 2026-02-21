@@ -1,7 +1,10 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -13,6 +16,7 @@ import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -33,7 +37,7 @@ import frc.robot.sensors.Camera;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
-import frc.robot.subsystems.intake.IntakeGoal;
+import frc.robot.subsystems.intake.IntakeSetpoint;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
 import frc.robot.subsystems.shooter.Hood;
@@ -76,9 +80,9 @@ public class Robot extends TimedRobot {
     m_feeder = new Feeder();
     m_intakePivot = new IntakePivot();
     m_intakeRoller = new IntakeRoller();
-    m_turret = new Turret(0, 0);
-    m_hood = new Hood(0, 0);
-    m_shooter = new Shooter(0, 0, 0, 0);
+    m_turret = new Turret();
+    m_hood = new Hood();
+    m_shooter = new Shooter();
 
     Camera rearFacingRightCamera = new Camera("rearFacingRightCamera", new Transform3d());
     Camera frontFacingRightCamera = new Camera("frontFacingRightCamera", new Transform3d());
@@ -156,27 +160,26 @@ public class Robot extends TimedRobot {
         m_shooter.setSpeedCommand(RPM.of(6000))));
   }
 
-  private Command setIntakeGoalCommand(IntakeGoal goal) {
+  private Command setIntakeGoalCommand(IntakeSetpoint goal) {
     return Commands.parallel(
         m_intakePivot.setAngleCommand(goal.angle),
         m_intakeRoller.setVoltageCommand(goal.voltage));
   }
 
   private Command runIntakeCommand() {
-    return setIntakeGoalCommand(IntakeGoal.INTAKING);
+    return setIntakeGoalCommand(IntakeSetpoint.INTAKING);
   }
 
   private Command stowIntakeCommand() {
-    return setIntakeGoalCommand(IntakeGoal.STOW);
+    return setIntakeGoalCommand(IntakeSetpoint.STOW);
   }
 
   public Command joyStickDrive() {
     return Commands.run(() -> {
       ChassisSpeeds speeds = new ChassisSpeeds(
-          m_controls.getDriveForward() * Constants.kLinearMaxSpeed.in(MetersPerSecond) * Constants.kSpeedMultiplier,
-          m_controls.getDriveLeft() * Constants.kLinearMaxSpeed.in(MetersPerSecond) * Constants.kSpeedMultiplier,
-          Math.copySign(m_controls.getDriveRotation() * m_controls.getDriveRotation(), m_controls.getDriveRotation())
-              * Constants.kSpeedMultiplier);
+          m_controls.getDriveForward() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond) * Constants.kLinearSpeedMultiplier,
+          m_controls.getDriveLeft() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond) * Constants.kLinearSpeedMultiplier,
+          Math.copySign(m_controls.getDriveRotation() * m_controls.getDriveRotation() * Constants.kAngularMaxSpeed.in(RadiansPerSecond) * Constants.kAngluarSpeedMultiplier, m_controls.getDriveRotation()));
 
       m_drive.setControl(new SwerveRequest.FieldCentric()
           .withVelocityX(speeds.vxMetersPerSecond)

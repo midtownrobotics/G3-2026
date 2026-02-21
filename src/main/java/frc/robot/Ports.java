@@ -1,17 +1,29 @@
 package frc.robot;
 
+import com.ctre.phoenix6.CANBus;
+
 public class Ports {
-  public static int kFeederFuelSensor = 52;
+  public record CANPort(int canId, CANBus canbus) {};
 
-  public static int kIntakePivotTalonFXPort = 23;
-  public static int kIntakeRollerTalonFXPort = 24;
-  public static int kFeederBeltTalonFXPort = 25;
-  public static int kTurretHoodTalonFXPort = 26;
-  public static int kTurretShooterMotorTalonFXPort = 27;
-  public static int kTurretYawMotorTalonFXPort = 28;
-  public static int kIndexerTransportRollerTalonFXPort = 29;
+  private static final CANBus staticCanBus = new CANBus("staticBus");
+  private static final CANBus dynamicCanBus = new CANBus("dynamicBus");
 
-  public static int kIntakePivotCANPort = 30;
-  public static int kTurretCANCoder1Port = 31;
-  public static int kTurretCANCoder2Port  = 32;
+  public static final CANPort kIntakePivot = new CANPort(23, staticCanBus);
+  public static final CANPort kIntakeRoller = new CANPort(24, staticCanBus);
+  public static final CANPort kIntakePivotEncoder = new CANPort(25, staticCanBus);
+
+  public static final CANPort kTurretHood =  new CANPort(26, staticCanBus);
+  public static final CANPort kTurretHoodEncoder = new CANPort(27, staticCanBus);
+
+  public static final CANPort kTurretShooter1 = new CANPort(28, staticCanBus);
+  public static final CANPort kTurretShooter2 = new CANPort(29, staticCanBus);
+
+  public static final CANPort kTurretYaw = new CANPort(30, staticCanBus);
+  public static final CANPort kTurretYawEncoder1 = new CANPort(31, staticCanBus);
+  public static final CANPort kTurretYawEncoder2 = new CANPort(32, staticCanBus);
+
+  public static final CANPort kIndexerTransportRoller = new CANPort(33, staticCanBus);
+
+  public static final CANPort kFeederBelt = new CANPort(34, staticCanBus);
+  public static final CANPort kFeederFuelSensor = new CANPort(35, staticCanBus);
 }

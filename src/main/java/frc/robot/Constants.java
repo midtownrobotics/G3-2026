@@ -1,15 +1,30 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Meter;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Second;
+import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Value;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.AngularVelocity;
+import frc.robot.generated.TunerConstants;
 
 public class Constants {
-  public static final double kSpeedMultiplier = 12;
-  public static final LinearVelocity kLinearMaxSpeed = MetersPerSecond.of(7);
+  public static final double kLinearSpeedMultiplier = 1;
+  public static final double kAngluarSpeedMultiplier = 1;
+
+  /** Calculated based on tuner constants. */
+  public static final AngularVelocity kAngularMaxSpeed = RadiansPerSecond.of(
+    TunerConstants.kSpeedAt12Volts.div(
+      Meters.of(Math.hypot(TunerConstants.kFrontLeftXPos.in(Meters), TunerConstants.kFrontLeftYPos.in(Meters)))
+    ).in(MetersPerSecond.per(Meters))
+  );
+
   public static final boolean kUseOnTheFlyShooting = false;
 
   public enum ControlMode {
