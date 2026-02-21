@@ -6,10 +6,10 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.IOProtectionXboxController;
 
 @Logged
-public class XboxControls implements Controls {
+public class ConventionalXboxControls implements ConventionalControls, DriveControls {
   private final IOProtectionXboxController m_controller;
 
-  public XboxControls(int controllerPort) {
+  public ConventionalXboxControls(int controllerPort) {
     m_controller = new IOProtectionXboxController(controllerPort);
   }
 
@@ -29,7 +29,12 @@ public class XboxControls implements Controls {
   }
 
   @Override
-  public Trigger intakeFuel() {
+  public Trigger intake() {
     return m_controller.a();
+  }
+
+  @Override
+  public Trigger shoot() {
+    return m_controller.rightTrigger();
   }
 }
