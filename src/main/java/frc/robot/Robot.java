@@ -1,5 +1,9 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.MetersPerSecond;
+
+import com.ctre.phoenix6.swerve.SwerveRequest;
+
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
 import dev.doglog.DogLog;
@@ -7,6 +11,7 @@ import dev.doglog.DogLogOptions;
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -16,8 +21,12 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.controls.Controls;
-import frc.robot.controls.XboxControls;
+import frc.robot.Constants.ControlMode;
+import frc.robot.controls.ConventionalControls;
+import frc.robot.controls.ConventionalXboxControls;
+import frc.robot.controls.DriveControls;
+import frc.robot.controls.FourWayControls;
+import frc.robot.controls.FourWayXboxControls;
 import frc.robot.generated.TunerConstants;
 import frc.robot.sensors.Camera;
 import frc.robot.sensors.Vision;
@@ -33,7 +42,7 @@ import frc.robot.subsystems.shooter.Turret;
 @Logged
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
-  private final Controls m_controls;
+  private final DriveControls m_controls;
 
   private final CommandSwerveDrivetrain m_drive;
   private final Vision m_vision;
@@ -62,7 +71,6 @@ public class Robot extends TimedRobot {
     DataLogManager.start();
     Epilogue.bind(this);
 
-    m_controls = new XboxControls(0);
     m_drive = TunerConstants.createDrivetrain();
     m_feeder = new Feeder();
     m_intakePivot = new IntakePivot();
@@ -84,7 +92,7 @@ public class Robot extends TimedRobot {
         rearFacingLeftCamera,
         frontFacingLeftCamera);
 
-    m_state = new RobotState(m_controls, m_drive, m_intakePivot, m_turret, m_hood, m_shooter);
+    m_state = new RobotState(m_drive, m_intakePivot, m_turret, m_hood, m_shooter);
 
     m_viz = new RobotViz(m_state);
 
@@ -101,6 +109,19 @@ public class Robot extends TimedRobot {
     m_autoRoutines = new AutoRoutines(m_autoFactory);
     m_autoChooser = new AutoChooser("Do Nothing");
 
+    if (Constants.kControlMode == ControlMode.Conventional) {
+      var controls = new ConventionalXboxControls(0);
+      configureConventionalBindings(controls);
+      m_controls = controls;
+      m_drive.setDefaultCommand(joyStickDrive());
+    } else {
+      var controls = new FourWayXboxControls(0);
+      configureFourWayBindings(controls);
+      m_controls = controls;
+      m_drive.setDefaultCommand(joyStickDrive());
+
+    }
+
     generateAutoChooser();
   }
 
@@ -109,9 +130,13 @@ public class Robot extends TimedRobot {
 
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
     new Trigger(DriverStation::isAutonomousEnabled).whileTrue(m_autoChooser.selectedCommandScheduler());
+  }
 
-    // RobotModeTriggers.autonomous().whileTrue(m_autoRoutines.taxiAuto().cmd());
-    m_controls.intakeFuel().whileTrue(runIntakeCommand()).onFalse(stowIntakeCommand());
+  public void configureConventionalBindings(ConventionalControls controls) {
+  }
+
+  public void configureFourWayBindings(FourWayControls controls) {
+
   }
 
   private Command setIntakeGoalCommand(IntakeGoal goal) {
@@ -126,6 +151,21 @@ public class Robot extends TimedRobot {
 
   private Command stowIntakeCommand() {
     return setIntakeGoalCommand(IntakeGoal.STOW);
+  }
+
+  public Command joyStickDrive() {
+    return Commands.run(() -> {
+      ChassisSpeeds speeds = new ChassisSpeeds(
+          m_controls.getDriveForward() * Constants.kLinearMaxSpeed.in(MetersPerSecond) * Constants.kSpeedMultiplier,
+          m_controls.getDriveLeft() * Constants.kLinearMaxSpeed.in(MetersPerSecond) * Constants.kSpeedMultiplier,
+          Math.copySign(m_controls.getDriveRotation() * m_controls.getDriveRotation(), m_controls.getDriveRotation())
+              * Constants.kSpeedMultiplier);
+
+      m_drive.setControl(new SwerveRequest.FieldCentric()
+          .withVelocityX(speeds.vxMetersPerSecond)
+          .withVelocityY(speeds.vyMetersPerSecond)
+          .withRotationalRate(speeds.omegaRadiansPerSecond));
+    }, m_drive);
   }
 
   @Override
