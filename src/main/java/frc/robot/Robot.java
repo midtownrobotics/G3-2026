@@ -20,6 +20,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.intake.IntakeGoal;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
+import frc.robot.subsystems.shooter.Hood;
 import frc.robot.subsystems.shooter.Shooter;
 
 @Logged
@@ -34,7 +35,7 @@ public class Robot extends TimedRobot {
   private final IntakeRoller m_intakeRoller;
 
   // private final Turret m_turret;
-  // private final Hood m_hood;
+  private final Hood m_hood;
   private final Shooter m_shooter;
 
   // private final AutoFactory m_autoFactory;
@@ -60,7 +61,7 @@ public class Robot extends TimedRobot {
     m_intakePivot = new IntakePivot();
     m_intakeRoller = new IntakeRoller();
     // m_turret = new Turret();
-    // m_hood = new Hood();
+    m_hood = new Hood();
     m_shooter = new Shooter();
 
     SmartDashboard.putData("IntakeSysIdCommand", m_intakePivot.getSysIDCommand());
