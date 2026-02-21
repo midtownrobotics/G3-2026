@@ -1,6 +1,7 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RPM;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -133,10 +134,26 @@ public class Robot extends TimedRobot {
   }
 
   public void configureConventionalBindings(ConventionalControls controls) {
+    controls.shoot().onTrue(m_shooter.setSpeedCommand(RPM.of(6000))).onFalse(m_shooter.setSpeedCommand(RPM.of(0)));
+    controls.intake().onTrue(runIntakeCommand()).onFalse(stowIntakeCommand());
   }
 
   public void configureFourWayBindings(FourWayControls controls) {
+    controls.idle().onTrue(Commands.parallel(
+        stowIntakeCommand(),
+        m_shooter.setSpeedCommand(RPM.of(0))));
 
+    controls.fill().onTrue(Commands.parallel(
+        runIntakeCommand(),
+        m_shooter.setSpeedCommand(RPM.of(0))));
+
+    controls.empty().onTrue(Commands.parallel(
+        stowIntakeCommand(),
+        m_shooter.setSpeedCommand(RPM.of(6000))));
+
+    controls.snowBlow().onTrue(Commands.parallel(
+        runIntakeCommand(),
+        m_shooter.setSpeedCommand(RPM.of(0))));
   }
 
   private Command setIntakeGoalCommand(IntakeGoal goal) {
