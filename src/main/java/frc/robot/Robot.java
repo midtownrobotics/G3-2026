@@ -153,7 +153,7 @@ public class Robot extends TimedRobot {
 
     controls.snowBlow().onTrue(Commands.parallel(
         runIntakeCommand(),
-        m_shooter.setSpeedCommand(RPM.of(0))));
+        m_shooter.setSpeedCommand(RPM.of(6000))));
   }
 
   private Command setIntakeGoalCommand(IntakeGoal goal) {
