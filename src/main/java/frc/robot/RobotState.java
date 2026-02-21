@@ -1,6 +1,7 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -9,6 +10,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -35,6 +37,7 @@ public class RobotState {
   public final Vision m_vision;
   public final TransportRoller m_transportRoller;
   public final Shooter m_shooter;
+  public final Hood m_hood;
 
   public RobotState(
       Controls controls,
@@ -56,6 +59,7 @@ public class RobotState {
     m_vision = vision;
     m_transportRoller = transportRoller;
     m_shooter = shooter;
+    m_hood = hood;
 
     m_drive.setDefaultCommand(joyStickDrive());
   }
@@ -79,6 +83,30 @@ public class RobotState {
     return m_drive.getPose();
   }
 
+  public Pose2d getTurretPose() {
+    return getRobotPose().transformBy(Constants.kRobotToTurret);
+  }
+
+  public ChassisSpeeds getRobotRelativeSpeeds() {
+    return m_drive.getChassisSpeeds();
+  }
+
+  public ChassisSpeeds getFieldRelativeSpeeds() {
+    return ChassisSpeeds.fromRobotRelativeSpeeds(getRobotRelativeSpeeds(), getRobotPose().getRotation());
+  }
+
+  public ChassisSpeeds getFieldRelativeTurretSpeeds() {
+    ChassisSpeeds robotSpeeds = getFieldRelativeSpeeds();
+    double h = Constants.kRobotToTurret.getTranslation().getNorm();
+    double theta = getRobotPose().getRotation().getRadians()
+        + Constants.kRobotToTurret.getTranslation().getAngle().getRadians();
+    double omega = getFieldRelativeSpeeds().omegaRadiansPerSecond;
+    LinearVelocity xDt = MetersPerSecond.of(-h * Math.sin(theta) * omega);
+    LinearVelocity yDt = MetersPerSecond.of(h * Math.cos(theta) * omega);
+    ChassisSpeeds robotRelativeTurretSpeeds = new ChassisSpeeds(xDt, yDt, RadiansPerSecond.zero());
+    return robotSpeeds.plus(robotRelativeTurretSpeeds);
+  }
+
   public Angle getIntakeAngle() {
     return m_intakePivot.getAngle();
   }
@@ -87,7 +115,11 @@ public class RobotState {
     return m_turret.getAngle();
   }
 
-  public AngularVelocity getShooterSpeed() {
+  public Angle getHoodAngle() {
+    return m_hood.getAngle();
+  }
+
+  public AngularVelocity getFlyWheelVelocity() {
     return m_shooter.getSpeed();
   }
 
