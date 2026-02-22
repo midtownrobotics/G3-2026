@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.ControlMode;
 import frc.robot.controls.ConventionalControls;
@@ -161,19 +162,23 @@ public class Robot extends TimedRobot {
   public void configureFourWayBindings(FourWayControls controls) {
     controls.idle().onTrue(Commands.parallel(
         stowIntakeCommand(),
-        m_shooter.setSpeedCommand(RPM.of(0))));
+        m_shooter.setSpeedCommand(RPM.of(0)))
+        .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
     controls.fill().onTrue(Commands.parallel(
         runIntakeCommand(),
-        m_shooter.setSpeedCommand(RPM.of(0))));
+        m_shooter.setSpeedCommand(RPM.of(0)))
+        .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
     controls.empty().onTrue(Commands.parallel(
         stowIntakeCommand(),
-        m_shooter.setSpeedCommand(RPM.of(6000))));
+        m_shooter.setSpeedCommand(RPM.of(6000)))
+        .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
     controls.snowBlow().onTrue(Commands.parallel(
         runIntakeCommand(),
-        m_shooter.setSpeedCommand(RPM.of(6000))));
+        m_shooter.setSpeedCommand(RPM.of(6000)))
+        .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
   }
 
   public void configureTrimControlBindings(TrimControls controls) {

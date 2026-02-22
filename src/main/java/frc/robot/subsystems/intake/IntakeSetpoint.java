@@ -8,7 +8,7 @@ import edu.wpi.first.units.measure.Voltage;
 
 public enum IntakeSetpoint {
   STOW(Degrees.of(90), Volts.of(0)),
-  INTAKING(Degrees.of(0), Volts.of(100));
+  INTAKING(Degrees.of(0), Volts.of(7));
 
   public final Angle angle;
   public final Voltage voltage;

@@ -8,6 +8,7 @@ import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.function.Supplier;
 
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.epilogue.Logged;
@@ -42,8 +43,8 @@ public class Shooter extends SubsystemBase {
         .withTelemetry("ShooterMotor", TelemetryVerbosity.HIGH)
         .withControlMode(ControlMode.CLOSED_LOOP)
         .withClosedLoopController(1, 0, 0,
-            RPM.of(10000), RPM.of(50).per(Second))
-        .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
+            RPM.of(10000), RPM.of(1000).per(Second))
+        .withFeedforward(new SimpleMotorFeedforward(0, 0.7, 0))
         .withClosedLoopRampRate(Seconds.of(0.25))
         .withOpenLoopRampRate(Seconds.of(0.25))
         .withSupplyCurrentLimit(Amps.of(60))
@@ -57,6 +58,9 @@ public class Shooter extends SubsystemBase {
         .withMOI(KilogramSquareMeters.of(0.0021175394))
         .withTelemetry("Shooter", TelemetryVerbosity.HIGH);
 
+    MotorOutputConfigs outputConfigs = new MotorOutputConfigs();
+    outputConfigs.PeakReverseDutyCycle = 0;
+    motor1.getConfigurator().apply(outputConfigs);
     m_mechanism = new FlyWheel(flywheelConfig);
   }
 
