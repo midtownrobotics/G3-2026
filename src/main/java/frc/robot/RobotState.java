@@ -11,8 +11,12 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.feeder.Feeder;
+import frc.robot.subsystems.indexer.TransportRoller;
 import frc.robot.subsystems.intake.IntakePivot;
+import frc.robot.subsystems.intake.IntakeRoller;
 import frc.robot.subsystems.shooter.Hood;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.Turret;
@@ -21,18 +25,33 @@ import frc.robot.subsystems.shooter.Turret;
 public class RobotState {
   public final CommandSwerveDrivetrain m_drive;
   public final IntakePivot m_intakePivot;
+  public final IntakeRoller m_intakeRoller;
   public final Turret m_turret;
-  public final Hood m_hood;
+  public final Feeder m_feeder;
+  public final Vision m_vision;
+  public final TransportRoller m_transportRoller;
   public final Shooter m_shooter;
+  public final Hood m_hood;
 
-  public RobotState(CommandSwerveDrivetrain drive, IntakePivot intakePivot,
+  public RobotState(
+      CommandSwerveDrivetrain drive,
+      IntakePivot intakePivot,
+      IntakeRoller intakeRoller,
       Turret turret,
-      Hood hood, Shooter shooter) {
+      Feeder feeder,
+      Vision vision,
+      TransportRoller transportRoller,
+      Shooter shooter,
+      Hood hood) {
     m_drive = drive;
     m_intakePivot = intakePivot;
+    m_intakeRoller = intakeRoller;
     m_turret = turret;
-    m_hood = hood;
+    m_feeder = feeder;
+    m_vision = vision;
+    m_transportRoller = transportRoller;
     m_shooter = shooter;
+    m_hood = hood;
   }
 
   public Pose2d getRobotPose() {
@@ -86,5 +105,9 @@ public class RobotState {
             .map(r -> r.contains(m_drive.getPose().getTranslation()))
             .orElse(false))
         .debounce(0.2);
+  }
+
+  public Trigger fuelSensorTripped() {
+    return m_feeder.fuelSensorTripped();
   }
 }

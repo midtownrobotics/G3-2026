@@ -30,13 +30,15 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 @Logged(strategy = Strategy.OPT_IN)
 
 public class IntakePivot extends SubsystemBase {
-  private final SmartMotorController m_pivotMotor;
-  private final Arm m_pivotArm;
-  private final CANcoder m_intakeCANCoder;
+  private final Arm m_mechanism;
+  private final CANcoder m_encoder;
 
   public IntakePivot() {
-    m_intakeCANCoder = new CANcoder(Ports.kIntakePivotCANPort);
-    SmartMotorControllerConfig pivotCfg = new SmartMotorControllerConfig(this)
+    m_encoder = new CANcoder(Ports.kIntakePivotEncoder.canId(), Ports.kIntakePivotEncoder.canbus());
+
+    TalonFX motor = new TalonFX(Ports.kIntakePivot.canId(), Ports.kIntakePivot.canbus());
+
+    SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
         .withClosedLoopController(0.6, 0.0, 0.05, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
         .withSimClosedLoopController(3.0, 0.0, 0.05, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
@@ -46,39 +48,38 @@ public class IntakePivot extends SubsystemBase {
         .withMotorInverted(false)
         .withIdleMode(MotorMode.BRAKE);
 
-    TalonFX pivotTalonFX = new TalonFX(Ports.kIntakePivotTalonFXPort);
-    m_pivotMotor = new TalonFXWrapper(pivotTalonFX, DCMotor.getKrakenX60(1), pivotCfg);
+    SmartMotorController motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorControllerConfig);
 
-    ArmConfig armCfg = new ArmConfig(m_pivotMotor)
+    ArmConfig armCfg = new ArmConfig(motorController)
         .withHardLimit(Degrees.of(87), Degrees.of(15.25))
-        .withStartingPosition(m_intakeCANCoder.getAbsolutePosition().getValue())
+        .withStartingPosition(m_encoder.getAbsolutePosition().getValue())
         .withLength(Inches.of(30.5))
         .withMass(Pounds.of(4.0))
         .withTelemetry("PivotArm", TelemetryVerbosity.HIGH);
 
-    m_pivotArm = new Arm(armCfg);
+    m_mechanism = new Arm(armCfg);
 
-    CANcoderConfiguration m_intakeCANCoderConfiguration = new CANcoderConfiguration();
-    m_intakeCANCoderConfiguration.MagnetSensor.MagnetOffset = 0.0;
-    m_intakeCANCoder.getConfigurator().apply(m_intakeCANCoderConfiguration);
+    CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
+    encoderConfig.MagnetSensor.MagnetOffset = 0.0;
+    m_encoder.getConfigurator().apply(encoderConfig);
   }
 
   @Override
   public void periodic() {
-    m_pivotArm.updateTelemetry();
+    m_mechanism.updateTelemetry();
   }
 
   @Override
   public void simulationPeriodic() {
-    m_pivotArm.simIterate();
+    m_mechanism.simIterate();
   }
 
   public Command setAngleCommand(Angle angle) {
-    return m_pivotArm.setAngle(angle);
+    return m_mechanism.setAngle(angle);
   }
 
   @Logged
   public Angle getAngle() {
-    return m_pivotArm.getAngle();
+    return m_mechanism.getAngle();
   }
 }

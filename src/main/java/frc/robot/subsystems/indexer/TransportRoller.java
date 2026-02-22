@@ -24,43 +24,43 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 
 @Logged(strategy = Strategy.OPT_IN)
 public class TransportRoller extends SubsystemBase {
-  private final SmartMotorController m_rollerMotor;
-  private final FlyWheel m_roller;
+  private final FlyWheel m_mechanism;
 
   public TransportRoller() {
-    SmartMotorControllerConfig rollerMotorCfg = new SmartMotorControllerConfig(this)
+    TalonFX motor = new TalonFX(Ports.kIndexerTransportRoller.canId(), Ports.kIndexerTransportRoller.canbus());
+
+    SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.OPEN_LOOP)
         .withIdleMode(MotorMode.COAST)
         .withTelemetry("TransportRollerMotor", TelemetryVerbosity.HIGH);
 
-    TalonFX rollerTalon = new TalonFX(Ports.kIndexerTransportRollerTalonFXPort);
-    m_rollerMotor = new TalonFXWrapper(rollerTalon, DCMotor.getKrakenX60(1), rollerMotorCfg);
+    SmartMotorController motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorControllerConfig);
 
-    FlyWheelConfig rollerConfig = new FlyWheelConfig(m_rollerMotor)
+    FlyWheelConfig rollerConfig = new FlyWheelConfig(motorController)
         .withMass(Pounds.of(0.5))
         .withUpperSoftLimit(RPM.of(5000))
         .withLowerSoftLimit(RPM.of(-5000))
         .withDiameter(Inches.of(1.5))
         .withTelemetry("TransportRoller", TelemetryVerbosity.HIGH);
 
-    m_roller = new FlyWheel(rollerConfig);
+    m_mechanism = new FlyWheel(rollerConfig);
   }
 
   @Override
   public void periodic() {
-    m_roller.updateTelemetry();
+    m_mechanism.updateTelemetry();
   }
 
   @Override
   public void simulationPeriodic() {
-    m_roller.simIterate();
+    m_mechanism.simIterate();
   }
 
   public Command setSpeedCommand(AngularVelocity speed) {
-    return m_roller.setSpeed(speed);
+    return m_mechanism.setSpeed(speed);
   }
 
   public Command stopCommand() {
-    return m_roller.set(0.0);
+    return m_mechanism.set(0.0);
   }
 }
