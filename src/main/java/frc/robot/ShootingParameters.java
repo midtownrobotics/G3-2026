@@ -25,6 +25,9 @@ public class ShootingParameters {
   private static final Angle kHoodAngleTolerance = Degrees.of(5);
   private static final Angle kTurretAngleTolerance = Degrees.of(5);
   private static final AngularVelocity kFlywhweelVelocityTolerance = RPM.of(50);
+  private static final double kToFTrimStep = 0.05;
+  private static final double kFlywheelVelocityTrimStep = 0.05;
+  private static final Angle kHoodAngleTrimStep = Degrees.of(1);
 
   // Takes in a distance in meters and outputs a time in seconds
   private final InterpolatingDoubleTreeMap m_timeOfFlightMap = new InterpolatingDoubleTreeMap();
@@ -32,6 +35,11 @@ public class ShootingParameters {
   private final InterpolatingDoubleTreeMap m_hoodAngleMap = new InterpolatingDoubleTreeMap();
   // Takes in a distance in meters and outputs an angular velocity in radians per second
   private final InterpolatingDoubleTreeMap m_flywheelVelocityMap = new InterpolatingDoubleTreeMap();
+
+  private double m_flywheelVelocityModifier = 1;
+  private Angle m_hoodAngleModifier = Degrees.of(0);
+  private double m_ToFModifier = 1;
+  private Angle m_turretAngleModifier = Degrees.of(0);
 
   private final RobotState m_state;
 
@@ -52,22 +60,22 @@ public class ShootingParameters {
 
   private Time getTimeOfFlight(Translation2d target, Pose2d pose) {
     final Double distance = pose.getTranslation().getDistance(target);
-    return Seconds.of(m_timeOfFlightMap.get(distance));
+    return Seconds.of(m_timeOfFlightMap.get(distance)).times(m_ToFModifier);
   }
 
   private Angle getHoodAngle(Translation2d target, Pose2d pose) {
     final Double distance = pose.getTranslation().getDistance(target);
-    return Radians.of(m_hoodAngleMap.get(distance));
+    return Radians.of(m_hoodAngleMap.get(distance)).plus(m_hoodAngleModifier);
   }
 
   private AngularVelocity getFlyWheelVelocity(Translation2d target, Pose2d pose) {
     final Double distance = pose.getTranslation().getDistance(target);
-    return RadiansPerSecond.of(m_flywheelVelocityMap.get(distance));
+    return RadiansPerSecond.of(m_flywheelVelocityMap.get(distance)).times(m_flywheelVelocityModifier);
   }
 
   private Angle getTurretAngle(Translation2d target, Pose2d pose) {
     return new Pose2d(target, new Rotation2d()).minus(pose).getTranslation().getAngle().minus(pose.getRotation())
-        .getMeasure();
+        .getMeasure().plus(m_turretAngleModifier);
   }
 
   private Optional<Pose2d> getVelocityCompensatedRobotPose(Translation2d target, Time ToF, Time oldToF,
@@ -143,5 +151,37 @@ public class ShootingParameters {
 
   public Parameters getParameters() {
     return m_currentCycleParameters;
+  }
+
+  public void increaseFlywheelVelocity() {
+    m_flywheelVelocityModifier += kFlywheelVelocityTrimStep;
+  }
+
+  public void decreaseFlywheelVelocity() {
+    m_flywheelVelocityModifier -= kFlywheelVelocityTrimStep;
+  }
+
+  public void increaseHoodAngle() {
+    m_hoodAngleModifier.plus(kHoodAngleTrimStep);
+  }
+
+  public void decreaseHoodAngle() {
+    m_hoodAngleModifier.minus(kHoodAngleTrimStep);
+  }
+
+  public void increaseVelocityCompensation() {
+    m_ToFModifier += kToFTrimStep;
+  }
+
+  public void decreaseVelocityCompensation() {
+    m_ToFModifier -= kToFTrimStep;
+  }
+
+  public void increaseTurretAngle() {
+    m_turretAngleModifier.plus(kTurretAngleTolerance);
+  }
+
+  public void decreaseTurretAngle() {
+    m_turretAngleModifier.minus(kTurretAngleTolerance);
   }
 }

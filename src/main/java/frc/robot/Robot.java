@@ -31,6 +31,8 @@ import frc.robot.controls.ConventionalXboxControls;
 import frc.robot.controls.DriveControls;
 import frc.robot.controls.FourWayControls;
 import frc.robot.controls.FourWayXboxControls;
+import frc.robot.controls.TrimControls;
+import frc.robot.controls.TrimXboxControls;
 import frc.robot.generated.TunerConstants;
 import frc.robot.sensors.Camera;
 import frc.robot.sensors.Vision;
@@ -42,11 +44,13 @@ import frc.robot.subsystems.intake.IntakeRoller;
 import frc.robot.subsystems.intake.IntakeSetpoint;
 import frc.robot.subsystems.shooter.Hood;
 import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.Turret;
 
 @Logged
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   private final DriveControls m_controls;
+  private final TrimControls m_trimControls;
 
   private final CommandSwerveDrivetrain m_drive;
   private final Vision m_vision;
@@ -54,16 +58,18 @@ public class Robot extends TimedRobot {
   private final IntakePivot m_intakePivot;
   private final IntakeRoller m_intakeRoller;
 
-  // private final Turret m_turret;
-  private final TransportRoller m_transportRoller;
+  private final Turret m_turret;
   private final Shooter m_shooter;
   private final Hood m_hood;
+  private ShootingParameters m_shootingParameters;
 
   private final AutoFactory m_autoFactory;
   private final AutoRoutines m_autoRoutines;
   private final AutoChooser m_autoChooser;
 
   private final Feeder m_feeder;
+
+  private final TransportRoller m_transportRoller;
 
   private final RobotState m_state;
 
@@ -82,7 +88,7 @@ public class Robot extends TimedRobot {
     m_transportRoller = new TransportRoller();
     m_hood = new Hood();
     m_shooter = new Shooter();
-    // m_turret = new Turret();
+    m_turret = new Turret();
 
     Camera rearFacingRightCamera = new Camera("rearFacingRightCamera", new Transform3d());
     Camera frontFacingRightCamera = new Camera("frontFacingRightCamera", new Transform3d());
@@ -124,13 +130,16 @@ public class Robot extends TimedRobot {
       var controls = new ConventionalXboxControls(0);
       configureConventionalBindings(controls);
       m_controls = controls;
-      m_drive.setDefaultCommand(Constants.kUseWeirdSnakeDrive ? snakeDrive() : joyStickDrive());
     } else {
       var controls = new FourWayXboxControls(0);
       configureFourWayBindings(controls);
       m_controls = controls;
-      m_drive.setDefaultCommand(Constants.kUseWeirdSnakeDrive ? snakeDrive() : joyStickDrive());
     }
+
+    m_drive.setDefaultCommand(Constants.kUseWeirdSnakeDrive ? snakeDrive() : joyStickDrive());
+
+    m_trimControls = new TrimXboxControls(0);
+    configureTrimControlBindings(m_trimControls);
 
     generateAutoChooser();
   }
@@ -165,18 +174,31 @@ public class Robot extends TimedRobot {
         m_shooter.setSpeedCommand(RPM.of(6000))));
   }
 
-  private Command setIntakeGoalCommand(IntakeSetpoint goal) {
+  public void configureTrimControlBindings(TrimControls controls) {
+    controls.increaseFlywheelVelocity().onTrue(Commands.runOnce(m_shootingParameters::increaseFlywheelVelocity));
+    controls.decreaseFlywheelVelocity().onTrue(Commands.runOnce(m_shootingParameters::decreaseFlywheelVelocity));
+
+    controls.increaseHoodAngle().onTrue(Commands.runOnce(m_shootingParameters::increaseHoodAngle));
+    controls.decreaseHoodAngle().onTrue(Commands.runOnce(m_shootingParameters::decreaseHoodAngle));
+
+    controls.increaseVelocityCompensation()
+        .onTrue(Commands.runOnce(m_shootingParameters::increaseVelocityCompensation));
+    controls.decreaseVelocityCompensation()
+        .onTrue(Commands.runOnce(m_shootingParameters::decreaseVelocityCompensation));
+  }
+
+  private Command setIntakeSetpointCommand(IntakeSetpoint setpoint) {
     return Commands.parallel(
-        m_intakePivot.setAngleCommand(goal.angle),
-        m_intakeRoller.setVoltageCommand(goal.voltage));
+        m_intakePivot.setAngleCommand(setpoint.angle),
+        m_intakeRoller.setVoltageCommand(setpoint.voltage));
   }
 
   private Command runIntakeCommand() {
-    return setIntakeGoalCommand(IntakeSetpoint.INTAKING);
+    return setIntakeSetpointCommand(IntakeSetpoint.INTAKING);
   }
 
   private Command stowIntakeCommand() {
-    return setIntakeGoalCommand(IntakeSetpoint.STOW);
+    return setIntakeSetpointCommand(IntakeSetpoint.STOW);
   }
 
   public Command joyStickDrive() {
@@ -247,7 +269,7 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     m_viz.periodic();
-    // m_shootingParameters.periodic();
+    m_shootingParameters.periodic();
 
     DogLog.log("Autonomous", DriverStation.isAutonomousEnabled());
   }
