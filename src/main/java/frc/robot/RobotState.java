@@ -19,14 +19,13 @@ import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
 import frc.robot.subsystems.shooter.Hood;
 import frc.robot.subsystems.shooter.Shooter;
-import frc.robot.subsystems.shooter.Turret;
 
 @Logged
 public class RobotState {
   public final CommandSwerveDrivetrain m_drive;
   public final IntakePivot m_intakePivot;
   public final IntakeRoller m_intakeRoller;
-  public final Turret m_turret;
+  // public final Turret m_turret;
   public final Feeder m_feeder;
   public final Vision m_vision;
   public final TransportRoller m_transportRoller;
@@ -37,7 +36,7 @@ public class RobotState {
       CommandSwerveDrivetrain drive,
       IntakePivot intakePivot,
       IntakeRoller intakeRoller,
-      Turret turret,
+      // Turret turret,
       Feeder feeder,
       Vision vision,
       TransportRoller transportRoller,
@@ -46,7 +45,7 @@ public class RobotState {
     m_drive = drive;
     m_intakePivot = intakePivot;
     m_intakeRoller = intakeRoller;
-    m_turret = turret;
+    // m_turret = turret;
     m_feeder = feeder;
     m_vision = vision;
     m_transportRoller = transportRoller;
@@ -86,9 +85,9 @@ public class RobotState {
     return m_intakePivot.getAngle();
   }
 
-  public Angle getTurretAngle() {
-    return m_turret.getAngle();
-  }
+  // public Angle getTurretAngle() {
+  //   return m_turret.getAngle();
+  // }
 
   public Angle getHoodAngle() {
     return m_hood.getAngle();

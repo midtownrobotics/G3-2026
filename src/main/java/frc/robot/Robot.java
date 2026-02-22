@@ -1,6 +1,5 @@
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
@@ -18,10 +17,8 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -45,7 +42,6 @@ import frc.robot.subsystems.intake.IntakeRoller;
 import frc.robot.subsystems.intake.IntakeSetpoint;
 import frc.robot.subsystems.shooter.Hood;
 import frc.robot.subsystems.shooter.Shooter;
-import frc.robot.subsystems.shooter.Turret;
 
 @Logged
 public class Robot extends TimedRobot {
@@ -58,7 +54,7 @@ public class Robot extends TimedRobot {
   private final IntakePivot m_intakePivot;
   private final IntakeRoller m_intakeRoller;
 
-  private final Turret m_turret;
+  // private final Turret m_turret;
   private final TransportRoller m_transportRoller;
   private final Shooter m_shooter;
   private final Hood m_hood;
@@ -75,7 +71,7 @@ public class Robot extends TimedRobot {
 
   public Robot() {
     DogLog.setOptions(new DogLogOptions().withCaptureDs(true));
-    DogLog.setPdh(new PowerDistribution());
+    // DogLog.setPdh(new PowerDistribution());
     DataLogManager.start();
     Epilogue.bind(this);
 
@@ -86,7 +82,7 @@ public class Robot extends TimedRobot {
     m_transportRoller = new TransportRoller();
     m_hood = new Hood();
     m_shooter = new Shooter();
-    m_turret = new Turret();
+    // m_turret = new Turret();
 
     Camera rearFacingRightCamera = new Camera("rearFacingRightCamera", new Transform3d());
     Camera frontFacingRightCamera = new Camera("frontFacingRightCamera", new Transform3d());
@@ -105,7 +101,7 @@ public class Robot extends TimedRobot {
         m_drive,
         m_intakePivot,
         m_intakeRoller,
-        m_turret,
+        // m_turret,
         m_feeder,
         m_vision,
         m_transportRoller,
@@ -186,9 +182,14 @@ public class Robot extends TimedRobot {
   public Command joyStickDrive() {
     return Commands.run(() -> {
       ChassisSpeeds speeds = new ChassisSpeeds(
-          m_controls.getDriveForward() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond) * Constants.kLinearSpeedMultiplier,
-          m_controls.getDriveLeft() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond) * Constants.kLinearSpeedMultiplier,
-          Math.copySign(m_controls.getDriveRotation() * m_controls.getDriveRotation() * Constants.kAngularMaxSpeed.in(RadiansPerSecond) * Constants.kAngluarSpeedMultiplier, m_controls.getDriveRotation()));
+          m_controls.getDriveForward() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+              * Constants.kLinearSpeedMultiplier,
+          m_controls.getDriveLeft() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+              * Constants.kLinearSpeedMultiplier,
+          Math.copySign(
+              m_controls.getDriveRotation() * m_controls.getDriveRotation()
+                  * Constants.kAngularMaxSpeed.in(RadiansPerSecond) * Constants.kAngluarSpeedMultiplier,
+              m_controls.getDriveRotation()));
 
       m_drive.setControl(new SwerveRequest.FieldCentric()
           .withVelocityX(speeds.vxMetersPerSecond)
@@ -208,8 +209,10 @@ public class Robot extends TimedRobot {
         headingController.enableContinuousInput(-Math.PI, Math.PI);
 
         speeds = new ChassisSpeeds(
-            m_controls.getDriveForward() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond) * Constants.kLinearSpeedMultiplier,
-            m_controls.getDriveLeft() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond) * Constants.kLinearSpeedMultiplier,
+            m_controls.getDriveForward() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                * Constants.kLinearSpeedMultiplier,
+            m_controls.getDriveLeft() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                * Constants.kLinearSpeedMultiplier,
             0);
 
         Angle headingAngle = Radians.of(Math.atan2(speeds.vyMetersPerSecond, speeds.vxMetersPerSecond) + Math.PI);
@@ -220,9 +223,14 @@ public class Robot extends TimedRobot {
         }
       } else {
         speeds = new ChassisSpeeds(
-            m_controls.getDriveForward() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond) * Constants.kLinearSpeedMultiplier,
-            m_controls.getDriveLeft() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond) * Constants.kLinearSpeedMultiplier,
-            Math.copySign(m_controls.getDriveRotation() * m_controls.getDriveRotation() * Constants.kAngularMaxSpeed.in(RadiansPerSecond) * Constants.kAngluarSpeedMultiplier, m_controls.getDriveRotation()));
+            m_controls.getDriveForward() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                * Constants.kLinearSpeedMultiplier,
+            m_controls.getDriveLeft() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                * Constants.kLinearSpeedMultiplier,
+            Math.copySign(
+                m_controls.getDriveRotation() * m_controls.getDriveRotation()
+                    * Constants.kAngularMaxSpeed.in(RadiansPerSecond) * Constants.kAngluarSpeedMultiplier,
+                m_controls.getDriveRotation()));
 
       }
 

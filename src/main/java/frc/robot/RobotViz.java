@@ -19,7 +19,7 @@ public class RobotViz {
     DogLog.log("RobotViz/ComponentPoses",
         new Pose3d[] {
             new Pose3d(new Translation3d(-0.1, 0.2, 0.5),
-                new Rotation3d(0.0, 0.0, m_state.getTurretAngle().in(Radians))),
+                new Rotation3d(0.0, 0.0, 0)),
             new Pose3d(new Translation3d(0.09, 0, 0.19), new Rotation3d(0, m_state.getIntakeAngle().in(Radians), 0)) });
   }
 }

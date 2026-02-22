@@ -13,6 +13,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.Pair;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -35,13 +36,14 @@ public class Shooter extends SubsystemBase {
     TalonFX motor1 = new TalonFX(Ports.kTurretShooter1.canId(), Ports.kTurretShooter1.canbus());
     TalonFX motor2 = new TalonFX(Ports.kTurretShooter2.canId(), Ports.kTurretShooter2.canbus());
 
-    SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig()
+    SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig(this)
         .withIdleMode(MotorMode.COAST)
         .withGearing(2d / 3d)
         .withTelemetry("Shooter Motor", TelemetryVerbosity.HIGH)
         .withControlMode(ControlMode.CLOSED_LOOP)
-        .withClosedLoopController(0, 0, 0,
-            RPM.of(5000), RPM.of(0).per(Second))
+        .withClosedLoopController(1, 0, 0,
+            RPM.of(10000), RPM.of(50).per(Second))
+        .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
         .withClosedLoopRampRate(Seconds.of(0.25))
         .withOpenLoopRampRate(Seconds.of(0.25))
         .withSupplyCurrentLimit(Amps.of(60))
