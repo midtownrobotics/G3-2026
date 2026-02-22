@@ -80,7 +80,7 @@ public class Turret extends SubsystemBase {
         .withAbsoluteEncoderOffsets(Rotations.of(0.0), Rotations.of(0.0));
 
     m_easyCRTSolver = new EasyCRT(easyCRTConfig);
-    m_easyCRTSolver.getAngleOptional().ifPresent(angle -> motorController.setEncoderPosition(angle) );
+    m_easyCRTSolver.getAngleOptional().ifPresent(angle -> motorController.setEncoderPosition(angle));
   }
 
   @Override
