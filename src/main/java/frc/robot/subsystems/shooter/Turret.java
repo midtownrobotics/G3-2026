@@ -4,8 +4,8 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
-import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
+import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.function.Function;
@@ -33,16 +33,15 @@ import yams.units.EasyCRT;
 import yams.units.EasyCRTConfig;
 
 public class Turret extends SubsystemBase {
-  private final TalonFX m_motor;
-  private final Pivot m_pivotMechanism;
-  private final CANcoder m_yawCANCoder1;
-  private final CANcoder m_yawCANCoder2;
+  private final Pivot m_mechanism;
+  private final CANcoder m_encoder1;
+  private final CANcoder m_encoder2;
   private final EasyCRT m_easyCRTSolver;
 
-  public Turret(int motorID, int motorEncoderID) {
-    m_motor = new TalonFX(Ports.kTurretShooterMotorTalonFXPort);
-    m_yawCANCoder1 = new CANcoder(Ports.kTurretCANCoder1Port);
-    m_yawCANCoder2 = new CANcoder(Ports.kTurretCANCoder2Port);
+  public Turret() {
+    TalonFX motor = new TalonFX(Ports.kTurretYaw.canId(), Ports.kTurretYaw.canbus());
+    m_encoder1 = new CANcoder(Ports.kTurretYawEncoder1.canId(), Ports.kTurretYawEncoder1.canbus());
+    m_encoder2 = new CANcoder(Ports.kTurretYawEncoder2.canId(), Ports.kTurretYawEncoder2.canbus());
 
     SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
@@ -55,7 +54,7 @@ public class Turret extends SubsystemBase {
         .withClosedLoopRampRate(Seconds.of(0.25))
         .withOpenLoopRampRate(Seconds.of(0.25));
 
-    SmartMotorController motorController = new TalonFXWrapper(m_motor, DCMotor.getKrakenX60(1), motorConfig);
+    SmartMotorController motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
 
     PivotConfig pivotConfig = new PivotConfig(motorController)
         .withStartingPosition(Degrees.of(0))
@@ -63,48 +62,45 @@ public class Turret extends SubsystemBase {
         .withTelemetry("Turret", TelemetryVerbosity.HIGH)
         .withMOI(KilogramSquareMeters.of(0.1457345474));
 
-    CANcoderConfiguration yawCANCoderConfig = new CANcoderConfiguration();
-    m_yawCANCoder1.getConfigurator().apply(yawCANCoderConfig);
-    m_yawCANCoder2.getConfigurator().apply(yawCANCoderConfig);
+    m_mechanism = new Pivot(pivotConfig);
 
-    m_pivotMechanism = new Pivot(pivotConfig);
+    CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
+    m_encoder1.getConfigurator().apply(encoderConfig);
+    m_encoder2.getConfigurator().apply(encoderConfig);
 
-    Supplier<Angle> CAN1Supplier = () -> Rotations.of(m_yawCANCoder1.getAbsolutePosition().getValueAsDouble());
-    Supplier<Angle> CAN2Supplier = () -> Rotations.of(m_yawCANCoder2.getAbsolutePosition().getValueAsDouble());
+    Supplier<Angle> encoder1PositionSupplier = () -> m_encoder1.getAbsolutePosition().getValue();
+    Supplier<Angle> encoder2PositionSupplier = () -> m_encoder2.getAbsolutePosition().getValue();
 
-    EasyCRTConfig easyCRT = new EasyCRTConfig(CAN1Supplier, CAN2Supplier)
+    EasyCRTConfig easyCRTConfig = new EasyCRTConfig(encoder1PositionSupplier, encoder2PositionSupplier)
         .withEncoderRatios(0.0, 0.0)
         .withAbsoluteEncoderInversions(false, false)
         .withAbsoluteEncoderOffsets(Rotations.of(0.0), Rotations.of(0.0));
 
-    m_easyCRTSolver = new EasyCRT(easyCRT);
-    m_easyCRTSolver.getAngleOptional().ifPresent(angleCRT -> {
-      motorController.setEncoderPosition(angleCRT);
-    });
-
+    m_easyCRTSolver = new EasyCRT(easyCRTConfig);
+    m_easyCRTSolver.getAngleOptional().ifPresent(angle -> motorController.setEncoderPosition(angle) );
   }
 
   @Override
   public void periodic() {
-    m_pivotMechanism.updateTelemetry();
+    m_mechanism.updateTelemetry();
   }
 
   @Override
   public void simulationPeriodic() {
-    m_pivotMechanism.simIterate();
+    m_mechanism.simIterate();
   }
 
   public Angle getAngle() {
-    return m_pivotMechanism.getAngle();
+    return m_mechanism.getAngle();
   }
 
   public Command setAngleCommand(Angle angle) {
-    return m_pivotMechanism.setAngle(angle);
+    return m_mechanism.setAngle(angle);
   }
 
   public Command setAngleCommand(Supplier<Angle> angle) {
     Supplier<Angle> newAngle = mapSupplier(angle, this::findNearestAngle);
-    return m_pivotMechanism.setAngle(newAngle);
+    return m_mechanism.setAngle(newAngle);
   }
 
   private Angle findNearestAngle(Angle angle) {

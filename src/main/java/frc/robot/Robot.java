@@ -1,8 +1,10 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -16,6 +18,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -36,9 +39,10 @@ import frc.robot.sensors.Camera;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
-import frc.robot.subsystems.intake.IntakeGoal;
+import frc.robot.subsystems.indexer.TransportRoller;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
+import frc.robot.subsystems.intake.IntakeSetpoint;
 import frc.robot.subsystems.shooter.Hood;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.Turret;
@@ -55,8 +59,9 @@ public class Robot extends TimedRobot {
   private final IntakeRoller m_intakeRoller;
 
   private final Turret m_turret;
-  private final Hood m_hood;
+  private final TransportRoller m_transportRoller;
   private final Shooter m_shooter;
+  private final Hood m_hood;
 
   private final AutoFactory m_autoFactory;
   private final AutoRoutines m_autoRoutines;
@@ -67,7 +72,6 @@ public class Robot extends TimedRobot {
   private final RobotState m_state;
 
   private final RobotViz m_viz;
-  private final ShootingParameters m_shootingParameters;
 
   public Robot() {
     DogLog.setOptions(new DogLogOptions().withCaptureDs(true));
@@ -76,12 +80,13 @@ public class Robot extends TimedRobot {
     Epilogue.bind(this);
 
     m_drive = TunerConstants.createDrivetrain();
-    m_feeder = new Feeder();
     m_intakePivot = new IntakePivot();
     m_intakeRoller = new IntakeRoller();
-    m_turret = new Turret(0, 0);
-    m_hood = new Hood(0, 0);
-    m_shooter = new Shooter(0, 0, 0, 0);
+    m_feeder = new Feeder();
+    m_transportRoller = new TransportRoller();
+    m_hood = new Hood();
+    m_shooter = new Shooter();
+    m_turret = new Turret();
 
     Camera rearFacingRightCamera = new Camera("rearFacingRightCamera", new Transform3d());
     Camera frontFacingRightCamera = new Camera("frontFacingRightCamera", new Transform3d());
@@ -96,19 +101,25 @@ public class Robot extends TimedRobot {
         rearFacingLeftCamera,
         frontFacingLeftCamera);
 
-    m_state = new RobotState(m_drive, m_intakePivot, m_turret, m_hood, m_shooter);
+    m_state = new RobotState(
+        m_drive,
+        m_intakePivot,
+        m_intakeRoller,
+        m_turret,
+        m_feeder,
+        m_vision,
+        m_transportRoller,
+        m_shooter,
+        m_hood);
 
     m_viz = new RobotViz(m_state);
 
-    m_shootingParameters = new ShootingParameters(m_state, () -> FieldConstants.kHubPosition.toTranslation2d());
-
     m_autoFactory = new AutoFactory(
-        m_drive::getPose, // A function that returns the current robot pose
-        m_drive::resetPose, // A function that resets the current robot pose to the provided Pose2d
-        m_drive::followPath, // The drive subsystem trajectory follower 
-        true, // If alliance flipping should be enabled 
-        m_drive // The drive subsystem
-    );
+        m_drive::getPose,
+        m_drive::resetPose,
+        m_drive::followPath,
+        true,
+        m_drive);
 
     m_autoRoutines = new AutoRoutines(m_autoFactory);
     m_autoChooser = new AutoChooser("Do Nothing");
@@ -158,27 +169,26 @@ public class Robot extends TimedRobot {
         m_shooter.setSpeedCommand(RPM.of(6000))));
   }
 
-  private Command setIntakeGoalCommand(IntakeGoal goal) {
+  private Command setIntakeGoalCommand(IntakeSetpoint goal) {
     return Commands.parallel(
         m_intakePivot.setAngleCommand(goal.angle),
         m_intakeRoller.setVoltageCommand(goal.voltage));
   }
 
   private Command runIntakeCommand() {
-    return setIntakeGoalCommand(IntakeGoal.INTAKING);
+    return setIntakeGoalCommand(IntakeSetpoint.INTAKING);
   }
 
   private Command stowIntakeCommand() {
-    return setIntakeGoalCommand(IntakeGoal.STOW);
+    return setIntakeGoalCommand(IntakeSetpoint.STOW);
   }
 
   public Command joyStickDrive() {
     return Commands.run(() -> {
       ChassisSpeeds speeds = new ChassisSpeeds(
-          m_controls.getDriveForward() * Constants.kLinearMaxSpeed.in(MetersPerSecond) * Constants.kSpeedMultiplier,
-          m_controls.getDriveLeft() * Constants.kLinearMaxSpeed.in(MetersPerSecond) * Constants.kSpeedMultiplier,
-          Math.copySign(m_controls.getDriveRotation() * m_controls.getDriveRotation(), m_controls.getDriveRotation())
-              * Constants.kSpeedMultiplier);
+          m_controls.getDriveForward() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond) * Constants.kLinearSpeedMultiplier,
+          m_controls.getDriveLeft() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond) * Constants.kLinearSpeedMultiplier,
+          Math.copySign(m_controls.getDriveRotation() * m_controls.getDriveRotation() * Constants.kAngularMaxSpeed.in(RadiansPerSecond) * Constants.kAngluarSpeedMultiplier, m_controls.getDriveRotation()));
 
       m_drive.setControl(new SwerveRequest.FieldCentric()
           .withVelocityX(speeds.vxMetersPerSecond)
@@ -198,8 +208,8 @@ public class Robot extends TimedRobot {
         headingController.enableContinuousInput(-Math.PI, Math.PI);
 
         speeds = new ChassisSpeeds(
-            m_controls.getDriveForward() * Constants.kSpeedMultiplier,
-            m_controls.getDriveLeft() * Constants.kSpeedMultiplier,
+            m_controls.getDriveForward() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond) * Constants.kLinearSpeedMultiplier,
+            m_controls.getDriveLeft() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond) * Constants.kLinearSpeedMultiplier,
             0);
 
         Angle headingAngle = Radians.of(Math.atan2(speeds.vyMetersPerSecond, speeds.vxMetersPerSecond) + Math.PI);
@@ -210,10 +220,9 @@ public class Robot extends TimedRobot {
         }
       } else {
         speeds = new ChassisSpeeds(
-            m_controls.getDriveForward() * Constants.kLinearMaxSpeed.in(MetersPerSecond) * Constants.kSpeedMultiplier,
-            m_controls.getDriveLeft() * Constants.kLinearMaxSpeed.in(MetersPerSecond) * Constants.kSpeedMultiplier,
-            Math.copySign(m_controls.getDriveRotation() * m_controls.getDriveRotation(), m_controls.getDriveRotation())
-                * Constants.kSpeedMultiplier);
+            m_controls.getDriveForward() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond) * Constants.kLinearSpeedMultiplier,
+            m_controls.getDriveLeft() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond) * Constants.kLinearSpeedMultiplier,
+            Math.copySign(m_controls.getDriveRotation() * m_controls.getDriveRotation() * Constants.kAngularMaxSpeed.in(RadiansPerSecond) * Constants.kAngluarSpeedMultiplier, m_controls.getDriveRotation()));
 
       }
 
