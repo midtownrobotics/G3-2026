@@ -10,7 +10,6 @@ import com.ctre.phoenix6.configs.CANrangeConfiguration;
 import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
 
-import dev.doglog.DogLog;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -20,6 +19,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.lib.LoggerUtil;
 import frc.robot.Ports;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
@@ -32,13 +32,14 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 
 @Logged(strategy = Strategy.OPT_IN)
 public class Feeder extends SubsystemBase {
-  private final SmartMotorController m_feederMotor;
-  private final FlyWheel m_feeder;
+  private final FlyWheel m_mechanism;
   private final CANrange m_fuelSensor;
   private final LinearFilter m_fuelSensorFilter;
 
   public Feeder() {
-    SmartMotorControllerConfig beltMotorCfg = new SmartMotorControllerConfig(this)
+    TalonFX motor = new TalonFX(Ports.kFeederBelt.canId(), Ports.kFeederBelt.canbus());
+
+    SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.OPEN_LOOP)
         .withIdleMode(MotorMode.COAST)
         .withClosedLoopController(0.3, 0, 0.01)
@@ -46,28 +47,27 @@ public class Feeder extends SubsystemBase {
         .withGearing(4)
         .withTelemetry("FeederMotor", TelemetryVerbosity.HIGH);
 
-    TalonFX beltTalonFX = new TalonFX(Ports.kFeederBeltTalonFXPort);
-    m_feederMotor = new TalonFXWrapper(beltTalonFX, DCMotor.getKrakenX44(1), beltMotorCfg);
+    SmartMotorController motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX44(1), motorControllerConfig);
 
-    FlyWheelConfig beltConfig = new FlyWheelConfig(m_feederMotor)
+    FlyWheelConfig beltConfig = new FlyWheelConfig(motorController)
         .withMass(Pounds.of(0.5))
         .withUpperSoftLimit(RPM.of(6000))
         .withLowerSoftLimit(RPM.of(-6000))
         .withDiameter(Inches.of(2.0))
         .withTelemetry("Feeder", TelemetryVerbosity.HIGH);
 
-    m_feeder = new FlyWheel(beltConfig);
+    m_mechanism = new FlyWheel(beltConfig);
 
+    m_fuelSensor = new CANrange(Ports.kFeederFuelSensor.canId(), Ports.kFeederFuelSensor.canbus());
     CANrangeConfiguration fuelSensorConfig = new CANrangeConfiguration();
-
-    m_fuelSensor = new CANrange(Ports.kFeederFuelSensor);
     m_fuelSensor.getConfigurator().apply(fuelSensorConfig);
 
     m_fuelSensorFilter = LinearFilter.movingAverage(5);
   }
 
   private boolean getFuelSensorTripped() {
-    return m_fuelSensorFilter.calculate(m_fuelSensor.getDistance().getValue().baseUnitMagnitude()) < Inches.of(5).baseUnitMagnitude();
+    return m_fuelSensorFilter.calculate(m_fuelSensor.getDistance().getValue().baseUnitMagnitude()) < Inches.of(5)
+        .baseUnitMagnitude();
   }
 
   public Trigger fuelSensorTripped() {
@@ -76,17 +76,18 @@ public class Feeder extends SubsystemBase {
 
   @Override
   public void periodic() {
-    DogLog.log("Feeder/FuelSensor/Distance", m_fuelSensor.getDistance().getValue());
-    DogLog.log("Feeder/FuelSensor/DistanceSTD", m_fuelSensor.getDistanceStdDev().getValue());
-    m_feeder.updateTelemetry();
+    LoggerUtil.log("FuelSensor/distance", m_fuelSensor.getDistance().getValue());
+    LoggerUtil.log("FuelSensor/distanceSTD", m_fuelSensor.getDistanceStdDev().getValue());
+    LoggerUtil.log("sensorTripped", getFuelSensorTripped());
+    m_mechanism.updateTelemetry();
   }
 
   @Override
   public void simulationPeriodic() {
-    m_feeder.simIterate();
+    m_mechanism.simIterate();
   }
 
   public Command setSpeedCommand(AngularVelocity angularVelocity) {
-    return m_feeder.setSpeed(angularVelocity);
+    return m_mechanism.setSpeed(angularVelocity);
   }
 }
