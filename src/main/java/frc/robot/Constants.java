@@ -29,6 +29,7 @@ public class Constants {
 
   public static final ControlMode kControlMode = ControlMode.FourWay;
 
+  public static final boolean kUseTrimControls = true;
   public static final boolean kUseWeirdSnakeDrive = false;
 
   public static final Transform2d kRobotToTurret = new Transform2d(new Translation2d(-0.1, 0.2), new Rotation2d());
