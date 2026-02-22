@@ -61,7 +61,7 @@ public class Robot extends TimedRobot {
   private final Turret m_turret;
   private final Shooter m_shooter;
   private final Hood m_hood;
-  private ShootingParameters m_shootingParameters;
+  private final ShootingParameters m_shootingParameters;
 
   private final AutoFactory m_autoFactory;
   private final AutoRoutines m_autoRoutines;
@@ -126,6 +126,8 @@ public class Robot extends TimedRobot {
     m_autoRoutines = new AutoRoutines(m_autoFactory);
     m_autoChooser = new AutoChooser("Do Nothing");
 
+    m_shootingParameters = new ShootingParameters(m_state, () -> FieldConstants.kHubPosition.toTranslation2d());
+
     if (Constants.kControlMode == ControlMode.Conventional) {
       var controls = new ConventionalXboxControls(0);
       configureConventionalBindings(controls);
@@ -138,7 +140,7 @@ public class Robot extends TimedRobot {
 
     m_drive.setDefaultCommand(Constants.kUseWeirdSnakeDrive ? snakeDrive() : joyStickDrive());
 
-    m_trimControls = new TrimXboxControls(0);
+    m_trimControls = new TrimXboxControls(1);
     configureTrimControlBindings(m_trimControls);
 
     generateAutoChooser();

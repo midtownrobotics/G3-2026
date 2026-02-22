@@ -43,7 +43,7 @@ public class ShootingParameters {
 
   private final RobotState m_state;
 
-  private Parameters m_currentCycleParameters;
+  private Parameters m_currentCycleParameters = new Parameters(Degrees.of(0), Degrees.of(0), RPM.of(0));
 
   private final Supplier<Translation2d> m_target;
 
@@ -56,6 +56,10 @@ public class ShootingParameters {
   public ShootingParameters(RobotState state, Supplier<Translation2d> target) {
     m_target = target;
     m_state = state;
+
+    m_flywheelVelocityMap.put(5d, Math.PI);
+    m_hoodAngleMap.put(5d, Math.PI/5d);
+    m_timeOfFlightMap.put(5d, 3d);
   }
 
   private Time getTimeOfFlight(Translation2d target, Pose2d pose) {
