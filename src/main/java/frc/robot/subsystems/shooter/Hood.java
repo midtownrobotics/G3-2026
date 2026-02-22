@@ -2,6 +2,8 @@ package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
 
@@ -57,7 +59,9 @@ public class Hood extends SubsystemBase {
     ArmConfig armConfig = new ArmConfig(motorController)
         .withStartingPosition(Degrees.of(0))
         .withHardLimit(Degrees.of(0), Degrees.of(59))
-        .withTelemetry("Hood Arm", TelemetryVerbosity.HIGH);
+        .withTelemetry("Hood Arm", TelemetryVerbosity.HIGH)
+        .withLength(Inches.of(6))
+        .withMass(Pounds.of(4));
 
     m_mechanism = new Arm(armConfig);
   }

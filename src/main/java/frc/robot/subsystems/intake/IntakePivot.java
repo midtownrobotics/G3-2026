@@ -28,7 +28,6 @@ import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 @Logged(strategy = Strategy.OPT_IN)
-
 public class IntakePivot extends SubsystemBase {
   private final Arm m_mechanism;
   private final CANcoder m_encoder;
