@@ -43,7 +43,7 @@ public class IntakePivot extends SubsystemBase {
         .withSimClosedLoopController(3.0, 0.0, 0.05, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
         .withFeedforward(new ArmFeedforward(0.1, 0.4, 0.01))
         .withGearing(48)
-        .withTelemetry("PivotMotor", TelemetryVerbosity.HIGH)
+        .withTelemetry("IntakePivotMotor", TelemetryVerbosity.HIGH)
         .withMotorInverted(false)
         .withIdleMode(MotorMode.BRAKE);
 
@@ -54,7 +54,7 @@ public class IntakePivot extends SubsystemBase {
         .withStartingPosition(m_encoder.getAbsolutePosition().getValue())
         .withLength(Inches.of(30.5))
         .withMass(Pounds.of(4.0))
-        .withTelemetry("PivotArm", TelemetryVerbosity.HIGH);
+        .withTelemetry("IntakePivot", TelemetryVerbosity.HIGH);
 
     m_mechanism = new Arm(armCfg);
 
