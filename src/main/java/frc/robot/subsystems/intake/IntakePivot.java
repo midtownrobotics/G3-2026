@@ -78,6 +78,7 @@ public class IntakePivot extends SubsystemBase {
     return m_mechanism.setAngle(angle);
   }
 
+  @Logged
   public Angle getAngle() {
     return m_mechanism.getAngle();
   }

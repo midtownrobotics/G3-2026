@@ -10,6 +10,8 @@ import java.util.function.Supplier;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -25,6 +27,7 @@ import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
+@Logged(strategy = Strategy.OPT_IN)
 public class Shooter extends SubsystemBase {
   private final FlyWheel m_mechanism;
 
@@ -64,6 +67,7 @@ public class Shooter extends SubsystemBase {
     m_mechanism.simIterate();
   }
 
+  @Logged
   public AngularVelocity getSpeed() {
     return m_mechanism.getSpeed();
   }
