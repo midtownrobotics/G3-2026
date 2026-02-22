@@ -12,6 +12,8 @@ import java.util.function.Supplier;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
@@ -27,6 +29,7 @@ import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
+@Logged(strategy = Strategy.OPT_IN)
 public class Hood extends SubsystemBase {
   private final Arm m_mechanism;
   private final CANcoder m_encoder;
@@ -73,6 +76,7 @@ public class Hood extends SubsystemBase {
     m_mechanism.simIterate();
   }
 
+  @Logged
   public Angle getAngle() {
     return m_mechanism.getAngle();
   }

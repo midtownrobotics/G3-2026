@@ -15,6 +15,8 @@ import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
@@ -32,6 +34,7 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 import yams.units.EasyCRT;
 import yams.units.EasyCRTConfig;
 
+@Logged(strategy = Strategy.OPT_IN)
 public class Turret extends SubsystemBase {
   private final Pivot m_mechanism;
   private final CANcoder m_encoder1;
@@ -90,6 +93,7 @@ public class Turret extends SubsystemBase {
     m_mechanism.simIterate();
   }
 
+  @Logged
   public Angle getAngle() {
     return m_mechanism.getAngle();
   }
