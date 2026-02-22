@@ -3,8 +3,6 @@ package frc.robot;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
-import com.ctre.phoenix6.swerve.SwerveRequest;
-
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -12,50 +10,48 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.controls.Controls;
+import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.feeder.Feeder;
+import frc.robot.subsystems.indexer.TransportRoller;
 import frc.robot.subsystems.intake.IntakePivot;
+import frc.robot.subsystems.intake.IntakeRoller;
 import frc.robot.subsystems.shooter.Hood;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.Turret;
 
 @Logged
 public class RobotState {
-  private final Controls m_controls;
-  private final CommandSwerveDrivetrain m_drive;
-  private final IntakePivot m_intakePivot;
-  private final Turret m_turret;
-  private final Hood m_hood;
-  private final Shooter m_shooter;
+  public final CommandSwerveDrivetrain m_drive;
+  public final IntakePivot m_intakePivot;
+  public final IntakeRoller m_intakeRoller;
+  public final Turret m_turret;
+  public final Feeder m_feeder;
+  public final Vision m_vision;
+  public final TransportRoller m_transportRoller;
+  public final Shooter m_shooter;
+  public final Hood m_hood;
 
-  public RobotState(Controls controls, CommandSwerveDrivetrain drive, IntakePivot intakePivot, Turret turret,
-      Hood hood, Shooter shooter) {
-    m_controls = controls;
+  public RobotState(
+      CommandSwerveDrivetrain drive,
+      IntakePivot intakePivot,
+      IntakeRoller intakeRoller,
+      Turret turret,
+      Feeder feeder,
+      Vision vision,
+      TransportRoller transportRoller,
+      Shooter shooter,
+      Hood hood) {
     m_drive = drive;
     m_intakePivot = intakePivot;
+    m_intakeRoller = intakeRoller;
     m_turret = turret;
-    m_hood = hood;
+    m_feeder = feeder;
+    m_vision = vision;
+    m_transportRoller = transportRoller;
     m_shooter = shooter;
-
-    m_drive.setDefaultCommand(joyStickDrive());
-  }
-
-  public Command joyStickDrive() {
-    return Commands.run(() -> {
-      ChassisSpeeds speeds = new ChassisSpeeds(
-          m_controls.getDriveForward() * Constants.kLinearMaxSpeed.in(MetersPerSecond) * Constants.kSpeedMultiplier,
-          m_controls.getDriveLeft() * Constants.kLinearMaxSpeed.in(MetersPerSecond) * Constants.kSpeedMultiplier,
-          Math.copySign(m_controls.getDriveRotation() * m_controls.getDriveRotation(), m_controls.getDriveRotation())
-              * Constants.kSpeedMultiplier);
-
-      m_drive.setControl(new SwerveRequest.FieldCentric()
-          .withVelocityX(speeds.vxMetersPerSecond)
-          .withVelocityY(speeds.vyMetersPerSecond)
-          .withRotationalRate(speeds.omegaRadiansPerSecond));
-    }, m_drive);
+    m_hood = hood;
   }
 
   public Pose2d getRobotPose() {
@@ -109,5 +105,9 @@ public class RobotState {
             .map(r -> r.contains(m_drive.getPose().getTranslation()))
             .orElse(false))
         .debounce(0.2);
+  }
+
+  public Trigger fuelSensorTripped() {
+    return m_feeder.fuelSensorTripped();
   }
 }
