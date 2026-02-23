@@ -59,7 +59,7 @@ public class RobotState {
   }
 
   public Pose2d getRobotPose() {
-    return new Pose2d().plus(new Transform2d(new Translation2d(Inches.of(18.5/2d), Inches.of(25.5/2d)), new Rotation2d(Degrees.of(-180))));
+    return m_drive.getPose();
   }
 
   public Pose2d getTurretPose() {
