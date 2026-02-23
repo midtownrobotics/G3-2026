@@ -1,10 +1,15 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -54,7 +59,7 @@ public class RobotState {
   }
 
   public Pose2d getRobotPose() {
-    return m_drive.getPose();
+    return new Pose2d().plus(new Transform2d(new Translation2d(Inches.of(18.5/2d), Inches.of(25.5/2d)), new Rotation2d(Degrees.of(-180))));
   }
 
   public Pose2d getTurretPose() {

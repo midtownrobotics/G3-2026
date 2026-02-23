@@ -139,6 +139,8 @@ public class Robot extends TimedRobot {
       m_controls = controls;
     }
 
+    m_hood.setDefaultCommand(m_hood.setAngleCommand(() -> m_shootingParameters.getParameters().hoodAngle()));
+
     m_drive.setDefaultCommand(Constants.kUseWeirdSnakeDrive ? snakeDrive() : joyStickDrive());
 
     m_trimControls = new TrimXboxControls(1);
@@ -155,7 +157,7 @@ public class Robot extends TimedRobot {
   }
 
   public void configureConventionalBindings(ConventionalControls controls) {
-    controls.shoot().onTrue(m_shooter.setSpeedCommand(RPM.of(6000))).onFalse(m_shooter.setSpeedCommand(RPM.of(0)));
+    controls.shoot().onTrue(m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity())).onFalse(m_shooter.setSpeedCommand(RPM.of(0)));
     controls.intake().onTrue(runIntakeCommand()).onFalse(stowIntakeCommand());
   }
 
@@ -172,12 +174,12 @@ public class Robot extends TimedRobot {
 
     controls.empty().onTrue(Commands.parallel(
         stowIntakeCommand(),
-        m_shooter.setSpeedCommand(RPM.of(6000)))
+        m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
     controls.snowBlow().onTrue(Commands.parallel(
         runIntakeCommand(),
-        m_shooter.setSpeedCommand(RPM.of(6000)))
+        m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
   }
 
