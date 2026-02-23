@@ -27,46 +27,45 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 
 @Logged(strategy = Strategy.OPT_IN)
 public class IntakeRoller extends SubsystemBase {
-  private final SmartMotorController m_rollerMotor;
-  private final FlyWheel m_roller;
+  private final FlyWheel m_mechanism;
 
   public IntakeRoller() {
-    SmartMotorControllerConfig rollerMotorCfg = new SmartMotorControllerConfig(this)
+    TalonFX motor = new TalonFX(Ports.kIntakeRoller.canId(), Ports.kIntakeRoller.canbus());
+
+    SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig(this)
         .withOpenLoopRampRate(Seconds.of(2))
         .withControlMode(ControlMode.OPEN_LOOP)
         .withIdleMode(MotorMode.COAST)
         .withGearing(1)
         .withTelemetry("IntakeRollerMotor", TelemetryVerbosity.HIGH);
 
-    TalonFX rollerTalonFX = new TalonFX(Ports.kIntakeRoller.canId(),
-        Ports.kIntakeRoller.canbus());
-    m_rollerMotor = new TalonFXWrapper(rollerTalonFX, DCMotor.getKrakenX60(1), rollerMotorCfg);
+    SmartMotorController motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorControllerConfig);
 
-    FlyWheelConfig rollerConfig = new FlyWheelConfig(m_rollerMotor)
+    FlyWheelConfig rollerConfig = new FlyWheelConfig(motorController)
         .withMass(Pounds.of(0.5))
         .withUpperSoftLimit(RPM.of(6000))
         .withLowerSoftLimit(RPM.of(-6000))
         .withDiameter(Inches.of(1.5))
         .withTelemetry("IntakeRoller", TelemetryVerbosity.HIGH);
 
-    m_roller = new FlyWheel(rollerConfig);
+    m_mechanism = new FlyWheel(rollerConfig);
   }
 
   @Override
   public void periodic() {
-    m_roller.updateTelemetry();
+    m_mechanism.updateTelemetry();
   }
 
   @Override
   public void simulationPeriodic() {
-    m_roller.simIterate();
+    m_mechanism.simIterate();
   }
 
   public Command setVoltageCommand(Voltage voltage) {
-    return m_roller.setVoltage(voltage);
+    return m_mechanism.setVoltage(voltage);
   }
 
   public Command setVoltageCommand(Supplier<Voltage> voltage) {
-    return m_roller.setVoltage(voltage);
+    return m_mechanism.setVoltage(voltage);
   }
 }
