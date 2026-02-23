@@ -210,6 +210,10 @@ public class Robot extends TimedRobot {
     return setIntakeSetpointCommand(IntakeSetpoint.STOW);
   }
 
+  private Command startIntakeCommand() {
+    return setIntakeSetpointCommand(IntakeSetpoint.START);
+  }
+
   public Command joyStickDrive() {
     return Commands.run(() -> {
       ChassisSpeeds speeds = new ChassisSpeeds(
@@ -317,6 +321,7 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+    
   }
 
   @Override
