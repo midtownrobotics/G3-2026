@@ -22,7 +22,6 @@ public class FieldConstants {
 
   public static final Translation2d kAllianceZoneOffset = new Translation2d(4.03, 8.07);
 
-  public static final Distance kAllianceZoneLength = DriverStation.getAlliance().get() == Alliance.Blue ? Meters.of(4.03) : kFieldLength.minus(Meters.of(4.03));
 
   private static Translation3d kHubPosition = new Translation3d(4.6256194, 4.0346376, 1.8);
 

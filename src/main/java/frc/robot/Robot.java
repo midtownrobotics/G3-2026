@@ -169,11 +169,16 @@ public class Robot extends TimedRobot {
 
     Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
     double robotY = m_state.getRobotPose().getY();
+    double hubY = FieldConstants.getHubPosition2d().getY();
 
+    if (robotY > (hubY - 0.762) && robotY < (hubY + 0.762)) {
+      if (robotY > hubY) {return new Translation2d(FieldConstants.getHubPosition2d().getX(), hubY + 1);}
+      return new Translation2d(FieldConstants.getHubPosition2d().getX(), hubY - 1);
+    }
+     
     return switch (alliance) {
-      case Blue -> new Translation2d(FieldConstants.kAllianceZoneOffset.getX(), robotY);
-      case Red -> new Translation2d(
-          FieldConstants.kFieldLength.minus(FieldConstants.kAllianceZoneOffset.getMeasureX()),
+      case Blue -> new Translation2d(FieldConstants.getHubPosition2d().getX(), robotY);
+      case Red -> new Translation2d(FieldConstants.getHubPosition2d().getMeasureX(),
           m_state.getRobotPose().getMeasureY());
     };
   }
