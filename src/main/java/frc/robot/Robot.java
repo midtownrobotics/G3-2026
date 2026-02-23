@@ -101,7 +101,7 @@ public class Robot extends TimedRobot {
     if (Constants.kEnableObstacleProtection) {
       try {
         IntakeObstacleProtection.getTrigger(m_state)
-            .onTrue(m_intakePivot.setAngleCommand(Degrees.of(87)));
+            .onTrue(m_intakePivot.setAngleCommand(Degrees.of(60)));
       } catch (IOException e) {
         throw new RuntimeException("obstacle protection failed", e);
       }

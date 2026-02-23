@@ -9,6 +9,8 @@ import java.nio.file.Files;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -20,6 +22,8 @@ import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.RobotState;
+
+@Logged(strategy = Strategy.OPT_IN)
 
 public class IntakeObstacleProtection {
   private static final Time kTimeThreshold = Seconds.of(1.5);
