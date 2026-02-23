@@ -15,6 +15,7 @@ import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DataLogManager;
@@ -127,7 +128,7 @@ public class Robot extends TimedRobot {
     m_autoRoutines = new AutoRoutines(m_autoFactory);
     m_autoChooser = new AutoChooser("Do Nothing");
 
-    m_shootingParameters = new ShootingParameters(m_state, () -> FieldConstants.kHubPosition.toTranslation2d());
+    m_shootingParameters = new ShootingParameters(m_state, () -> FieldConstants.kHubPosition2d);
 
     if (Constants.kControlMode == ControlMode.Conventional) {
       var controls = new ConventionalXboxControls(0);
@@ -147,6 +148,14 @@ public class Robot extends TimedRobot {
     configureTrimControlBindings(m_trimControls);
 
     generateAutoChooser();
+  }
+
+  private Translation2d getTarget() {
+    if (m_state.inAllianceZone().getAsBoolean()) {
+      return FieldConstants.kHubPosition2d;
+    }
+
+
   }
 
   private void generateAutoChooser() {
