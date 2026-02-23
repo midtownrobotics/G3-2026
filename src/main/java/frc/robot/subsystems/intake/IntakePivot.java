@@ -38,13 +38,14 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 @Logged(strategy = Strategy.OPT_IN)
 
 public class IntakePivot extends SubsystemBase {
-  private final SmartMotorController m_pivotMotor;
-  private final Arm m_pivotArm;
-  private final CANcoder m_intakeCANCoder;
+  private final Arm m_mechanism;
+  private final CANcoder m_encoder;
 
   public IntakePivot() {
-    m_intakeCANCoder = new CANcoder(Ports.kIntakePivotEncoder.canId(), Ports.kIntakePivotEncoder.canbus());
-    SmartMotorControllerConfig pivotCfg = new SmartMotorControllerConfig(this)
+    TalonFX motor = new TalonFX(Ports.kIntakePivot.canId(), Ports.kIntakePivot.canbus());
+    m_encoder = new CANcoder(Ports.kIntakePivotEncoder.canId(), Ports.kIntakePivotEncoder.canbus());
+
+    SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
         .withClosedLoopController(70.0, 0.0, 0.0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(1000))
         .withSimClosedLoopController(3.0, 0.0, 0.05, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(1000))
@@ -54,10 +55,9 @@ public class IntakePivot extends SubsystemBase {
         .withMotorInverted(true)
         .withIdleMode(MotorMode.BRAKE);
 
-    TalonFX pivotTalonFX = new TalonFX(Ports.kIntakePivot.canId(), Ports.kIntakePivot.canbus());
-    m_pivotMotor = new TalonFXWrapper(pivotTalonFX, DCMotor.getKrakenX60(1), pivotCfg);
+    SmartMotorController motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorControllerConfig);
 
-    ArmConfig armCfg = new ArmConfig(m_pivotMotor)
+    ArmConfig armConfig = new ArmConfig(motorController)
         .withHardLimit(Degrees.of(0), Degrees.of(70))
         .withSoftLimits(Degrees.of(0), Degrees.of(60))
         .withStartingPosition(getAbsoluteAngle())
@@ -67,21 +67,21 @@ public class IntakePivot extends SubsystemBase {
 
     CANcoderConfiguration canCoderConfig = new CANcoderConfiguration();
     canCoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
-    m_intakeCANCoder.getConfigurator().apply(canCoderConfig);
+    m_encoder.getConfigurator().apply(canCoderConfig);
 
-    m_pivotArm = new Arm(armCfg);
+    m_mechanism = new Arm(armConfig);
 
     var mmConfigs = new MotionMagicConfigs();
-    pivotTalonFX.getConfigurator().refresh(mmConfigs);
+    motor.getConfigurator().refresh(mmConfigs);
     mmConfigs.MotionMagicJerk = 10;
-    pivotTalonFX.getConfigurator().apply(mmConfigs);
+    motor.getConfigurator().apply(mmConfigs);
   }
 
   private Angle getAbsoluteAngle() {
     // Set this to the value of "Intake/IntakeAbsoluteEncoderOffset" when the intake is all the way down.
     final double WRAP_OFFSET = 4.8;
 
-    double encoderDeg = m_intakeCANCoder.getAbsolutePosition().getValue().in(Degrees);
+    double encoderDeg = m_encoder.getAbsolutePosition().getValue().in(Degrees);
     if (encoderDeg < 0)
       encoderDeg += 360.0;
     double armDeg = encoderDeg / 3.0;
@@ -92,7 +92,7 @@ public class IntakePivot extends SubsystemBase {
   }
 
   private Angle getAbsoluteOffsetAt0() {
-    double encoderDeg = m_intakeCANCoder.getAbsolutePosition().getValue().in(Degrees);
+    double encoderDeg = m_encoder.getAbsolutePosition().getValue().in(Degrees);
     if (encoderDeg < 0)
       encoderDeg += 360.0;
     double armDeg = encoderDeg / 3.0;
@@ -104,25 +104,25 @@ public class IntakePivot extends SubsystemBase {
 
   @Override
   public void periodic() {
-    m_pivotArm.updateTelemetry();
+    m_mechanism.updateTelemetry();
     DogLog.log("Intake/IntakeAbsoluteEncoder", getAbsoluteAngle().in(Degrees));
     DogLog.log("Intake/IntakeAbsoluteEncoderOffset", getAbsoluteOffsetAt0().in(Degrees));
   }
 
   @Override
   public void simulationPeriodic() {
-    m_pivotArm.simIterate();
+    m_mechanism.simIterate();
   }
 
   public Command setAngleCommand(Angle angle) {
-    return m_pivotArm.setAngle(angle);
+    return m_mechanism.setAngle(angle);
   }
 
   public Angle getAngle() {
-    return m_pivotArm.getAngle();
+    return m_mechanism.getAngle();
   }
 
   public Command getSysIDCommand() {
-    return m_pivotArm.sysId(Volts.of(0.7), Volts.of(0.2).per(Second), Seconds.of(10));
+    return m_mechanism.sysId(Volts.of(0.7), Volts.of(0.2).per(Second), Seconds.of(10));
   }
 }
