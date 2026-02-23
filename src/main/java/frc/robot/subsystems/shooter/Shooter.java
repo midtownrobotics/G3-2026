@@ -42,9 +42,9 @@ public class Shooter extends SubsystemBase {
         .withGearing(2d / 3d)
         .withTelemetry("ShooterMotor", TelemetryVerbosity.HIGH)
         .withControlMode(ControlMode.CLOSED_LOOP)
-        .withClosedLoopController(1, 0, 0,
+        .withClosedLoopController(0.3, 0, 0,
             RPM.of(10000), RPM.of(1000).per(Second))
-        .withFeedforward(new SimpleMotorFeedforward(0, 0.7, 0))
+        .withFeedforward(new SimpleMotorFeedforward(0, 0.083, 0))
         .withClosedLoopRampRate(Seconds.of(0.25))
         .withOpenLoopRampRate(Seconds.of(0.25))
         .withSupplyCurrentLimit(Amps.of(60))
