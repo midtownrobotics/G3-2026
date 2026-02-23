@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.lib.AllianceFlipUtil;
 
@@ -21,11 +22,9 @@ public class FieldConstants {
 
   public static final Translation2d kAllianceZoneOffset = new Translation2d(4.03, 8.07);
 
+  public static final Distance kAllianceZoneLength = DriverStation.getAlliance().get() == Alliance.Blue ? Meters.of(4.03) : kFieldLength.minus(Meters.of(4.03));
+
   private static Translation3d kHubPosition = new Translation3d(4.6256194, 4.0346376, 1.8);
-
-  public static Translation2d kHubPosition2d = AllianceFlipUtil.apply(kHubPosition.toTranslation2d());
-
-  public static Translation3d kHubPosition3d = new Translation3d(kHubPosition2d.getX(), kHubPosition2d.getY(), 1.8);
 
   public static final Rectangle2d kBlueAllianceZone = new Rectangle2d(new Translation2d(0.0, 0.0),
       kAllianceZoneOffset);
@@ -39,5 +38,9 @@ public class FieldConstants {
     } else {
       return kRedAllianceZone;
     }
+  }
+
+  public static Translation2d getHubPosition2d() {
+    return AllianceFlipUtil.apply(kHubPosition.toTranslation2d());
   }
 }
