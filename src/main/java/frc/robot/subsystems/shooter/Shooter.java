@@ -8,11 +8,13 @@ import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.function.Supplier;
 
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.Pair;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -35,13 +37,14 @@ public class Shooter extends SubsystemBase {
     TalonFX motor1 = new TalonFX(Ports.kTurretShooter1.canId(), Ports.kTurretShooter1.canbus());
     TalonFX motor2 = new TalonFX(Ports.kTurretShooter2.canId(), Ports.kTurretShooter2.canbus());
 
-    SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig()
+    SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig(this)
         .withIdleMode(MotorMode.COAST)
         .withGearing(2d / 3d)
-        .withTelemetry("Shooter Motor", TelemetryVerbosity.HIGH)
+        .withTelemetry("ShooterMotor", TelemetryVerbosity.HIGH)
         .withControlMode(ControlMode.CLOSED_LOOP)
-        .withClosedLoopController(0, 0, 0,
-            RPM.of(5000), RPM.of(0).per(Second))
+        .withClosedLoopController(0.3, 0, 0,
+            RPM.of(10000), RPM.of(1000).per(Second))
+        .withFeedforward(new SimpleMotorFeedforward(0, 0.083, 0))
         .withClosedLoopRampRate(Seconds.of(0.25))
         .withOpenLoopRampRate(Seconds.of(0.25))
         .withSupplyCurrentLimit(Amps.of(60))
@@ -52,8 +55,12 @@ public class Shooter extends SubsystemBase {
         motorControllerConfig);
 
     FlyWheelConfig flywheelConfig = new FlyWheelConfig(motorController)
-        .withMOI(KilogramSquareMeters.of(0.0021175394));
+        .withMOI(KilogramSquareMeters.of(0.0021175394))
+        .withTelemetry("Shooter", TelemetryVerbosity.HIGH);
 
+    MotorOutputConfigs outputConfigs = new MotorOutputConfigs();
+    outputConfigs.PeakReverseDutyCycle = 0;
+    motor1.getConfigurator().apply(outputConfigs);
     m_mechanism = new FlyWheel(flywheelConfig);
   }
 

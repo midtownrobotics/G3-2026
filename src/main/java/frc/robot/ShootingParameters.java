@@ -1,6 +1,8 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Feet;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
@@ -43,7 +45,7 @@ public class ShootingParameters {
 
   private final RobotState m_state;
 
-  private Parameters m_currentCycleParameters;
+  private Parameters m_currentCycleParameters = new Parameters(Degrees.of(0), Degrees.of(0), RPM.of(0));
 
   private final Supplier<Translation2d> m_target;
 
@@ -56,6 +58,33 @@ public class ShootingParameters {
   public ShootingParameters(RobotState state, Supplier<Translation2d> target) {
     m_target = target;
     m_state = state;
+
+    m_flywheelVelocityMap.put(Feet.of(4.25).in(Meters), RPM.of(1750).in(RadiansPerSecond));
+    m_flywheelVelocityMap.put(Feet.of(4.75).in(Meters), RPM.of(1700).in(RadiansPerSecond));
+    m_flywheelVelocityMap.put(Feet.of(5).in(Meters), RPM.of(1650).in(RadiansPerSecond));
+    m_flywheelVelocityMap.put(Feet.of(5.5).in(Meters), RPM.of(1650).in(RadiansPerSecond));
+    m_flywheelVelocityMap.put(Feet.of(6).in(Meters), RPM.of(1700).in(RadiansPerSecond));
+    m_flywheelVelocityMap.put(Feet.of(7).in(Meters), RPM.of(1800).in(RadiansPerSecond));
+    m_flywheelVelocityMap.put(Feet.of(8).in(Meters), RPM.of(1800).in(RadiansPerSecond));
+    m_flywheelVelocityMap.put(Feet.of(9).in(Meters), RPM.of(1950).in(RadiansPerSecond));
+    m_flywheelVelocityMap.put(Feet.of(10).in(Meters), RPM.of(2000).in(RadiansPerSecond));
+    m_flywheelVelocityMap.put(Feet.of(11).in(Meters), RPM.of(2100).in(RadiansPerSecond));
+    m_flywheelVelocityMap.put(Feet.of(26.875).in(Meters), RPM.of(3200).in(RadiansPerSecond));
+
+    m_hoodAngleMap.put(Feet.of(4.25).in(Meters), Degrees.of(2).in(Radians));
+    m_hoodAngleMap.put(Feet.of(4.75).in(Meters), Degrees.of(4).in(Radians));
+    m_hoodAngleMap.put(Feet.of(5).in(Meters), Degrees.of(3).in(Radians));
+    m_hoodAngleMap.put(Feet.of(5.5).in(Meters), Degrees.of(3).in(Radians));
+    m_hoodAngleMap.put(Feet.of(6).in(Meters), Degrees.of(10).in(Radians));
+    m_hoodAngleMap.put(Feet.of(7).in(Meters), Degrees.of(12).in(Radians));
+    m_hoodAngleMap.put(Feet.of(8).in(Meters), Degrees.of(13).in(Radians));
+    m_hoodAngleMap.put(Feet.of(9).in(Meters), Degrees.of(18).in(Radians));
+    m_hoodAngleMap.put(Feet.of(10).in(Meters), Degrees.of(20).in(Radians));
+    m_hoodAngleMap.put(Feet.of(11).in(Meters), Degrees.of(23).in(Radians));
+    m_hoodAngleMap.put(Feet.of(26.875).in(Meters), Degrees.of(20).in(Radians));
+
+
+    m_timeOfFlightMap.put(5d, 3d);
   }
 
   private Time getTimeOfFlight(Translation2d target, Pose2d pose) {
@@ -103,7 +132,7 @@ public class ShootingParameters {
   }
 
   public boolean shootingParametersAreWithinTolerance(Parameters parameters) {
-    if (!parameters.turretAngle.isNear(m_state.getTurretAngle(), kTurretAngleTolerance)) {
+    if (!parameters.turretAngle.isNear(Degrees.of(0), kTurretAngleTolerance)) {
       return false;
     }
 

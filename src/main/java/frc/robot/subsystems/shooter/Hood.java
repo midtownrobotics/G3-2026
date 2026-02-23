@@ -2,8 +2,7 @@ package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Pounds;
+import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
 
@@ -19,6 +18,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.LoggerUtil;
 import frc.robot.Ports;
 import yams.mechanisms.config.ArmConfig;
 import yams.mechanisms.positional.Arm;
@@ -40,28 +40,25 @@ public class Hood extends SubsystemBase {
 
     SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
-        .withClosedLoopController(250, 0, 0,
+        .withClosedLoopController(250, 0, 3,
             RPM.of(300), RPM.of(500).per(Seconds))
         .withGearing(266)
         .withIdleMode(MotorMode.BRAKE)
-        .withTelemetry("Hood Motor", TelemetryVerbosity.HIGH)
+        .withTelemetry("HoodMotor", TelemetryVerbosity.HIGH)
         .withFeedforward(new ArmFeedforward(0.01, 0, 0))
         .withStatorCurrentLimit(Amps.of(30))
         .withClosedLoopRampRate(Seconds.of(0.25))
-        .withOpenLoopRampRate(Seconds.of(0.25))
-        .withExternalEncoder(m_encoder)
-        .withExternalEncoderGearing(19)
-        .withUseExternalFeedbackEncoder(true);
+        .withOpenLoopRampRate(Seconds.of(0.25));
 
     SmartMotorController motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX44(1),
         motorControllerConfig);
 
     ArmConfig armConfig = new ArmConfig(motorController)
-        .withStartingPosition(Degrees.of(0))
         .withHardLimit(Degrees.of(0), Degrees.of(59))
-        .withTelemetry("Hood Arm", TelemetryVerbosity.HIGH)
-        .withLength(Inches.of(6))
-        .withMass(Pounds.of(4));
+        .withSoftLimits(Degrees.of(2), Degrees.of(55))
+        .withTelemetry("Hood", TelemetryVerbosity.HIGH)
+        .withMOI(KilogramSquareMeters.of(0.038))
+        .withStartingPosition(m_encoder.getAbsolutePosition().getValue().div(19));
 
     m_mechanism = new Arm(armConfig);
   }
@@ -69,6 +66,7 @@ public class Hood extends SubsystemBase {
   @Override
   public void periodic() {
     m_mechanism.updateTelemetry();
+    LoggerUtil.log("encoderPosition", m_encoder.getAbsolutePosition().getValueAsDouble());
   }
 
   @Override
