@@ -5,8 +5,13 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
+import java.sql.Driver;
+import java.util.Optional;
+
+import dev.doglog.DogLog;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rectangle2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -15,7 +20,10 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.lib.AllianceFlipUtil;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
@@ -102,13 +110,18 @@ public class RobotState {
     return m_shooter.getSpeed();
   }
 
-  public Trigger inAllianceZone() {
+  public Trigger inAllianceZoneTrigger() {
     return new Trigger(
         () -> DriverStation.getAlliance()
+            .or(() -> Optional.of(Alliance.Blue))
             .map(FieldConstants::getAllianceZone)
             .map(r -> r.contains(m_drive.getPose().getTranslation()))
             .orElse(false))
         .debounce(0.2);
+  }
+
+  public boolean inAllianceZone() {
+    return FieldConstants.getAllianceZone(DriverStation.getAlliance().orElseGet(() -> Alliance.Blue)).contains(getRobotPose().getTranslation());
   }
 
   public Trigger fuelSensorTripped() {

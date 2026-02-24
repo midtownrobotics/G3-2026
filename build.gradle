@@ -96,6 +96,14 @@ jar {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
+sourceSets {
+    main {
+        java {
+            srcDir '.modules/yams/yams/java'
+        }
+    }
+}
+
 // Configure jar and deploy tasks
 deployArtifact.jarTask = jar
 wpi.java.configureExecutableTasks(jar)

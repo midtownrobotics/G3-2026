@@ -2,6 +2,7 @@ package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
@@ -58,6 +59,7 @@ public class Hood extends SubsystemBase {
         .withSoftLimits(Degrees.of(2), Degrees.of(55))
         .withTelemetry("Hood", TelemetryVerbosity.HIGH)
         .withMOI(KilogramSquareMeters.of(0.038))
+        .withLength(Inches.of(6))
         .withStartingPosition(m_encoder.getAbsolutePosition().getValue().div(19));
 
     m_mechanism = new Arm(armConfig);

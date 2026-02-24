@@ -5,6 +5,8 @@ import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
+import java.util.Optional;
+
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import choreo.auto.AutoChooser;
@@ -14,18 +16,23 @@ import dev.doglog.DogLogOptions;
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.lib.LoggerUtil;
 import frc.robot.Constants.ControlMode;
 import frc.robot.controls.ConventionalControls;
 import frc.robot.controls.ConventionalXboxControls;
@@ -127,7 +134,7 @@ public class Robot extends TimedRobot {
     m_autoRoutines = new AutoRoutines(m_autoFactory);
     m_autoChooser = new AutoChooser("Do Nothing");
 
-    m_shootingParameters = new ShootingParameters(m_state, () -> FieldConstants.kHubPosition.toTranslation2d());
+    m_shootingParameters = new ShootingParameters(m_state, this::getTarget);
 
     if (Constants.kControlMode == ControlMode.Conventional) {
       var controls = new ConventionalXboxControls(0);
@@ -149,6 +156,33 @@ public class Robot extends TimedRobot {
     generateAutoChooser();
   }
 
+  public Translation2d getTarget() {
+    Translation2d target = calculateTarget();
+    LoggerUtil.log("target", new Pose2d(target, new Rotation2d()));
+    return target;
+  }
+
+  private Translation2d calculateTarget() {
+    if (m_state.inAllianceZone()) {
+      return FieldConstants.getHubPosition2d();
+    }
+
+    Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
+    double robotY = m_state.getRobotPose().getY();
+    double hubY = FieldConstants.getHubPosition2d().getY();
+
+    if (robotY > (hubY - 0.762) && robotY < (hubY + 0.762)) {
+      if (robotY > hubY) {return new Translation2d(FieldConstants.getHubPosition2d().getX(), hubY + 1);}
+      return new Translation2d(FieldConstants.getHubPosition2d().getX(), hubY - 1);
+    }
+     
+    return switch (alliance) {
+      case Blue -> new Translation2d(FieldConstants.getHubPosition2d().getX(), robotY);
+      case Red -> new Translation2d(FieldConstants.getHubPosition2d().getMeasureX(),
+          m_state.getRobotPose().getMeasureY());
+    };
+  }
+
   private void generateAutoChooser() {
     m_autoChooser.addRoutine("Example Movement", m_autoRoutines::exampleMovementAuto);
 
@@ -157,7 +191,8 @@ public class Robot extends TimedRobot {
   }
 
   public void configureConventionalBindings(ConventionalControls controls) {
-    controls.shoot().onTrue(m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity())).onFalse(m_shooter.setSpeedCommand(RPM.of(0)));
+    controls.shoot().onTrue(m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()))
+        .onFalse(m_shooter.setSpeedCommand(RPM.of(0)));
     controls.intake().onTrue(runIntakeCommand()).onFalse(stowIntakeCommand());
   }
 

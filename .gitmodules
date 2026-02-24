@@ -1,0 +1,3 @@
+[submodule ".modules/yams"]
+	path = .modules/yams
+	url = https://github.com/midtownrobotics/YAMS
