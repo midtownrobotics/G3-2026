@@ -32,7 +32,7 @@ public class FourWayXboxControls implements FourWayControls, DriveControls {
   }
 
   @Override
-  public Trigger fill() {
+  public Trigger intake() {
     return m_controller.leftTrigger();
   }
 
