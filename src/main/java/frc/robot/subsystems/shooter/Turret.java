@@ -22,6 +22,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Ports;
 import yams.mechanisms.config.PivotConfig;
 import yams.mechanisms.positional.Pivot;
@@ -40,6 +41,7 @@ public class Turret extends SubsystemBase {
   private final CANcoder m_encoder1;
   private final CANcoder m_encoder2;
   private final EasyCRT m_easyCRTSolver;
+  private final Trigger m_isNearSetpointTrigger;
 
   public Turret() {
     TalonFX motor = new TalonFX(Ports.kTurretYaw.canId(), Ports.kTurretYaw.canbus());
@@ -81,6 +83,9 @@ public class Turret extends SubsystemBase {
 
     m_easyCRTSolver = new EasyCRT(easyCRTConfig);
     m_easyCRTSolver.getAngleOptional().ifPresent(angle -> motorController.setEncoderPosition(angle));
+
+    m_isNearSetpointTrigger = new Trigger(() -> m_mechanism.getMechanismSetpoint()
+        .map(setpoint -> getAngle().isNear(setpoint, Degrees.of(2))).orElse(false));
   }
 
   @Override
@@ -126,6 +131,10 @@ public class Turret extends SubsystemBase {
     bestAngle = MathUtil.clamp(bestAngle, -255, 255);
 
     return Degrees.of(bestAngle);
+  }
+
+  public Trigger isNearSetpoint() {
+    return m_isNearSetpointTrigger;
   }
 
   private static <T> Supplier<T> mapSupplier(Supplier<T> supplier, Function<T, T> mapper) {

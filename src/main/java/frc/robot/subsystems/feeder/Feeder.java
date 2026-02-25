@@ -35,6 +35,7 @@ public class Feeder extends SubsystemBase {
   private final FlyWheel m_mechanism;
   private final CANrange m_fuelSensor;
   private final LinearFilter m_fuelSensorFilter;
+  private final Trigger m_fuelDetectedTrigger;
 
   public Feeder() {
     TalonFX motor = new TalonFX(Ports.kFeederBelt.canId(), Ports.kFeederBelt.canbus());
@@ -63,6 +64,8 @@ public class Feeder extends SubsystemBase {
     m_fuelSensor.getConfigurator().apply(fuelSensorConfig);
 
     m_fuelSensorFilter = LinearFilter.movingAverage(5);
+
+    m_fuelDetectedTrigger = new Trigger(this::getFuelSensorTripped).debounce(Milliseconds.of(100).in(Seconds));
   }
 
   private boolean getFuelSensorTripped() {
@@ -70,8 +73,8 @@ public class Feeder extends SubsystemBase {
         .baseUnitMagnitude();
   }
 
-  public Trigger fuelSensorTripped() {
-    return new Trigger(this::getFuelSensorTripped).debounce(Milliseconds.of(100).in(Seconds));
+  public Trigger fuelDetected() {
+    return m_fuelDetectedTrigger;
   }
 
   @Override

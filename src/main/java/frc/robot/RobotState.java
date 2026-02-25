@@ -125,6 +125,6 @@ public class RobotState {
   }
 
   public Trigger fuelSensorTripped() {
-    return m_feeder.fuelSensorTripped();
+    return m_feeder.fuelDetected();
   }
 }

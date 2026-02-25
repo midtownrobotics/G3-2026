@@ -19,6 +19,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Ports;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
@@ -32,6 +33,8 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 @Logged(strategy = Strategy.OPT_IN)
 public class Shooter extends SubsystemBase {
   private final FlyWheel m_mechanism;
+  private final Trigger m_isNearSetpointTrigger;
+
 
   public Shooter() {
     TalonFX motor1 = new TalonFX(Ports.kTurretShooter1.canId(), Ports.kTurretShooter1.canbus());
@@ -62,6 +65,10 @@ public class Shooter extends SubsystemBase {
     outputConfigs.PeakReverseDutyCycle = 0;
     motor1.getConfigurator().apply(outputConfigs);
     m_mechanism = new FlyWheel(flywheelConfig);
+
+    m_isNearSetpointTrigger = new Trigger(() -> m_mechanism.getMechanismSetpointVelocity()
+      .map(setpoint -> getSpeed().isNear(setpoint, RPM.of(20))).orElse(false));
+
   }
 
   @Override
@@ -85,5 +92,9 @@ public class Shooter extends SubsystemBase {
 
   public Command setSpeedCommand(Supplier<AngularVelocity> speedSupplier) {
     return m_mechanism.setSpeed(speedSupplier);
+  }
+
+  public Trigger isNearSetpoint() {
+    return m_isNearSetpointTrigger;
   }
 }

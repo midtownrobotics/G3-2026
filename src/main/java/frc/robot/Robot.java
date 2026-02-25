@@ -172,10 +172,12 @@ public class Robot extends TimedRobot {
     double hubY = FieldConstants.getHubPosition2d().getY();
 
     if (robotY > (hubY - 0.762) && robotY < (hubY + 0.762)) {
-      if (robotY > hubY) {return new Translation2d(FieldConstants.getHubPosition2d().getX(), hubY + 1);}
+      if (robotY > hubY) {
+        return new Translation2d(FieldConstants.getHubPosition2d().getX(), hubY + 1);
+      }
       return new Translation2d(FieldConstants.getHubPosition2d().getX(), hubY - 1);
     }
-     
+
     return switch (alliance) {
       case Blue -> new Translation2d(FieldConstants.getHubPosition2d().getX(), robotY);
       case Red -> new Translation2d(FieldConstants.getHubPosition2d().getMeasureX(),
@@ -196,6 +198,11 @@ public class Robot extends TimedRobot {
     controls.intake().onTrue(runIntakeCommand()).onFalse(stowIntakeCommand());
   }
 
+  public Trigger readyToShoot() {
+    return new Trigger(m_hood.isNearSetpoint().and(m_shooter.isNearSetpoint()).and(m_turret.isNearSetpoint())
+        .and(m_feeder.fuelDetected()));
+  }
+
   public void configureFourWayBindings(FourWayControls controls) {
     controls.idle().onTrue(Commands.parallel(
         stowIntakeCommand(),
@@ -207,12 +214,12 @@ public class Robot extends TimedRobot {
         m_shooter.setSpeedCommand(RPM.of(0)))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
-    controls.empty().onTrue(Commands.parallel(
+    controls.empty().and(readyToShoot()).onTrue(Commands.parallel(
         stowIntakeCommand(),
         m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
-    controls.snowBlow().onTrue(Commands.parallel(
+    controls.snowBlow().and(readyToShoot()).onTrue(Commands.parallel(
         runIntakeCommand(),
         m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
@@ -356,7 +363,7 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-    
+
   }
 
   @Override

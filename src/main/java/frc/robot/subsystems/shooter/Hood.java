@@ -19,6 +19,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.LoggerUtil;
 import frc.robot.Ports;
 import yams.mechanisms.config.ArmConfig;
@@ -34,6 +35,7 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 public class Hood extends SubsystemBase {
   private final Arm m_mechanism;
   private final CANcoder m_encoder;
+  private final Trigger m_isNearSetpointTrigger;
 
   public Hood() {
     TalonFX motor = new TalonFX(Ports.kTurretHood.canId(), Ports.kTurretHood.canbus());
@@ -63,6 +65,9 @@ public class Hood extends SubsystemBase {
         .withStartingPosition(m_encoder.getAbsolutePosition().getValue().div(19));
 
     m_mechanism = new Arm(armConfig);
+
+    m_isNearSetpointTrigger = new Trigger(() -> m_mechanism.getMechanismSetpoint()
+        .map(setpoint -> getAngle().isNear(setpoint, Degrees.of(2))).orElse(false));
   }
 
   @Override
@@ -87,5 +92,9 @@ public class Hood extends SubsystemBase {
 
   public Command setAngleCommand(Supplier<Angle> angle) {
     return m_mechanism.setAngle(angle);
+  }
+
+  public Trigger isNearSetpoint() {
+    return m_isNearSetpointTrigger;
   }
 }
