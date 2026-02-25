@@ -11,6 +11,8 @@ import dev.doglog.DogLogOptions;
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -55,6 +57,8 @@ public class Robot extends TimedRobot {
   private final RobotState m_state;
 
   private final RobotViz m_viz;
+
+  private final Alert m_obstacleProtectionAlert = new Alert("Obstacle protection failed", AlertType.kError);
 
   public Robot() {
     DogLog.setOptions(new DogLogOptions().withCaptureDs(true));
@@ -103,7 +107,7 @@ public class Robot extends TimedRobot {
         IntakeObstacleProtection.getTrigger(m_state)
             .onTrue(m_intakePivot.setAngleCommand(Degrees.of(60)));
       } catch (IOException e) {
-        throw new RuntimeException("obstacle protection failed", e);
+        m_obstacleProtectionAlert.set(true);
       }
     }
 
