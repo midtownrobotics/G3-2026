@@ -207,7 +207,7 @@ public class Robot extends TimedRobot {
         m_shooter.setSpeedCommand(RPM.of(0)))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
-    controls.empty().onTrue(Commands.parallel(
+    controls.shoot().onTrue(Commands.parallel(
         stowIntakeCommand(),
         m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf));

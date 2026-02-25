@@ -37,7 +37,7 @@ public class FourWayXboxControls implements FourWayControls, DriveControls {
   }
 
   @Override
-  public Trigger empty() {
+  public Trigger shoot() {
     return m_controller.rightBumper();
   }
 

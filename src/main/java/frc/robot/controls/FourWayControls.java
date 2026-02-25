@@ -7,7 +7,7 @@ public interface FourWayControls {
 
   public Trigger fill();
 
-  public Trigger empty();
+  public Trigger shoot();
 
   public Trigger snowBlow();
 }
