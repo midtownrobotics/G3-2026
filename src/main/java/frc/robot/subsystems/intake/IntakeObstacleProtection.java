@@ -10,10 +10,12 @@ import java.util.OptionalDouble;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import dev.doglog.DogLog;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -22,14 +24,15 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.GeometryUtil;
 import frc.robot.RobotState;
 
 @Logged(strategy = Strategy.OPT_IN)
 public class IntakeObstacleProtection {
-  private static final Time kTimeThreshold = Seconds.of(1.5);
-  private static final Distance kMaxScanDistance = Meters.of(3.0);
+  private static final Time kTimeThreshold = Seconds.of(0.1);
+  private static final Distance kMaxScanDistance = Meters.of(0.6);
 
-  private static final double kMinApproachSpeedMPS = 2;
+  private static final double kMinApproachSpeedMPS = 3;
 
   private static final double kIntakeOffsetXMeters = 0.59182;
   private static final double kIntakeHalfWidthMeters = 0.397129;
@@ -68,7 +71,7 @@ public class IntakeObstacleProtection {
   }
 
   private static boolean isObstacleTooClose(RobotState robotState, boolean[][] grid, double nodeSize) {
-    ChassisSpeeds speeds = robotState.getRobotSpeed();
+    ChassisSpeeds speeds = robotState.getFieldRelativeSpeeds();
 
     double totalSpeed = Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
 
@@ -82,20 +85,31 @@ public class IntakeObstacleProtection {
 
     Vector<N2> intakeDirection = VecBuilder.fill(heading.getCos(), heading.getSin());
     Vector<N2> robotVelocity = VecBuilder.fill(directionX, directionY);
+    System.out.println("intake direction obstacl protection");
+
+    DogLog.log("Intakedirectionvector", new double[] { intakeDirection.get(0), intakeDirection.get(1) });
+    DogLog.log("Robotdirectionvector", new double[] { robotVelocity.get(0), robotVelocity.get(1) });
 
     if (intakeDirection.dot(robotVelocity) <= 0) {
       return false;
     }
 
-    Translation2d robotPosition = robotState.getRobotPose().getTranslation();
+    Pose2d robotPosition = robotState.getRobotPose();
 
-    Translation2d leftCorner = robotPosition.plus(
-        new Translation2d(kIntakeOffsetXMeters, kIntakeHalfWidthMeters).rotateBy(heading));
-    Translation2d rightCorner = robotPosition.plus(
-        new Translation2d(kIntakeOffsetXMeters, -kIntakeHalfWidthMeters).rotateBy(heading));
+    Translation2d leftCorner = robotPosition
+        .transformBy(
+            GeometryUtil.transform2dFromTranslation(new Translation2d(kIntakeOffsetXMeters, kIntakeHalfWidthMeters)))
+        .getTranslation();
+    Translation2d rightCorner = robotPosition
+        .transformBy(
+            GeometryUtil.transform2dFromTranslation(new Translation2d(kIntakeOffsetXMeters, -kIntakeHalfWidthMeters)))
+        .getTranslation();
 
     OptionalDouble leftDist = distanceToNearestObstacle(leftCorner, directionX, directionY, grid, nodeSize);
     OptionalDouble rightDist = distanceToNearestObstacle(rightCorner, directionX, directionY, grid, nodeSize);
+
+    DogLog.log("leftintakedistance", leftDist.orElse(-1));
+    DogLog.log("rightintakedistance", rightDist.orElse(-1));
 
     if (leftDist.isEmpty() && rightDist.isEmpty()) {
       return false;
@@ -127,7 +141,7 @@ public class IntakeObstacleProtection {
         return OptionalDouble.empty();
       }
 
-      if (!grid[row][col]) {
+      if (grid[row][col]) {
         return OptionalDouble.of(distance);
       }
     }

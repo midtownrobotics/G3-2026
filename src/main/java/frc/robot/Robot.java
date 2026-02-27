@@ -142,6 +142,12 @@ public class Robot extends TimedRobot {
     CommandScheduler.getInstance().run();
     m_viz.periodic();
 
+    try {
+      DogLog.log("John", IntakeObstacleProtection.getTrigger(m_state).getAsBoolean());
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
     DogLog.log("Autonomous", DriverStation.isAutonomousEnabled());
   }
 
