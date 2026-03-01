@@ -1,9 +1,12 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Volts;
 
 import java.util.Optional;
 
@@ -18,12 +21,15 @@ import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -83,7 +89,14 @@ public class Robot extends TimedRobot {
 
   private final RobotViz m_viz;
 
+  private final PowerDistribution m_pdh;
+
+  private final Trigger m_parametersHasShot;
+
   public Robot() {
+    m_pdh = new PowerDistribution();
+    m_pdh.setSwitchableChannel(true);
+
     DogLog.setOptions(new DogLogOptions().withCaptureDs(true));
     // DogLog.setPdh(new PowerDistribution());
     DataLogManager.start();
@@ -98,24 +111,24 @@ public class Robot extends TimedRobot {
     m_shooter = new Shooter();
     m_turret = new Turret();
 
-    Camera rearFacingRightCamera = new Camera("rearFacingRightCamera", new Transform3d());
-    Camera frontFacingRightCamera = new Camera("frontFacingRightCamera", new Transform3d());
-    Camera rearFacingLeftCamera = new Camera("rearFacingLeftCamera", new Transform3d());
-    Camera frontFacingLeftCamera = new Camera("frontFacingLeftCamera", new Transform3d());
+    Camera rear = new Camera("Rear", new Transform3d(new Translation3d(Inches.of(-11.018), Inches.of(7.388), Inches.of(14.444)), new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(180))));
+    Camera rearRight = new Camera("Rear Right", new Transform3d(new Translation3d(Inches.of(-8.758), Inches.of(-14.541), Inches.of(8.022)), new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(-33.26))));
+    Camera rearLeft = new Camera("Rear Left", new Transform3d(new Translation3d(Inches.of(-7.692), Inches.of(14.396), Inches.of(14.217)), new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(121.47))));
+    Camera frontLeft = new Camera("Front Left", new Transform3d(new Translation3d(Inches.of(-7.076), Inches.of(14.525), Inches.of(10.65)), new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(142.302))));
 
     m_vision = new Vision(
         (observation) -> m_drive.addVisionMeasurement(observation.pose().toPose2d(), observation.timestamp()),
         m_drive::getPose,
-        rearFacingRightCamera,
-        frontFacingRightCamera,
-        rearFacingLeftCamera,
-        frontFacingLeftCamera);
+        rearRight,
+        rearLeft,
+        rear,
+        frontLeft);
 
     m_state = new RobotState(
         m_drive,
         m_intakePivot,
         m_intakeRoller,
-        // m_turret,
+        m_turret,
         m_feeder,
         m_vision,
         m_transportRoller,
@@ -152,6 +165,10 @@ public class Robot extends TimedRobot {
 
     m_trimControls = new TrimXboxControls(1);
     configureTrimControlBindings(m_trimControls);
+
+    m_parametersHasShot = new Trigger(() -> !m_shootingParameters.getParameters().noShot());
+
+    m_parametersHasShot.onTrue(runFeeders()).onFalse(stopFeeders());
 
     generateAutoChooser();
   }
@@ -249,6 +266,15 @@ public class Robot extends TimedRobot {
     return setIntakeSetpointCommand(IntakeSetpoint.START);
   }
 
+  private Command runFeeders() {
+    return m_feeder.setVoltageCommand(Volts.of(3));
+  }
+
+  private Command stopFeeders() {
+    return m_feeder.setVoltageCommand(Volts.of(0));
+  }
+
+
   public Command joyStickDrive() {
     return Commands.run(() -> {
       ChassisSpeeds speeds = new ChassisSpeeds(
@@ -319,7 +345,8 @@ public class Robot extends TimedRobot {
     m_viz.periodic();
     m_shootingParameters.periodic();
 
-    DogLog.log("Autonomous", DriverStation.isAutonomousEnabled());
+    LoggerUtil.log("autonomous", DriverStation.isAutonomousEnabled());
+    LoggerUtil.log("pdhSwitchableChannelEnabled", m_pdh.getSwitchableChannel());
   }
 
   @Override

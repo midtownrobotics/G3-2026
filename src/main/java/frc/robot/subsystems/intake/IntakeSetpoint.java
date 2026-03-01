@@ -7,7 +7,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Voltage;
 
 public enum IntakeSetpoint {
-  START(Degrees.of(87), Volts.of(0)),
+  START(Degrees.of(72), Volts.of(0)),
   STOW(Degrees.of(60), Volts.of(0)),
   INTAKING(Degrees.of(15.25), Volts.of(7));
 

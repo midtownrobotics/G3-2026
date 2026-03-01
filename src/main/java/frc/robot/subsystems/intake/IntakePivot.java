@@ -23,6 +23,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.LoggerUtil;
 import frc.robot.Ports;
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
@@ -77,8 +78,8 @@ public class IntakePivot extends SubsystemBase {
   }
 
   private Angle getAbsoluteAngle() {
-    // Set this to the value of "Intake/IntakeAbsoluteEncoderOffset" when the intake is all the way down.
-    final double WRAP_OFFSET = 4.8;
+    // Set this to the value of "IntakePivot/intakeAbsoluteEncoderOffset" when the intake is all the way down.
+    final double WRAP_OFFSET = -9.6;
 
     double encoderDeg = m_encoder.getAbsolutePosition().getValue().in(Degrees);
     if (encoderDeg < 0)
@@ -104,8 +105,9 @@ public class IntakePivot extends SubsystemBase {
   @Override
   public void periodic() {
     m_mechanism.updateTelemetry();
-    DogLog.log("Intake/IntakeAbsoluteEncoder", getAbsoluteAngle().in(Degrees));
-    DogLog.log("Intake/IntakeAbsoluteEncoderOffset", getAbsoluteOffsetAt0().in(Degrees));
+    LoggerUtil.log("intakeAbsoluteEncoder", getAbsoluteAngle().in(Degrees));
+    LoggerUtil.log("intakeAbsoluteEncoderOffset", getAbsoluteOffsetAt0().in(Degrees));
+    LoggerUtil.log("rawEncoderValue", m_encoder.getAbsolutePosition().getValue());
   }
 
   @Override

@@ -132,9 +132,9 @@ public class ShootingParameters {
   }
 
   public boolean shootingParametersAreWithinTolerance(Parameters parameters) {
-    if (!parameters.turretAngle.isNear(Degrees.of(0), kTurretAngleTolerance)) {
-      return false;
-    }
+    // if (!parameters.turretAngle.isNear(Degrees.of(0), kTurretAngleTolerance)) {
+    //   return false;
+    // }
 
     if (!parameters.hoodAngle.isNear(m_state.getHoodAngle(), kHoodAngleTolerance)) {
       return false;

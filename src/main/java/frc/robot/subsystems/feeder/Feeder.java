@@ -6,6 +6,8 @@ import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
 
+import java.util.function.Supplier;
+
 import com.ctre.phoenix6.configs.CANrangeConfiguration;
 import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -16,6 +18,7 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -89,5 +92,13 @@ public class Feeder extends SubsystemBase {
 
   public Command setSpeedCommand(AngularVelocity angularVelocity) {
     return m_mechanism.setSpeed(angularVelocity);
+  }
+
+  public Command setVoltageCommand(Supplier<Voltage> voltage) {
+    return m_mechanism.setVoltage(voltage);
+  }
+
+  public Command setVoltageCommand(Voltage voltage) {
+    return m_mechanism.setVoltage(voltage);
   }
 }

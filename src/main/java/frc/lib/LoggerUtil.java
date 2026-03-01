@@ -5,6 +5,7 @@ import java.util.List;
 import dev.doglog.DogLog;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import frc.robot.sensors.Camera.PoseObservation;
 import frc.robot.sensors.DetectionCam.DetectionResult;
@@ -27,6 +28,10 @@ public class LoggerUtil {
   }
 
   public static void log(String name, Distance value) {
+    DogLog.log(getPath(name), value);
+  }
+
+  public static void log(String name, Angle value) {
     DogLog.log(getPath(name), value);
   }
 

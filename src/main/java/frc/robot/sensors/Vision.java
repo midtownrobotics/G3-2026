@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.LoggerUtil;
 import frc.robot.Robot;
 import frc.robot.sensors.Camera.PoseObservation;
 
@@ -37,6 +38,7 @@ public class Vision extends SubsystemBase {
   @Override
   public void periodic() {
     for (var camera : m_cameras) {
+      LoggerUtil.log("cameraPoses/" + camera.getName(), new Pose3d(m_poseSupplier.get()).transformBy(camera.getRobotToCamera()));
       for (var observation : camera.getLatestObservations()) {
         m_addVisionMeasurement.accept(observation);
       }

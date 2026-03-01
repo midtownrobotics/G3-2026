@@ -18,16 +18,22 @@ public class Camera {
   private PhotonCamera m_camera;
   private PhotonPoseEstimator m_estimator;
   private Transform3d m_robotToCamera;
+  private String m_name;
 
   public static record PoseObservation(double timestamp, Pose3d pose, int tagCount) {
   }
 
   public Camera(String name, Transform3d robotToCamera) {
+    m_name = name;
     m_camera = new PhotonCamera(name);
     m_estimator = new PhotonPoseEstimator(AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded),
         robotToCamera);
 
     m_robotToCamera = robotToCamera;
+  }
+
+  public String getName() {
+    return m_name;
   }
 
   public Transform3d getRobotToCamera() {
