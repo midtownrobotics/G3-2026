@@ -40,15 +40,10 @@ public class Vision extends SubsystemBase {
     for (var camera : m_cameras) {
       LoggerUtil.log("cameraPoses/" + camera.getName(), new Pose3d(m_poseSupplier.get()).transformBy(camera.getRobotToCamera()));
       for (var observation : camera.getLatestObservations()) {
+        LoggerUtil.log("observedPose", observation.pose());
         m_addVisionMeasurement.accept(observation);
       }
     }
-
-    posePublisher.accept(m_cameras.stream()
-        .map((cam) -> cam.getLatestObservations())
-        .flatMap(List::stream)
-        .map((obs) -> obs.pose()).toArray(Pose3d[]::new));
-
   }
 
   @Override

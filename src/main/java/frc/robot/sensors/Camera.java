@@ -1,7 +1,11 @@
 package frc.robot.sensors;
 
+import java.sql.ResultSet;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -50,12 +54,45 @@ public class Camera {
   }
 
   public List<PoseObservation> getLatestObservations() {
-    return m_camera.getAllUnreadResults().stream()
-        .map(m_estimator::estimateCoprocMultiTagPose)
-        .flatMap(Optional::stream)
-        .map((est) -> new PoseObservation(est.timestampSeconds, est.estimatedPose, est.targetsUsed.size()))
-        .toList();
-  }
+    List<PoseObservation> observations = new LinkedList<>();
+
+    for (var result : m_camera.getAllUnreadResults()) {
+      if (result.multitagResult.isPresent()) {
+        var multitagResult = result.multitagResult.get();
+
+        Transform3d fieldToCamera = multitagResult.estimatedPose.best;
+        Transform3d fieldToRobot = fieldToCamera.plus(m_robotToCamera.inverse());
+        Pose3d robotPose = new Pose3d(fieldToRobot.getTranslation(), fieldToCamera.getRotation());
+
+        observations.add(
+          new PoseObservation(
+            result.getTimestampSeconds(), 
+            robotPose, 
+            multitagResult.fiducialIDsUsed.size()));
+
+       } else if (!result.targets.isEmpty()){
+        var target = result.targets.get(0);
+
+        var tagPose = AprilTagFieldLayout
+                        .loadField(AprilTagFields.k2026RebuiltWelded)
+                        .getTagPose(target.getFiducialId());
+        
+        if (tagPose.isPresent()) {
+          Transform3d fieldToTarget = new Transform3d(tagPose.get().getTranslation(), tagPose.get().getRotation());
+          Transform3d cameraToTarget = target.bestCameraToTarget;
+          Transform3d fieldToCamera = fieldToTarget.plus(cameraToTarget.inverse());
+          Transform3d fieldToRobot = fieldToCamera.plus(m_robotToCamera.inverse());
+          Pose3d robotPose = new Pose3d(fieldToRobot.getTranslation(), fieldToRobot.getRotation());
+
+          observations.add(
+            new PoseObservation(result.getTimestampSeconds(), robotPose, 1)
+          );
+        }
+       }
+      }
+
+      return observations;
+    }    
 
   public boolean hasTargets() {
     PhotonPipelineResult result = m_camera.getLatestResult();
