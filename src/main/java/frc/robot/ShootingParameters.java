@@ -89,18 +89,18 @@ public class ShootingParameters {
 
   private Time getTimeOfFlight(Translation2d target, Pose2d pose) {
     final Double distance = pose.getTranslation().getDistance(target);
-    return Seconds.of(m_timeOfFlightMap.get(distance)).times(m_ToFModifier);
+    return Seconds.of(m_timeOfFlightMap.get(Feet.of(4.75).in(Meters))).times(m_ToFModifier);
   }
 
   private Angle getHoodAngle(Translation2d target, Pose2d pose) {
     final Double distance = pose.getTranslation().getDistance(target);
-    return Radians.of(m_hoodAngleMap.get(distance)).plus(m_hoodAngleModifier);
+    return Radians.of(m_hoodAngleMap.get(Feet.of(4.75).in(Meters))).plus(m_hoodAngleModifier);
   }
 
   private AngularVelocity getFlyWheelVelocity(Translation2d target, Pose2d pose) {
-    // final Double distance = pose.getTranslation().getDistance(target);
-    // return RadiansPerSecond.of(m_flywheelVelocityMap.get(distance)).times(m_flywheelVelocityModifier);
-    return RPM.of(1000);
+    final Double distance = pose.getTranslation().getDistance(target);
+    return RadiansPerSecond.of(m_flywheelVelocityMap.get(Feet.of(4.75).in(Meters))).times(m_flywheelVelocityModifier);
+    // return RPM.of(1000);
   }
 
   private Angle getTurretAngle(Translation2d target, Pose2d pose) {
