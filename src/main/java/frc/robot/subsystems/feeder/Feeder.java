@@ -45,8 +45,8 @@ public class Feeder extends SubsystemBase {
     SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.OPEN_LOOP)
         .withIdleMode(MotorMode.COAST)
-        .withClosedLoopController(0.3, 0, 0.01)
-        .withFeedforward(new SimpleMotorFeedforward(0.05, 0.12, 0))
+        // .withClosedLoopController(0.3, 0, 0.01)
+        // .withFeedforward(new SimpleMotorFeedforward(0.05, 0.12, 0))
         .withGearing(2)
         .withTelemetry("FeederMotor", TelemetryVerbosity.HIGH);
 

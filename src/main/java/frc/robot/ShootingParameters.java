@@ -26,7 +26,7 @@ public class ShootingParameters {
   private static final int kMaximumIterations = 100;
   private static final Angle kHoodAngleTolerance = Degrees.of(5);
   private static final Angle kTurretAngleTolerance = Degrees.of(5);
-  private static final AngularVelocity kFlywhweelVelocityTolerance = RPM.of(50);
+  private static final AngularVelocity kFlywhweelVelocityTolerance = RPM.of(150);
   private static final double kToFTrimStep = 0.05;
   private static final double kFlywheelVelocityTrimStep = 0.05;
   private static final Angle kHoodAngleTrimStep = Degrees.of(1);
@@ -98,8 +98,9 @@ public class ShootingParameters {
   }
 
   private AngularVelocity getFlyWheelVelocity(Translation2d target, Pose2d pose) {
-    final Double distance = pose.getTranslation().getDistance(target);
-    return RadiansPerSecond.of(m_flywheelVelocityMap.get(distance)).times(m_flywheelVelocityModifier);
+    // final Double distance = pose.getTranslation().getDistance(target);
+    // return RadiansPerSecond.of(m_flywheelVelocityMap.get(distance)).times(m_flywheelVelocityModifier);
+    return RPM.of(1000);
   }
 
   private Angle getTurretAngle(Translation2d target, Pose2d pose) {
