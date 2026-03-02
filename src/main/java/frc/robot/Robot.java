@@ -9,6 +9,7 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -163,6 +164,10 @@ public class Robot extends TimedRobot {
 
     m_hood.setDefaultCommand(m_hood.setAngleCommand(() -> m_shootingParameters.getParameters().hoodAngle()));
 
+    if (!Constants.kUseFixedTurretMode) {
+      m_turret.setDefaultCommand(m_turret.setAngleCommand(() -> m_shootingParameters.getParameters().turretAngle()));
+    }
+
     m_drive.setDefaultCommand(Constants.kUseWeirdSnakeDrive ? snakeDrive() : joyStickDrive());
 
     m_trimControls = new TrimXboxControls(1);
@@ -227,17 +232,29 @@ public class Robot extends TimedRobot {
         m_shooter.setSpeedCommand(RPM.of(0)))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
-    controls.shoot().onTrue(Commands.parallel(
-        Commands.runOnce(() -> m_state.setSnowBlow(false)),
-        stowIntakeCommand(),
-        m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()))
-        .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
+    controls.shoot().onTrue(
+      Commands.either(
+        Commands.parallel(
+          stowIntakeCommand(),
+          m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity())),
+        Commands.parallel(
+          stowIntakeCommand(),
+          m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
+          rotateRobot(m_shootingParameters::getTargetRotation)),
+        () -> !Constants.kUseFixedTurretMode)
+    .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
-    controls.snowBlow().onTrue(Commands.parallel(
-        Commands.runOnce(() -> m_state.setSnowBlow(true)),
-        runIntakeCommand(),
-        m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()))
-        .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
+    controls.snowBlow().onTrue(
+      Commands.either(
+        Commands.parallel(
+          runIntakeCommand(),
+          m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity())),
+        Commands.parallel(
+          runIntakeCommand(),
+          m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
+          rotateRobot(m_shootingParameters::getTargetRotation)),
+        () -> !Constants.kUseFixedTurretMode)
+    .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
   }
 
   public void configureTrimControlBindings(TrimControls controls) {
@@ -304,7 +321,6 @@ public class Robot extends TimedRobot {
   }
 
   public Command snakeDrive() {
-
     return Commands.run(() -> {
       final PIDController headingController = new PIDController(100, 0, 0);
       final boolean snakeDriveActive = !(Math.abs(m_controls.getDriveRotation()) > 0);
@@ -338,6 +354,34 @@ public class Robot extends TimedRobot {
                 m_controls.getDriveRotation()));
 
       }
+
+      m_drive.setControl(new SwerveRequest.FieldCentric()
+          .withVelocityX(speeds.vxMetersPerSecond)
+          .withVelocityY(speeds.vyMetersPerSecond)
+          .withRotationalRate(speeds.omegaRadiansPerSecond));
+
+      headingController.close();
+    }, m_drive);
+  }
+
+
+  public Command rotateRobot(Supplier<Rotation2d> rotation) {
+    return Commands.run(() -> {
+      final PIDController headingController = new PIDController(100, 0, 0);
+
+        headingController.enableContinuousInput(-Math.PI, Math.PI);
+
+        final var speeds = new ChassisSpeeds(
+            m_controls.getDriveForward() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                * Constants.kLinearSpeedMultiplier,
+            m_controls.getDriveLeft() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                * Constants.kLinearSpeedMultiplier,
+            0);
+    
+      double fieldRelativeAngle = m_drive.getPose().getRotation().getRadians();
+
+      speeds.omegaRadiansPerSecond = headingController.calculate(fieldRelativeAngle,
+                                           rotation.get().getMeasure().in(Radians));
 
       m_drive.setControl(new SwerveRequest.FieldCentric()
           .withVelocityX(speeds.vxMetersPerSecond)
