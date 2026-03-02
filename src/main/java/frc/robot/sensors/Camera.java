@@ -13,6 +13,7 @@ import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.targeting.PhotonPipelineResult;
 
+import dev.doglog.DogLog;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -56,8 +57,10 @@ public class Camera {
   public List<PoseObservation> getLatestObservations() {
     List<PoseObservation> observations = new LinkedList<>();
 
-    for (var result : m_camera.getAllUnreadResults()) {
+    for (var result : m_camera.getAllUnreadResults()) { 
+      DogLog.log("Cameras/" + m_camera.getName() + "/timeStamp", result.getTimestampSeconds());
       if (result.multitagResult.isPresent()) {
+        DogLog.log("Cameras/" + m_camera.getName() + "/singleTag", false);
         var multitagResult = result.multitagResult.get();
 
         Transform3d fieldToCamera = multitagResult.estimatedPose.best;
@@ -71,6 +74,7 @@ public class Camera {
             multitagResult.fiducialIDsUsed.size()));
 
        } else if (!result.targets.isEmpty()){
+      DogLog.log("Cameras/" + m_camera.getName() + "/singleTag", true);
         var target = result.targets.get(0);
 
         var tagPose = AprilTagFieldLayout
@@ -90,6 +94,9 @@ public class Camera {
         }
        }
       }
+
+      
+      DogLog.log("Cameras/" + m_camera.getName() + "/numberOfObservations", observations.size());
 
       return observations;
     }    
