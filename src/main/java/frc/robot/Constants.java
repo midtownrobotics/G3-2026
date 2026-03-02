@@ -11,7 +11,7 @@ import frc.robot.generated.TunerConstants;
 
 public class Constants {
   public static final double kLinearSpeedMultiplier = 1;
-  public static final double kAngluarSpeedMultiplier = 1;
+  public static final double kAngluarSpeedMultiplier = 0.9;
 
   /** Calculated based on tuner constants. */
   public static final AngularVelocity kAngularMaxSpeed = RadiansPerSecond.of(

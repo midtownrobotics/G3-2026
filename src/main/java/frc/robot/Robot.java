@@ -225,11 +225,13 @@ public class Robot extends TimedRobot {
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
     controls.empty().onTrue(Commands.parallel(
+        Commands.runOnce(() -> m_state.setSnowBlow(false)),
         stowIntakeCommand(),
         m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
     controls.snowBlow().onTrue(Commands.parallel(
+        Commands.runOnce(() -> m_state.setSnowBlow(true)),
         runIntakeCommand(),
         m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
@@ -267,7 +269,7 @@ public class Robot extends TimedRobot {
   }
 
   private Command runFeeders() {
-    return m_feeder.setVoltageCommand(Volts.of(3));
+    return m_feeder.setVoltageCommand(Volts.of(5));
   }
 
   private Command stopFeeders() {
@@ -280,12 +282,16 @@ public class Robot extends TimedRobot {
       ChassisSpeeds speeds = new ChassisSpeeds(
           m_controls.getDriveForward() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
               * Constants.kLinearSpeedMultiplier,
+
           m_controls.getDriveLeft() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
               * Constants.kLinearSpeedMultiplier,
+              
           Math.copySign(
               m_controls.getDriveRotation() * m_controls.getDriveRotation()
                   * Constants.kAngularMaxSpeed.in(RadiansPerSecond) * Constants.kAngluarSpeedMultiplier,
               m_controls.getDriveRotation()));
+
+      DogLog.log("joystickDriveSpeeds", speeds);
 
       m_drive.setControl(new SwerveRequest.FieldCentric()
           .withVelocityX(speeds.vxMetersPerSecond)

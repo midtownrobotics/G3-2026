@@ -2,6 +2,7 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
@@ -46,6 +47,8 @@ public class RobotState {
   public final Shooter m_shooter;
   public final Hood m_hood;
 
+  public boolean m_snowBlow;
+
   public RobotState(
       CommandSwerveDrivetrain drive,
       IntakePivot intakePivot,
@@ -67,8 +70,15 @@ public class RobotState {
     m_hood = hood;
   }
 
+  public void setSnowBlow(boolean snowBlow) {
+    m_snowBlow = snowBlow;
+  }
+
   public Pose2d getRobotPose() {
-    return m_drive.getPose();
+    // return m_drive.getPose();
+    return m_snowBlow
+        ? new Pose2d(FieldConstants.getHubPosition2d().plus(new Translation2d(-0.5, 0)), new Rotation2d())
+        : new Pose2d(FieldConstants.getHubPosition2d().plus(new Translation2d(3, 3)), new Rotation2d());
   }
 
   public Pose2d getTurretPose() {
@@ -122,7 +132,8 @@ public class RobotState {
   }
 
   public boolean inAllianceZone() {
-    return FieldConstants.getAllianceZone(DriverStation.getAlliance().orElseGet(() -> Alliance.Blue)).contains(getRobotPose().getTranslation());
+    return FieldConstants.getAllianceZone(DriverStation.getAlliance().orElseGet(() -> Alliance.Blue))
+        .contains(getRobotPose().getTranslation());
   }
 
   public Trigger fuelSensorTripped() {
