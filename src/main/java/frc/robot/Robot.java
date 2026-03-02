@@ -354,8 +354,8 @@ public class Robot extends TimedRobot {
     m_viz.periodic();
     m_shootingParameters.periodic();
 
-    LoggerUtil.log("autonomous", DriverStation.isAutonomousEnabled());
-    LoggerUtil.log("pdhSwitchableChannelEnabled", m_pdh.getSwitchableChannel());
+    m_log.log("autonomous", DriverStation.isAutonomousEnabled());
+    m_log.log("pdhSwitchableChannelEnabled", m_pdh.getSwitchableChannel());
   }
 
   @Override

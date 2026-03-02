@@ -23,7 +23,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.lib.LoggerUtil;
+import frc.lib.Logger;
 import frc.robot.Ports;
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
@@ -40,6 +40,7 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 public class IntakePivot extends SubsystemBase {
   private final Arm m_mechanism;
   private final CANcoder m_encoder;
+  private final Logger m_log;
 
   public IntakePivot() {
     TalonFX motor = new TalonFX(Ports.kIntakePivot.canId(), Ports.kIntakePivot.canbus());
@@ -75,6 +76,8 @@ public class IntakePivot extends SubsystemBase {
     motor.getConfigurator().refresh(mmConfigs);
     mmConfigs.MotionMagicJerk = 10;
     motor.getConfigurator().apply(mmConfigs);
+    
+    m_log = new Logger(getClass());
   }
 
   private Angle getAbsoluteAngle() {
@@ -105,9 +108,9 @@ public class IntakePivot extends SubsystemBase {
   @Override
   public void periodic() {
     m_mechanism.updateTelemetry();
-    LoggerUtil.log("intakeAbsoluteEncoder", getAbsoluteAngle().in(Degrees));
-    LoggerUtil.log("intakeAbsoluteEncoderOffset", getAbsoluteOffsetAt0().in(Degrees));
-    LoggerUtil.log("rawEncoderValue", m_encoder.getAbsolutePosition().getValue());
+    m_log.log("intakeAbsoluteEncoder", getAbsoluteAngle().in(Degrees));
+    m_log.log("intakeAbsoluteEncoderOffset", getAbsoluteOffsetAt0().in(Degrees));
+    m_log.log("rawEncoderValue", m_encoder.getAbsolutePosition().getValue());
   }
 
   @Override
