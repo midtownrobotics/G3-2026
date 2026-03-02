@@ -17,11 +17,12 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-import frc.lib.LoggerUtil;
+import frc.lib.Logger;
 
 @Logged(strategy = Strategy.OPT_IN)
 public class DetectionCam {
   private PhotonCamera m_camera;
+  private final Logger m_log;
 
   private static final Angle kFuelCamFovHorizontal = Degrees.of(70.0);
   private static final Angle kFuelCamFovVertical = Degrees.of(44);
@@ -34,6 +35,7 @@ public class DetectionCam {
 
   public DetectionCam(String name) {
     m_camera = new PhotonCamera(name);
+    m_log = new Logger(getClass());
   }
 
   public PhotonCamera getCamera() {
@@ -53,7 +55,7 @@ public class DetectionCam {
     var results = m_camera.getAllUnreadResults().stream()
         .map((result) -> new DetectionResult(getFuelsX(result), getFuelsY(result))).toList();
 
-    LoggerUtil.logDetectionResults("detectionResults", results);
+    m_log.logDetectionResults("detectionResults", results);
     return results;
   }
 

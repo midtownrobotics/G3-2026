@@ -22,7 +22,7 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.lib.LoggerUtil;
+import frc.lib.Logger;
 import frc.robot.Ports;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
@@ -38,6 +38,7 @@ public class Feeder extends SubsystemBase {
   private final FlyWheel m_mechanism;
   private final CANrange m_fuelSensor;
   private final LinearFilter m_fuelSensorFilter;
+  private final Logger m_log;
 
   public Feeder() {
     TalonFX motor = new TalonFX(Ports.kFeederBelt.canId(), Ports.kFeederBelt.canbus());
@@ -66,6 +67,7 @@ public class Feeder extends SubsystemBase {
     m_fuelSensor.getConfigurator().apply(fuelSensorConfig);
 
     m_fuelSensorFilter = LinearFilter.movingAverage(5);
+    m_log = new Logger(getClass());
   }
 
   private boolean getFuelSensorTripped() {
@@ -79,9 +81,9 @@ public class Feeder extends SubsystemBase {
 
   @Override
   public void periodic() {
-    LoggerUtil.log("FuelSensor/distance", m_fuelSensor.getDistance().getValue());
-    LoggerUtil.log("FuelSensor/distanceSTD", m_fuelSensor.getDistanceStdDev().getValue());
-    LoggerUtil.log("sensorTripped", getFuelSensorTripped());
+    m_log.log("FuelSensor/distance", m_fuelSensor.getDistance().getValue());
+    m_log.log("FuelSensor/distanceSTD", m_fuelSensor.getDistanceStdDev().getValue());
+    m_log.log("sensorTripped", getFuelSensorTripped());
     m_mechanism.updateTelemetry();
   }
 
