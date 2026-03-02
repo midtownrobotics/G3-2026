@@ -19,7 +19,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.lib.LoggerUtil;
+import frc.lib.Logger;
 import frc.robot.Ports;
 import yams.mechanisms.config.ArmConfig;
 import yams.mechanisms.positional.Arm;
@@ -34,6 +34,7 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 public class Hood extends SubsystemBase {
   private final Arm m_mechanism;
   private final CANcoder m_encoder;
+  private final Logger m_log;
 
   public Hood() {
     TalonFX motor = new TalonFX(Ports.kTurretHood.canId(), Ports.kTurretHood.canbus());
@@ -63,12 +64,13 @@ public class Hood extends SubsystemBase {
         .withStartingPosition(m_encoder.getAbsolutePosition().getValue().div(19));
 
     m_mechanism = new Arm(armConfig);
+    m_log = new Logger(getClass());
   }
 
   @Override
   public void periodic() {
     m_mechanism.updateTelemetry();
-    LoggerUtil.log("encoderPosition", m_encoder.getAbsolutePosition().getValueAsDouble());
+    m_log.log("encoderPosition", m_encoder.getAbsolutePosition().getValueAsDouble());
   }
 
   @Override
