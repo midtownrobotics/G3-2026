@@ -14,6 +14,17 @@ public class AutoRoutines {
     m_autoFactory = autoFactory;
   }
 
+  public AutoRoutine depotToLeftStart() {
+    AutoRoutine routine = m_autoFactory.newRoutine("DepotToLeftStart");
+    AutoTrajectory depotToLeftStart = routine.trajectory("DepotToLeftStart");
+    
+    routine.active().onTrue(
+      Commands.sequence(
+        depotToLeftStart.resetOdometry(),
+        depotToLeftStart.cmd()));
+    return routine;
+  }
+
   public AutoRoutine depotToMidLeft() {
     AutoRoutine routine = m_autoFactory.newRoutine("DepotToMidLeft");
     AutoTrajectory depotToMidLeft = routine.trajectory("DepotToMidLeft");
@@ -26,8 +37,8 @@ public class AutoRoutines {
   }
 
   public AutoRoutine leftStartToCenter() {
-    AutoRoutine routine = m_autoFactory.newRoutine("leftStartToCenter");
-    AutoTrajectory leftStartToCenter = routine.trajectory("leftStartToCenter");
+    AutoRoutine routine = m_autoFactory.newRoutine("LeftStartToCenter");
+    AutoTrajectory leftStartToCenter = routine.trajectory("LeftStartToCenter");
     
     routine.active().onTrue(
       Commands.sequence(
@@ -35,6 +46,82 @@ public class AutoRoutines {
         leftStartToCenter.cmd()));
     return routine;
   }
-
+  
+  public AutoRoutine leftStartToDepot() {
+    AutoRoutine routine = m_autoFactory.newRoutine("LeftStartToDepot");
+    AutoTrajectory leftStartToDepot = routine.trajectory("LeftStartToDepot");
+    
+    routine.active().onTrue(
+      Commands.sequence(
+        leftStartToDepot.resetOdometry(),
+        leftStartToDepot.cmd()));
+    return routine;
+  }
+  
+  public AutoRoutine midLeftToDepot() {
+    AutoRoutine routine = m_autoFactory.newRoutine("MidLeftToDepot");
+    AutoTrajectory midLeftToDepot = routine.trajectory("MidLeftToDepot");
+    
+    routine.active().onTrue(
+      Commands.sequence(
+        midLeftToDepot.resetOdometry(),
+        midLeftToDepot.cmd()));
+    return routine;
+  }
+  
+  public AutoRoutine midRightToOutpost() {
+    AutoRoutine routine = m_autoFactory.newRoutine("MidRightToOutpost");
+    AutoTrajectory midRightToOutpost = routine.trajectory("MidRightToOutpost");
+    
+    routine.active().onTrue(
+      Commands.sequence(
+        midRightToOutpost.resetOdometry(),
+        midRightToOutpost.cmd()));
+    return routine;
+  }
+  
+  public AutoRoutine midStartToDepot() {
+    AutoRoutine routine = m_autoFactory.newRoutine("MidStartToDepot");
+    AutoTrajectory midStartToDepot = routine.trajectory("MidStartToDepot");
+    
+    routine.active().onTrue(
+      Commands.sequence(
+        midStartToDepot.resetOdometry(),
+        midStartToDepot.cmd()));
+    return routine;
+  }
+  
+  public AutoRoutine midStartToLeftStart() {
+    AutoRoutine routine = m_autoFactory.newRoutine("MidStartToLeftStart");
+    AutoTrajectory midStartToLeftStart = routine.trajectory("MidStartToLeftStart");
+    
+    routine.active().onTrue(
+      Commands.sequence(
+        midStartToLeftStart.resetOdometry(),
+        midStartToLeftStart.cmd()));
+    return routine;
+  }
+  
+  public AutoRoutine outpostToMidRight() {
+    AutoRoutine routine = m_autoFactory.newRoutine("OutpostToMidRight");
+    AutoTrajectory outpostToMidRight = routine.trajectory("OutpostToMidRight");
+    
+    routine.active().onTrue(
+      Commands.sequence(
+        outpostToMidRight.resetOdometry(),
+        outpostToMidRight.cmd()));
+    return routine;
+  }
+  
+  public AutoRoutine rightStartToCenter() {
+    AutoRoutine routine = m_autoFactory.newRoutine("RightStartToCenter");
+    AutoTrajectory rightStartToCenter = routine.trajectory("RightStartToCenter");
+    
+    routine.active().onTrue(
+      Commands.sequence(
+        rightStartToCenter.resetOdometry(),
+        rightStartToCenter.cmd()));
+    return routine;
+  }
 }
 
