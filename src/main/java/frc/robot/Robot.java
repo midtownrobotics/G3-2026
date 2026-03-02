@@ -1,5 +1,6 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
@@ -25,6 +26,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -32,7 +34,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.lib.LoggerUtil;
+import frc.lib.Logger;
 import frc.robot.Constants.ControlMode;
 import frc.robot.controls.ConventionalControls;
 import frc.robot.controls.ConventionalXboxControls;
@@ -83,6 +85,8 @@ public class Robot extends TimedRobot {
 
   private final RobotViz m_viz;
 
+  private final Logger m_log;
+
   public Robot() {
     DogLog.setOptions(new DogLogOptions().withCaptureDs(true));
     // DogLog.setPdh(new PowerDistribution());
@@ -115,7 +119,7 @@ public class Robot extends TimedRobot {
         m_drive,
         m_intakePivot,
         m_intakeRoller,
-        // m_turret,
+        m_turret,
         m_feeder,
         m_vision,
         m_transportRoller,
@@ -154,11 +158,12 @@ public class Robot extends TimedRobot {
     configureTrimControlBindings(m_trimControls);
 
     generateAutoChooser();
+    m_log = new Logger(getClass());
   }
 
   public Translation2d getTarget() {
     Translation2d target = calculateTarget();
-    LoggerUtil.log("target", new Pose2d(target, new Rotation2d()));
+    m_log.log("target", new Pose2d(target, new Rotation2d()));
     return target;
   }
 
@@ -202,12 +207,12 @@ public class Robot extends TimedRobot {
         m_shooter.setSpeedCommand(RPM.of(0)))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
-    controls.fill().onTrue(Commands.parallel(
+    controls.intake().onTrue(Commands.parallel(
         runIntakeCommand(),
         m_shooter.setSpeedCommand(RPM.of(0)))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
-    controls.empty().onTrue(Commands.parallel(
+    controls.shoot().onTrue(Commands.parallel(
         stowIntakeCommand(),
         m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
