@@ -34,7 +34,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.lib.LoggerUtil;
+import frc.lib.Logger;
 import frc.robot.Constants.ControlMode;
 import frc.robot.controls.ConventionalControls;
 import frc.robot.controls.ConventionalXboxControls;
@@ -84,6 +84,8 @@ public class Robot extends TimedRobot {
   private final RobotState m_state;
 
   private final RobotViz m_viz;
+
+  private final Logger m_log;
 
   public Robot() {
     DogLog.setOptions(new DogLogOptions().withCaptureDs(true));
@@ -156,11 +158,12 @@ public class Robot extends TimedRobot {
     configureTrimControlBindings(m_trimControls);
 
     generateAutoChooser();
+    m_log = new Logger(getClass());
   }
 
   public Translation2d getTarget() {
     Translation2d target = calculateTarget();
-    LoggerUtil.log("target", new Pose2d(target, new Rotation2d()));
+    m_log.log("target", new Pose2d(target, new Rotation2d()));
     return target;
   }
 
