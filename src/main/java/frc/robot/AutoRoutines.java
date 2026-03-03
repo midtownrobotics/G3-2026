@@ -1,5 +1,7 @@
 package frc.robot;
 
+import dev.doglog.DogLog;
+import dev.doglog.DogLogOptions;
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
@@ -18,6 +20,8 @@ public class AutoRoutines {
     AutoRoutine routine = m_autoFactory.newRoutine("DepotToLeftStart");
     AutoTrajectory depotToLeftStart = routine.trajectory("DepotToLeftStart");
     
+    DogLog.log("Auto/CurrentPath", depotToLeftStart.active().getAsBoolean());
+
     routine.active().onTrue(
       Commands.sequence(
         depotToLeftStart.resetOdometry(),
@@ -29,6 +33,8 @@ public class AutoRoutines {
     AutoRoutine routine = m_autoFactory.newRoutine("DepotToMidLeft");
     AutoTrajectory depotToMidLeft = routine.trajectory("DepotToMidLeft");
     
+    DogLog.log("Auto/CurrentPath", depotToMidLeft.active().getAsBoolean());
+
     routine.active().onTrue(
       Commands.sequence(
         depotToMidLeft.resetOdometry(),
@@ -39,6 +45,8 @@ public class AutoRoutines {
   public AutoRoutine leftStartToCenter() {
     AutoRoutine routine = m_autoFactory.newRoutine("LeftStartToCenter");
     AutoTrajectory leftStartToCenter = routine.trajectory("LeftStartToCenter");
+    
+    DogLog.log("Auto/CurrentPath", leftStartToCenter.active().getAsBoolean());
     
     routine.active().onTrue(
       Commands.sequence(
@@ -51,6 +59,8 @@ public class AutoRoutines {
     AutoRoutine routine = m_autoFactory.newRoutine("LeftStartToDepot");
     AutoTrajectory leftStartToDepot = routine.trajectory("LeftStartToDepot");
     
+    DogLog.log("Auto/CurrentPath", leftStartToDepot.active().getAsBoolean());
+    
     routine.active().onTrue(
       Commands.sequence(
         leftStartToDepot.resetOdometry(),
@@ -61,6 +71,8 @@ public class AutoRoutines {
   public AutoRoutine midLeftToDepot() {
     AutoRoutine routine = m_autoFactory.newRoutine("MidLeftToDepot");
     AutoTrajectory midLeftToDepot = routine.trajectory("MidLeftToDepot");
+    
+    DogLog.log("Auto/CurrentPath", midLeftToDepot.active().getAsBoolean());
     
     routine.active().onTrue(
       Commands.sequence(
@@ -73,6 +85,8 @@ public class AutoRoutines {
     AutoRoutine routine = m_autoFactory.newRoutine("MidRightToOutpost");
     AutoTrajectory midRightToOutpost = routine.trajectory("MidRightToOutpost");
     
+    DogLog.log("Auto/CurrentPath", midRightToOutpost.active().getAsBoolean());
+    
     routine.active().onTrue(
       Commands.sequence(
         midRightToOutpost.resetOdometry(),
@@ -83,6 +97,8 @@ public class AutoRoutines {
   public AutoRoutine midStartToDepot() {
     AutoRoutine routine = m_autoFactory.newRoutine("MidStartToDepot");
     AutoTrajectory midStartToDepot = routine.trajectory("MidStartToDepot");
+    
+    DogLog.log("Auto/CurrentPath", midStartToDepot.active().getAsBoolean());
     
     routine.active().onTrue(
       Commands.sequence(
@@ -95,6 +111,8 @@ public class AutoRoutines {
     AutoRoutine routine = m_autoFactory.newRoutine("MidStartToLeftStart");
     AutoTrajectory midStartToLeftStart = routine.trajectory("MidStartToLeftStart");
     
+    DogLog.log("Auto/CurrentPath", midStartToLeftStart.active().getAsBoolean());
+    
     routine.active().onTrue(
       Commands.sequence(
         midStartToLeftStart.resetOdometry(),
@@ -105,6 +123,8 @@ public class AutoRoutines {
   public AutoRoutine outpostToMidRight() {
     AutoRoutine routine = m_autoFactory.newRoutine("OutpostToMidRight");
     AutoTrajectory outpostToMidRight = routine.trajectory("OutpostToMidRight");
+    
+    DogLog.log("Auto/CurrentPath", outpostToMidRight.active().getAsBoolean());
     
     routine.active().onTrue(
       Commands.sequence(
@@ -117,6 +137,8 @@ public class AutoRoutines {
     AutoRoutine routine = m_autoFactory.newRoutine("RightStartToCenter");
     AutoTrajectory rightStartToCenter = routine.trajectory("RightStartToCenter");
     
+    DogLog.log("Auto/CurrentPath", rightStartToCenter.active().getAsBoolean());
+    
     routine.active().onTrue(
       Commands.sequence(
         rightStartToCenter.resetOdometry(),
@@ -128,6 +150,8 @@ public class AutoRoutines {
     AutoRoutine routine = m_autoFactory.newRoutine("RightToStealBalls");
     AutoTrajectory rightToStealBalls = routine.trajectory("RightToStealBalls");
     
+    DogLog.log("Auto/CurrentPath", rightToStealBalls.active().getAsBoolean());
+    
     routine.active().onTrue(
       Commands.sequence(
         rightToStealBalls.resetOdometry(),
@@ -138,6 +162,8 @@ public class AutoRoutines {
   public AutoRoutine leftToStealBalls() {
     AutoRoutine routine = m_autoFactory.newRoutine("LeftToStealBalls");
     AutoTrajectory leftToStealBalls = routine.trajectory("LeftToStealBalls");
+    
+    DogLog.log("Auto/CurrentPath", leftToStealBalls.active().getAsBoolean());
     
     routine.active().onTrue(
       Commands.sequence(
@@ -152,6 +178,8 @@ public class AutoRoutines {
     AutoRoutine routine = m_autoFactory.newRoutine("LeftStartToRightStart");
     AutoTrajectory leftStartToRightStart = routine.trajectory("LeftStartToRightStart");
     
+    DogLog.log("Auto/CurrentPath", leftStartToRightStart.active().getAsBoolean());
+    
     routine.active().onTrue(
       Commands.sequence(
         leftStartToRightStart.resetOdometry(),
@@ -164,6 +192,8 @@ public class AutoRoutines {
   public AutoRoutine rightStartToleftStart() {
     AutoRoutine routine = m_autoFactory.newRoutine("RightStartToleftStart");
     AutoTrajectory rightStartToleftStart = routine.trajectory("RightStartToleftStart");
+    
+    DogLog.log("Auto/CurrentPath", rightStartToleftStart.active().getAsBoolean());
     
     routine.active().onTrue(
       Commands.sequence(
