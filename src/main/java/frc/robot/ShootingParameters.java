@@ -73,6 +73,7 @@ public class ShootingParameters {
   private Angle m_hoodAngleModifier = Degrees.of(0);
   private double m_ToFModifier = 1;
   private Angle m_turretAngleModifier = Degrees.of(0);
+  private Pose2d m_previousVirtualPose;
 
   private final RobotState m_state;
 
@@ -89,7 +90,7 @@ public class ShootingParameters {
   public ShootingParameters(RobotState state, Supplier<Translation2d> target) {
     m_target = target;
     m_state = state;
-
+    m_previousVirtualPose = m_state.getTurretPose();
   }
 
   private Time getTimeOfFlight(Translation2d target, Pose2d pose) {
@@ -156,9 +157,10 @@ public class ShootingParameters {
   public void periodic() {
     final Translation2d target = m_target.get();
     final Optional<Pose2d> pose = Constants.kUseOnTheFlyShooting
-        ? getVelocityCompensatedRobotPose(target, getTimeOfFlight(target, m_state.getTurretPose()),
+        ? getVelocityCompensatedRobotPose(target, getTimeOfFlight(target, m_previousVirtualPose),
             Seconds.of(Double.MAX_VALUE), 0)
         : Optional.of(m_state.getTurretPose());
+
 
     if (pose.isEmpty()) {
       final Pose2d uncompensatedPose = m_state.getTurretPose();
@@ -168,6 +170,8 @@ public class ShootingParameters {
           true);
       return;
     }
+
+    m_previousVirtualPose = pose.get();
 
     if (!shootingParametersAreWithinTolerance(m_currentCycleParameters)) {
       final Pose2d uncompensatedPose = m_state.getTurretPose();
@@ -181,7 +185,6 @@ public class ShootingParameters {
     m_currentCycleParameters = new Parameters(getTurretAngle(target, pose.get()),
         getHoodAngle(target, pose.get()),
         getFlyWheelVelocity(target, pose.get()));
-
   }
 
   public Parameters getParameters() {
