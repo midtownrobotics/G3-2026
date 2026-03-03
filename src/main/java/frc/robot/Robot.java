@@ -380,8 +380,6 @@ public class Robot extends TimedRobot {
     
       double fieldRelativeAngle = m_drive.getPose().getRotation().getRadians();
 
-      DogLog.log("quicktest", new Pose2d(m_drive.getPose().getTranslation(), rotation.get()));
-
       speeds.omegaRadiansPerSecond = headingController.calculate(fieldRelativeAngle,
                                            rotation.get().getMeasure().in(Radians));
 
