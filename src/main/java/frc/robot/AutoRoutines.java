@@ -123,5 +123,55 @@ public class AutoRoutines {
         rightStartToCenter.cmd()));
     return routine;
   }
+
+  public AutoRoutine rightToStealBalls() {
+    AutoRoutine routine = m_autoFactory.newRoutine("RightToStealBalls");
+    AutoTrajectory rightToStealBalls = routine.trajectory("RightToStealBalls");
+    
+    routine.active().onTrue(
+      Commands.sequence(
+        rightToStealBalls.resetOdometry(),
+        rightToStealBalls.cmd()));
+    return routine;
+  }
+
+  public AutoRoutine leftToStealBalls() {
+    AutoRoutine routine = m_autoFactory.newRoutine("LeftToStealBalls");
+    AutoTrajectory leftToStealBalls = routine.trajectory("LeftToStealBalls");
+    
+    routine.active().onTrue(
+      Commands.sequence(
+        leftToStealBalls.resetOdometry(),
+        leftToStealBalls.cmd()));
+    return routine;
+
+    
+  }
+
+  public AutoRoutine leftStartToRightStart() {
+    AutoRoutine routine = m_autoFactory.newRoutine("LeftStartToRightStart");
+    AutoTrajectory leftStartToRightStart = routine.trajectory("LeftStartToRightStart");
+    
+    routine.active().onTrue(
+      Commands.sequence(
+        leftStartToRightStart.resetOdometry(),
+        leftStartToRightStart.cmd()));
+    return routine;
+
+    
+  }
+
+  public AutoRoutine rightStartToleftStart() {
+    AutoRoutine routine = m_autoFactory.newRoutine("RightStartToleftStart");
+    AutoTrajectory rightStartToleftStart = routine.trajectory("RightStartToleftStart");
+    
+    routine.active().onTrue(
+      Commands.sequence(
+        rightStartToleftStart.resetOdometry(),
+        rightStartToleftStart.cmd()));
+    return routine;
+
+    
+  }
 }
 

@@ -189,7 +189,20 @@ public class Robot extends TimedRobot {
   }
 
   private void generateAutoChooser() {
-    m_autoChooser.addRoutine("Example Movement", m_autoRoutines::exampleMovementAuto);
+    m_autoChooser.addRoutine("Depot -> Left Start", m_autoRoutines::depotToLeftStart);
+    m_autoChooser.addRoutine("Depot -> Mid Left", m_autoRoutines::depotToMidLeft);
+    m_autoChooser.addRoutine("Left Start -> Center", m_autoRoutines::leftStartToCenter);
+    m_autoChooser.addRoutine("Left Start  -> Depot", m_autoRoutines::leftStartToDepot);
+    m_autoChooser.addRoutine("Mid Left -> Depot", m_autoRoutines::midLeftToDepot);
+    m_autoChooser.addRoutine("Mid Right -> Outpost", m_autoRoutines::midRightToOutpost);
+    m_autoChooser.addRoutine("Mid Start -> Depot", m_autoRoutines::midStartToDepot);
+    m_autoChooser.addRoutine("Mid Start -> Left Start", m_autoRoutines::midStartToLeftStart);
+    m_autoChooser.addRoutine("Outpost -> Mid Right", m_autoRoutines::outpostToMidRight);
+    m_autoChooser.addRoutine("Right Start -> Center", m_autoRoutines::rightStartToCenter);
+    m_autoChooser.addRoutine("Right Start -> Steal Balls", m_autoRoutines::rightToStealBalls);
+    m_autoChooser.addRoutine("Left Start -> Steal Balls", m_autoRoutines::leftToStealBalls);
+    m_autoChooser.addRoutine("Left Start -> Right Start", m_autoRoutines::leftStartToRightStart);
+    m_autoChooser.addRoutine("Right Start -> Left Start", m_autoRoutines::rightStartToleftStart);
 
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
     new Trigger(DriverStation::isAutonomousEnabled).whileTrue(m_autoChooser.selectedCommandScheduler());
