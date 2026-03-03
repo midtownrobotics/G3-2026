@@ -378,10 +378,6 @@ public class Robot extends TimedRobot {
     
       double fieldRelativeAngle = m_drive.getPose().getRotation().getRadians();
 
-<<<<<<< HEAD
-=======
-
->>>>>>> camera-repair
       speeds.omegaRadiansPerSecond = headingController.calculate(fieldRelativeAngle,
                                            rotation.get().getMeasure().in(Radians));
 
