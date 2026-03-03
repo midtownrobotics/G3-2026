@@ -311,8 +311,6 @@ public class Robot extends TimedRobot {
                   * Constants.kAngularMaxSpeed.in(RadiansPerSecond) * Constants.kAngluarSpeedMultiplier,
               m_controls.getDriveRotation()));
 
-      DogLog.log("joystickDriveSpeeds", speeds);
-
       m_drive.setControl(new SwerveRequest.FieldCentric()
           .withVelocityX(speeds.vxMetersPerSecond)
           .withVelocityY(speeds.vyMetersPerSecond)
@@ -380,6 +378,10 @@ public class Robot extends TimedRobot {
     
       double fieldRelativeAngle = m_drive.getPose().getRotation().getRadians();
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> camera-repair
       speeds.omegaRadiansPerSecond = headingController.calculate(fieldRelativeAngle,
                                            rotation.get().getMeasure().in(Radians));
 

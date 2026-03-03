@@ -101,6 +101,9 @@ public class RobotState {
   }
 
   public Angle getTurretAngle() {
+    if (Constants.kUseFixedTurretMode) {
+      return Constants.kFixedTurretRotation;
+    }
     return m_turret.getAngle();
   }
 
