@@ -189,10 +189,7 @@ public class ShootingParameters {
   }
 
   public Rotation2d getTargetRotation(Supplier<Translation2d> target) {
-    var temp = target.get().minus(m_state.getRobotPose().getTranslation()).getAngle().plus(new Rotation2d(Constants.kFixedTurretRotation));  
-    DogLog.log("ben/target", new Pose2d(target.get(), new Rotation2d()));
-    DogLog.log("ben/targetAngle", temp);
-    return temp;
+    return target.get().minus(m_state.getRobotPose().getTranslation()).getAngle().plus(new Rotation2d(Constants.kFixedTurretRotation));  
   }
 
   public void increaseFlywheelVelocity() {
