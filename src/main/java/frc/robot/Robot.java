@@ -240,7 +240,7 @@ public class Robot extends TimedRobot {
         Commands.parallel(
           stowIntakeCommand(),
           m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
-          rotateRobot(m_shootingParameters::getTargetRotation)),
+          rotateRobot(() -> m_shootingParameters.getTargetRotation(() -> getTarget()))),
         () -> !Constants.kUseFixedTurretMode)
     .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
@@ -252,7 +252,7 @@ public class Robot extends TimedRobot {
         Commands.parallel(
           runIntakeCommand(),
           m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
-          rotateRobot(m_shootingParameters::getTargetRotation)),
+          rotateRobot(() -> m_shootingParameters.getTargetRotation(() -> getTarget()))),
         () -> !Constants.kUseFixedTurretMode)
     .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
   }
@@ -367,7 +367,7 @@ public class Robot extends TimedRobot {
 
   public Command rotateRobot(Supplier<Rotation2d> rotation) {
     return Commands.run(() -> {
-      final PIDController headingController = new PIDController(100, 0, 0);
+      final PIDController headingController = new PIDController(10, 0, 0);
 
         headingController.enableContinuousInput(-Math.PI, Math.PI);
 
@@ -379,6 +379,8 @@ public class Robot extends TimedRobot {
             0);
     
       double fieldRelativeAngle = m_drive.getPose().getRotation().getRadians();
+
+      DogLog.log("quicktest", new Pose2d(m_drive.getPose().getTranslation(), rotation.get()));
 
       speeds.omegaRadiansPerSecond = headingController.calculate(fieldRelativeAngle,
                                            rotation.get().getMeasure().in(Radians));

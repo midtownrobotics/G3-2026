@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import dev.doglog.DogLog;
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -186,8 +188,11 @@ public class ShootingParameters {
     return m_currentCycleParameters;
   }
 
-  public Rotation2d getTargetRotation() {
-    return new Rotation2d(m_currentCycleParameters.turretAngle().minus(Constants.kFixedTurretRotation));
+  public Rotation2d getTargetRotation(Supplier<Translation2d> target) {
+    var temp = target.get().minus(m_state.getRobotPose().getTranslation()).getAngle().plus(new Rotation2d(Constants.kFixedTurretRotation));  
+    DogLog.log("ben/target", new Pose2d(target.get(), new Rotation2d()));
+    DogLog.log("ben/targetAngle", temp);
+    return temp;
   }
 
   public void increaseFlywheelVelocity() {
