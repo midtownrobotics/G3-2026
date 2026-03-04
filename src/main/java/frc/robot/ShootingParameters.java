@@ -138,7 +138,7 @@ public class ShootingParameters {
   }
 
   public boolean shootingParametersAreWithinTolerance(Parameters parameters) {
-    if (!parameters.turretAngle.isNear(m_state.getTurretAngle(), kTurretAngleTolerance)) {
+    if (!parameters.turretAngle.isNear(m_state.getTurretAngle(), kTurretAngleTolerance) && !Constants.kUseFixedTurretMode) {
       return false;
     }
 

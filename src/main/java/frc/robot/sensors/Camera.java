@@ -74,7 +74,7 @@ public class Camera {
             multitagResult.fiducialIDsUsed.size()));
 
        } else if (!result.targets.isEmpty()){
-      DogLog.log("Cameras/" + m_camera.getName() + "/singleTag", true);
+        DogLog.log("Cameras/" + m_camera.getName() + "/singleTag", true);
         var target = result.targets.get(0);
 
         var tagPose = AprilTagFieldLayout

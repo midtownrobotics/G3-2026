@@ -48,8 +48,9 @@ public class Turret extends SubsystemBase {
 
     SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
-        .withClosedLoopController(10, 0, 0,
-            DegreesPerSecond.of(950), DegreesPerSecondPerSecond.of(30))
+        // .withClosedLoopController(10, 0, 0,
+            // DegreesPerSecond.of(950), DegreesPerSecondPerSecond.of(30))
+        .withClosedLoopController(0, 0, 0)
         .withGearing(48)
         .withIdleMode(MotorMode.BRAKE)
         .withTelemetry("TurretMotor", TelemetryVerbosity.LOW)

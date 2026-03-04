@@ -120,8 +120,7 @@ public class IntakePivot extends SubsystemBase {
   }
 
   public Command setAngleCommand(Angle angle) {
-    // return m_mechanism.setAngle(angle);
-    return Commands.none();
+    return m_mechanism.setAngle(angle);
   }
 
   public Angle getAngle() {

@@ -43,7 +43,6 @@ public class Vision extends SubsystemBase {
     for (var camera : m_cameras) {
       m_log.log("cameraPoses/" + camera.getName(), new Pose3d(m_poseSupplier.get()).transformBy(camera.getRobotToCamera()));
       for (var observation : camera.getLatestObservations()) {
-        System.out.println(camera.getName());
         m_log.log(camera.getName()+"/observedPose", observation.pose());
         m_addVisionMeasurement.accept(observation);
       }
