@@ -24,6 +24,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Time;
+import frc.lib.Logger;
 
 public class ShootingParameters {
   private static final Time kTimeOfFlightTolerance = Seconds.of(0.1);
@@ -36,8 +37,20 @@ public class ShootingParameters {
   private static final Angle kHoodAngleTrimStep = Degrees.of(1);
 
   // Takes in a distance in meters and outputs a time in seconds
+  // IMPORTANT!!!!! These values are not AT ALL representative of 
+  // real time of flights. These are for testing purposes ONLY!
   private final InterpolatingDoubleTreeMap m_timeOfFlightMap = InterpolatingDoubleTreeMap.ofEntries(
-    Map.entry(5d, 3d)
+    Map.entry(Feet.of(4.25).in(Meters), 0.278),
+    Map.entry(Feet.of(4.75).in(Meters), 0.320),
+    Map.entry(Feet.of(5).in(Meters), 0.347),
+    Map.entry(Feet.of(5.5).in(Meters), 0.382),
+    Map.entry(Feet.of(6).in(Meters), 0.404),
+    Map.entry(Feet.of(7).in(Meters), 0.446),
+    Map.entry(Feet.of(8).in(Meters), 0.509),
+    Map.entry(Feet.of(9).in(Meters), 0.529),
+    Map.entry(Feet.of(10).in(Meters), 0.573),
+    Map.entry(Feet.of(11).in(Meters), 0.600),
+    Map.entry(Feet.of(26.875).in(Meters), 0.962)
   );
 
   // Takes in a distance in meters and outputs an angle in radians 
@@ -67,7 +80,7 @@ public class ShootingParameters {
     Map.entry(Feet.of(10).in(Meters), RPM.of(2000).in(RadiansPerSecond)),
     Map.entry(Feet.of(11).in(Meters), RPM.of(2100).in(RadiansPerSecond)),
     Map.entry(Feet.of(26.875).in(Meters), RPM.of(3200).in(RadiansPerSecond))
-);
+  );
 
   private double m_flywheelVelocityModifier = 1;
   private Angle m_hoodAngleModifier = Degrees.of(0);
@@ -76,6 +89,7 @@ public class ShootingParameters {
   private Pose2d m_previousVirtualPose;
 
   private final RobotState m_state;
+  private final Logger m_log;
 
   private Parameters m_currentCycleParameters = new Parameters(Degrees.of(0), Degrees.of(0), RPM.of(0));
 
@@ -91,6 +105,7 @@ public class ShootingParameters {
     m_target = target;
     m_state = state;
     m_previousVirtualPose = m_state.getTurretPose();
+    m_log = new Logger(getClass());
   }
 
   private Time getTimeOfFlight(Translation2d target, Pose2d pose) {
@@ -106,7 +121,6 @@ public class ShootingParameters {
   private AngularVelocity getFlyWheelVelocity(Translation2d target, Pose2d pose) {
     final Double distance = pose.getTranslation().getDistance(target);
     return RadiansPerSecond.of(m_flywheelVelocityMap.get(distance)).times(m_flywheelVelocityModifier);
-    // return RPM.of(1000);
   }
 
   private Angle getTurretAngle(Translation2d target, Pose2d pose) {
@@ -172,6 +186,7 @@ public class ShootingParameters {
     }
 
     m_previousVirtualPose = pose.get();
+    m_log.log("virtualPose", pose.get());
 
     if (!shootingParametersAreWithinTolerance(m_currentCycleParameters)) {
       final Pose2d uncompensatedPose = m_state.getTurretPose();

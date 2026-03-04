@@ -23,7 +23,7 @@ public class Constants {
     ).in(MetersPerSecond.per(Meters))
   );
 
-  public static final boolean kUseOnTheFlyShooting = false;
+  public static final boolean kUseOnTheFlyShooting = true;
 
   public enum ControlMode {
     FourWay,
