@@ -19,6 +19,9 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.lib.Logger;
 
+/**
+ * Represents a single camera dedicated soley to object detection
+ */
 @Logged(strategy = Strategy.OPT_IN)
 public class DetectionCam {
   private PhotonCamera m_camera;
@@ -32,7 +35,10 @@ public class DetectionCam {
 
   public record DetectionResult(double[] targetX, double[] targetY) {
   }
-
+  
+  /**
+   * @param name the name of the camera as set in the coprocessor
+   */
   public DetectionCam(String name) {
     m_camera = new PhotonCamera(name);
     m_log = new Logger(getClass());

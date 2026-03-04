@@ -30,6 +30,9 @@ import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
+/**
+ * The belt system that feeds into the flywheels 
+ */
 @Logged(strategy = Strategy.OPT_IN)
 public class Feeder extends SubsystemBase {
   private final FlyWheel m_mechanism;
@@ -72,6 +75,9 @@ public class Feeder extends SubsystemBase {
         .baseUnitMagnitude();
   }
 
+  /**
+   * @return a trigger that indicates whether or not a fuel is inside the tower/creature
+   */
   public Trigger fuelSensorTripped() {
     return new Trigger(this::getFuelSensorTripped).debounce(Milliseconds.of(100).in(Seconds));
   }

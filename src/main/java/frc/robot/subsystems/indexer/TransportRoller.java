@@ -22,6 +22,9 @@ import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
+/**
+ * The set of rollers that feed the fuel from the intake to the feeder
+ */
 @Logged(strategy = Strategy.OPT_IN)
 public class TransportRoller extends SubsystemBase {
   private final FlyWheel m_mechanism;

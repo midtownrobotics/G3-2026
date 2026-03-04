@@ -14,6 +14,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.sensors.Camera.PoseObservation;
 
+/**
+ * Subsystem that aggregates camera data and supplies it to the
+ * drivetrain
+ */
 public class Vision extends SubsystemBase {
   private final List<Camera> m_cameras;
   private final Consumer<PoseObservation> m_addVisionMeasurement;
@@ -23,6 +27,11 @@ public class Vision extends SubsystemBase {
   StructArrayPublisher<Pose3d> posePublisher = NetworkTableInstance.getDefault()
       .getStructArrayTopic("Vision/poses", Pose3d.struct).publish();
 
+  /**
+   * @param addVisionMeasurement a consumer that should be given by drivetrain
+   * @param poseSupplier the current pose as estimated by the drivetrain
+   * @param cameras the {@code Camera}s that {@code Vision} uses to generate pose estimates
+   */
   public Vision(Consumer<PoseObservation> addVisionMeasurement, Supplier<Pose2d> poseSupplier, Camera... cameras) {
     m_cameras = List.of(cameras);
     m_addVisionMeasurement = addVisionMeasurement;

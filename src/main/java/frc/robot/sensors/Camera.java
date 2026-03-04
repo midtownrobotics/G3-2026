@@ -14,14 +14,25 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
 
+
+/**
+ * Represents a single AprilTag camera
+ */
 public class Camera {
   private PhotonCamera m_camera;
   private PhotonPoseEstimator m_estimator;
   private Transform3d m_robotToCamera;
 
+  /**
+   * A single recording of a pose measurement by a camera wrapped up with metadata
+   */
   public static record PoseObservation(double timestamp, Pose3d pose, int tagCount) {
   }
 
+  /**
+   * @param name the name of the camera as set in the coprocessor
+   * @param robotToCamera the transform from the robot center facing forward to the center of the lens normal the the lens
+   */
   public Camera(String name, Transform3d robotToCamera) {
     m_camera = new PhotonCamera(name);
     m_estimator = new PhotonPoseEstimator(AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded),
@@ -43,6 +54,9 @@ public class Camera {
     return new PhotonCameraSim(this.getCamera(), properties);
   }
 
+  /**
+   * @return all of the {@code PoseObservations} that are in the co-processor's buffer
+   */
   public List<PoseObservation> getLatestObservations() {
     return m_camera.getAllUnreadResults().stream()
         .map(m_estimator::estimateCoprocMultiTagPose)
