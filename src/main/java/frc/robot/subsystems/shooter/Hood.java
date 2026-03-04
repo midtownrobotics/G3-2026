@@ -7,6 +7,7 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
 
 import java.util.function.Supplier;
 
@@ -38,13 +39,14 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 @Logged(strategy = Strategy.OPT_IN)
 public class Hood extends SubsystemBase {
   private final Arm m_mechanism;
+  private final TalonFX m_motor;
   private final CANcoder m_encoder;
   private final Logger m_log;
   private final Trigger m_currentSpikeTrigger;
   private final LinearFilter m_currentSpikeFilter;
 
   public Hood() {
-    TalonFX motor = new TalonFX(Ports.kTurretHood.canId(), Ports.kTurretHood.canbus());
+    m_motor = new TalonFX(Ports.kTurretHood.canId(), Ports.kTurretHood.canbus());
     m_encoder = new CANcoder(Ports.kTurretHoodEncoder.canId(), Ports.kTurretHoodEncoder.canbus());
 
     SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig(this)
@@ -59,7 +61,7 @@ public class Hood extends SubsystemBase {
         .withClosedLoopRampRate(Seconds.of(0.25))
         .withOpenLoopRampRate(Seconds.of(0.25));
 
-    SmartMotorController motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX44(1),
+    SmartMotorController motorController = new TalonFXWrapper(m_motor, DCMotor.getKrakenX44(1),
         motorControllerConfig);
 
     ArmConfig armConfig = new ArmConfig(motorController)
@@ -77,13 +79,15 @@ public class Hood extends SubsystemBase {
   }
 
   private boolean getIsCurrentSpiking() {
-    return Amps.of(m_currentSpikeFilter.calculate(m_mechanism.getMotor().getStatorCurrent().in(Amps))).gt(Amps.of(40));
+    return Amps.of(m_currentSpikeFilter.calculate(m_mechanism.getMotor().getStatorCurrent().in(Amps))).gt(Amps.of(20));
   }
 
   @Override
   public void periodic() {
     m_mechanism.updateTelemetry();
     m_log.log("encoderPosition", m_encoder.getAbsolutePosition().getValueAsDouble());
+    m_log.log("ampsDrawn", m_mechanism.getMotor().getStatorCurrent().in(Amps));
+    m_log.log("currentSpike", getIsCurrentSpiking());
   }
 
   @Override
@@ -97,7 +101,7 @@ public class Hood extends SubsystemBase {
   }
 
   public Command setVoltage(Voltage volts) {
-    return m_mechanism.setVoltage(volts);
+    return Commands.run(() -> m_motor.setVoltage(volts.in(Volts)));
   }
 
   public Trigger getCurrentSpikeTrigger() {

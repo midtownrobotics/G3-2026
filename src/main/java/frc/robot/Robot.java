@@ -6,6 +6,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.Optional;
@@ -262,6 +263,8 @@ public class Robot extends TimedRobot {
           rotateRobot(() -> m_shootingParameters.getTargetRotation(() -> getTarget()))),
         () -> !Constants.kUseFixedTurretMode)
     .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
+
+    controls.zeroHood().onTrue(zeroTurretHood());
   }
 
   public void configureTrimControlBindings(TrimControls controls) {
@@ -400,7 +403,7 @@ public class Robot extends TimedRobot {
 
   public Command zeroTurretHood() {
     return Commands.sequence(
-      m_hood.setVoltage(Volts.of(-1.5)).until(m_hood.getCurrentSpikeTrigger()),
+      m_hood.setVoltage(Volts.of(-1.5)).until(m_hood.getCurrentSpikeTrigger()).withTimeout(Seconds.of(5)),
       m_hood.setZeroToCurrentPosition()
     );
   }
