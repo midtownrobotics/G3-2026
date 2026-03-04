@@ -1,61 +1,53 @@
 package frc.robot;
 
-<<<<<<< HEAD
-import dev.doglog.DogLog;
-import dev.doglog.DogLogOptions;
-import choreo.auto.AutoFactory;
-import choreo.auto.AutoRoutine;
-import choreo.auto.AutoTrajectory;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import frc.lib.Logger;
-import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
-
-public class AutoRoutines {
-  private final AutoFactory m_autoFactory;
-  private final Logger m_logger;
-  private final CommandSwerveDrivetrain m_drive;
-
-  public AutoRoutines() {
-    m_drive = TunerConstants.createDrivetrain();
-    m_autoFactory = m_drive.createAutoFactory();
-    m_logger = new Logger(getClass());
-=======
 import java.util.function.Supplier;
 
+import choreo.Choreo;
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
+import choreo.trajectory.SwerveSample;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.lib.Logger;
 
 public class AutoRoutines {
   private final AutoFactory m_autoFactory;
   private final Supplier<Pose2d> m_poseSupplier;
-  private final Logger m_log = new Logger(getClass());
+
+  private final Field2d m_field = new Field2d();
 
   public AutoRoutines(AutoFactory autoFactory, Supplier<Pose2d> poseSupplier) {
     m_autoFactory = autoFactory;
     m_poseSupplier = poseSupplier;
->>>>>>> 12ec24e9bfa10d630f376cddec38ad183f703ce7
+    SmartDashboard.putData("Auto/Field", m_field);
   }
 
-  public AutoRoutine depotToLeftStart() {//adsdsa
+  /**
+   * Draws the planned trajectory path on the Field2d widget once.
+   * Uses Choreo.loadTrajectory() directly because AutoTrajectory does not
+   * expose the underlying Pose2d array — collectPoses() does not exist.
+   */
+  private void setTrajectoryPoses(String name) {
+    Choreo.<SwerveSample>loadTrajectory(name)
+        .ifPresent(traj -> m_field.getObject("Trajectory").setPoses(traj.getPoses()));
+  }
+
+  /** Updates the live robot pose on the field widget each loop tick. */
+  private void logRobotPose() {
+    m_field.setRobotPose(m_poseSupplier.get());
+  }
+
+  public AutoRoutine depotToLeftStart() {
     AutoRoutine routine = m_autoFactory.newRoutine("DepotToLeftStart");
     AutoTrajectory depotToLeftStart = routine.trajectory("DepotToLeftStart");
-<<<<<<< HEAD
-    
-    m_logger.log("Auto/CurrentPath", m_drive.getPose());
-=======
->>>>>>> 12ec24e9bfa10d630f376cddec38ad183f703ce7
 
     routine.active().onTrue(
-      Commands.sequence(
-        depotToLeftStart.resetOdometry(),
-        depotToLeftStart.cmd().deadlineWith(
-          Commands.run(() -> m_log.log("Auto/CurrentPath", m_poseSupplier.get())))));
+        Commands.sequence(
+            Commands.runOnce(() -> setTrajectoryPoses("DepotToLeftStart")),
+            depotToLeftStart.resetOdometry(),
+            depotToLeftStart.cmd().deadlineWith(Commands.run(this::logRobotPose))));
     return routine;
   }
 
@@ -64,10 +56,10 @@ public class AutoRoutines {
     AutoTrajectory depotToMidLeft = routine.trajectory("DepotToMidLeft");
 
     routine.active().onTrue(
-      Commands.sequence(
-        depotToMidLeft.resetOdometry(),
-        depotToMidLeft.cmd().deadlineWith(
-          Commands.run(() -> m_log.log("Auto/CurrentPath", m_poseSupplier.get())))));
+        Commands.sequence(
+            Commands.runOnce(() -> setTrajectoryPoses("DepotToMidLeft")),
+            depotToMidLeft.resetOdometry(),
+            depotToMidLeft.cmd().deadlineWith(Commands.run(this::logRobotPose))));
     return routine;
   }
 
@@ -76,10 +68,10 @@ public class AutoRoutines {
     AutoTrajectory leftStartToCenter = routine.trajectory("LeftStartToCenter");
 
     routine.active().onTrue(
-      Commands.sequence(
-        leftStartToCenter.resetOdometry(),
-        leftStartToCenter.cmd().deadlineWith(
-          Commands.run(() -> m_log.log("Auto/CurrentPath", m_poseSupplier.get())))));
+        Commands.sequence(
+            Commands.runOnce(() -> setTrajectoryPoses("LeftStartToCenter")),
+            leftStartToCenter.resetOdometry(),
+            leftStartToCenter.cmd().deadlineWith(Commands.run(this::logRobotPose))));
     return routine;
   }
 
@@ -88,10 +80,10 @@ public class AutoRoutines {
     AutoTrajectory leftStartToDepot = routine.trajectory("LeftStartToDepot");
 
     routine.active().onTrue(
-      Commands.sequence(
-        leftStartToDepot.resetOdometry(),
-        leftStartToDepot.cmd().deadlineWith(
-          Commands.run(() -> m_log.log("Auto/CurrentPath", m_poseSupplier.get())))));
+        Commands.sequence(
+            Commands.runOnce(() -> setTrajectoryPoses("LeftStartToDepot")),
+            leftStartToDepot.resetOdometry(),
+            leftStartToDepot.cmd().deadlineWith(Commands.run(this::logRobotPose))));
     return routine;
   }
 
@@ -100,10 +92,10 @@ public class AutoRoutines {
     AutoTrajectory midLeftToDepot = routine.trajectory("MidLeftToDepot");
 
     routine.active().onTrue(
-      Commands.sequence(
-        midLeftToDepot.resetOdometry(),
-        midLeftToDepot.cmd().deadlineWith(
-          Commands.run(() -> m_log.log("Auto/CurrentPath", m_poseSupplier.get())))));
+        Commands.sequence(
+            Commands.runOnce(() -> setTrajectoryPoses("MidLeftToDepot")),
+            midLeftToDepot.resetOdometry(),
+            midLeftToDepot.cmd().deadlineWith(Commands.run(this::logRobotPose))));
     return routine;
   }
 
@@ -112,10 +104,10 @@ public class AutoRoutines {
     AutoTrajectory midRightToOutpost = routine.trajectory("MidRightToOutpost");
 
     routine.active().onTrue(
-      Commands.sequence(
-        midRightToOutpost.resetOdometry(),
-        midRightToOutpost.cmd().deadlineWith(
-          Commands.run(() -> m_log.log("Auto/CurrentPath", m_poseSupplier.get())))));
+        Commands.sequence(
+            Commands.runOnce(() -> setTrajectoryPoses("MidRightToOutpost")),
+            midRightToOutpost.resetOdometry(),
+            midRightToOutpost.cmd().deadlineWith(Commands.run(this::logRobotPose))));
     return routine;
   }
 
@@ -124,10 +116,10 @@ public class AutoRoutines {
     AutoTrajectory midStartToDepot = routine.trajectory("MidStartToDepot");
 
     routine.active().onTrue(
-      Commands.sequence(
-        midStartToDepot.resetOdometry(),
-        midStartToDepot.cmd().deadlineWith(
-          Commands.run(() -> m_log.log("Auto/CurrentPath", m_poseSupplier.get())))));
+        Commands.sequence(
+            Commands.runOnce(() -> setTrajectoryPoses("MidStartToDepot")),
+            midStartToDepot.resetOdometry(),
+            midStartToDepot.cmd().deadlineWith(Commands.run(this::logRobotPose))));
     return routine;
   }
 
@@ -136,10 +128,10 @@ public class AutoRoutines {
     AutoTrajectory midStartToLeftStart = routine.trajectory("MidStartToLeftStart");
 
     routine.active().onTrue(
-      Commands.sequence(
-        midStartToLeftStart.resetOdometry(),
-        midStartToLeftStart.cmd().deadlineWith(
-          Commands.run(() -> m_log.log("Auto/CurrentPath", m_poseSupplier.get())))));
+        Commands.sequence(
+            Commands.runOnce(() -> setTrajectoryPoses("MidStartToLeftStart")),
+            midStartToLeftStart.resetOdometry(),
+            midStartToLeftStart.cmd().deadlineWith(Commands.run(this::logRobotPose))));
     return routine;
   }
 
@@ -148,10 +140,10 @@ public class AutoRoutines {
     AutoTrajectory outpostToMidRight = routine.trajectory("OutpostToMidRight");
 
     routine.active().onTrue(
-      Commands.sequence(
-        outpostToMidRight.resetOdometry(),
-        outpostToMidRight.cmd().deadlineWith(
-          Commands.run(() -> m_log.log("Auto/CurrentPath", m_poseSupplier.get())))));
+        Commands.sequence(
+            Commands.runOnce(() -> setTrajectoryPoses("OutpostToMidRight")),
+            outpostToMidRight.resetOdometry(),
+            outpostToMidRight.cmd().deadlineWith(Commands.run(this::logRobotPose))));
     return routine;
   }
 
@@ -160,10 +152,10 @@ public class AutoRoutines {
     AutoTrajectory rightStartToCenter = routine.trajectory("RightStartToCenter");
 
     routine.active().onTrue(
-      Commands.sequence(
-        rightStartToCenter.resetOdometry(),
-        rightStartToCenter.cmd().deadlineWith(
-          Commands.run(() -> m_log.log("Auto/CurrentPath", m_poseSupplier.get())))));
+        Commands.sequence(
+            Commands.runOnce(() -> setTrajectoryPoses("RightStartToCenter")),
+            rightStartToCenter.resetOdometry(),
+            rightStartToCenter.cmd().deadlineWith(Commands.run(this::logRobotPose))));
     return routine;
   }
 
@@ -172,10 +164,10 @@ public class AutoRoutines {
     AutoTrajectory rightToStealBalls = routine.trajectory("RightToStealBalls");
 
     routine.active().onTrue(
-      Commands.sequence(
-        rightToStealBalls.resetOdometry(),
-        rightToStealBalls.cmd().deadlineWith(
-          Commands.run(() -> m_log.log("Auto/CurrentPath", m_poseSupplier.get())))));
+        Commands.sequence(
+            Commands.runOnce(() -> setTrajectoryPoses("RightToStealBalls")),
+            rightToStealBalls.resetOdometry(),
+            rightToStealBalls.cmd().deadlineWith(Commands.run(this::logRobotPose))));
     return routine;
   }
 
@@ -184,10 +176,10 @@ public class AutoRoutines {
     AutoTrajectory leftToStealBalls = routine.trajectory("LeftToStealBalls");
 
     routine.active().onTrue(
-      Commands.sequence(
-        leftToStealBalls.resetOdometry(),
-        leftToStealBalls.cmd().deadlineWith(
-          Commands.run(() -> m_log.log("Auto/CurrentPath", m_poseSupplier.get())))));
+        Commands.sequence(
+            Commands.runOnce(() -> setTrajectoryPoses("LeftToStealBalls")),
+            leftToStealBalls.resetOdometry(),
+            leftToStealBalls.cmd().deadlineWith(Commands.run(this::logRobotPose))));
     return routine;
   }
 
@@ -196,10 +188,10 @@ public class AutoRoutines {
     AutoTrajectory leftStartToRightStart = routine.trajectory("LeftStartToRightStart");
 
     routine.active().onTrue(
-      Commands.sequence(
-        leftStartToRightStart.resetOdometry(),
-        leftStartToRightStart.cmd().deadlineWith(
-          Commands.run(() -> m_log.log("Auto/CurrentPath", m_poseSupplier.get())))));
+        Commands.sequence(
+            Commands.runOnce(() -> setTrajectoryPoses("LeftStartToRightStart")),
+            leftStartToRightStart.resetOdometry(),
+            leftStartToRightStart.cmd().deadlineWith(Commands.run(this::logRobotPose))));
     return routine;
   }
 
@@ -208,10 +200,10 @@ public class AutoRoutines {
     AutoTrajectory rightStartToleftStart = routine.trajectory("RightStartToleftStart");
 
     routine.active().onTrue(
-      Commands.sequence(
-        rightStartToleftStart.resetOdometry(),
-        rightStartToleftStart.cmd().deadlineWith(
-          Commands.run(() -> m_log.log("Auto/CurrentPath", m_poseSupplier.get())))));
+        Commands.sequence(
+            Commands.runOnce(() -> setTrajectoryPoses("RightStartToleftStart")),
+            rightStartToleftStart.resetOdometry(),
+            rightStartToleftStart.cmd().deadlineWith(Commands.run(this::logRobotPose))));
     return routine;
   }
 }

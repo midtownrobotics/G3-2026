@@ -70,7 +70,7 @@ public class Robot extends TimedRobot {
   private final Hood m_hood;
   private final ShootingParameters m_shootingParameters;
 
-  private AutoFactory m_autoFactory;
+  private final AutoFactory m_autoFactory;
   private final AutoRoutines m_autoRoutines;
   private final AutoChooser m_autoChooser;
 
@@ -83,6 +83,10 @@ public class Robot extends TimedRobot {
   private final RobotViz m_viz;
 
   private final Logger m_log;
+
+  // FIX 2: PIDController lifted out of the snakeDrive lambda so it is created
+  // once and retains its state across loop iterations.
+  private final PIDController m_headingController = new PIDController(100, 0, 0);
 
   public Robot() {
     DogLog.setOptions(new DogLogOptions().withCaptureDs(true));
@@ -125,18 +129,19 @@ public class Robot extends TimedRobot {
 
     m_viz = new RobotViz(m_state);
 
-    m_autoFactory = new AutoFactory(//adsa
+    // FIX 1a: Single, authoritative initialization of m_autoFactory.
+    m_autoFactory = new AutoFactory(
         m_drive::getPose,
         m_drive::resetPose,
         m_drive::followPath,
         true,
         m_drive);
 
-<<<<<<< HEAD
-    
-=======
+    // FIX 1b: Single, authoritative initialization of m_autoRoutines.
     m_autoRoutines = new AutoRoutines(m_autoFactory, m_drive::getPose);
->>>>>>> 12ec24e9bfa10d630f376cddec38ad183f703ce7
+
+    // FIX 1c: Single, authoritative initialization of m_autoChooser (field, not
+    // a new local variable that would shadow and discard the field assignment).
     m_autoChooser = new AutoChooser("Do Nothing");
 
     m_shootingParameters = new ShootingParameters(m_state, this::getTarget);
@@ -159,27 +164,10 @@ public class Robot extends TimedRobot {
     configureTrimControlBindings(m_trimControls);
 
     m_log = new Logger(getClass());
-    m_autoRoutines = new AutoRoutines();
-    m_autoFactory = m_drive.createAutoFactory();
-    AutoChooser m_autoChooser = new AutoChooser();
 
-    m_autoChooser.addRoutine("Depot -> Left Start", m_autoRoutines::depotToLeftStart);
-    m_autoChooser.addRoutine("Depot -> Mid Left", m_autoRoutines::depotToMidLeft);
-    m_autoChooser.addRoutine("Left Start -> Center", m_autoRoutines::leftStartToCenter);
-    m_autoChooser.addRoutine("Left Start  -> Depot", m_autoRoutines::leftStartToDepot);
-    m_autoChooser.addRoutine("Mid Left -> Depot", m_autoRoutines::midLeftToDepot);
-    m_autoChooser.addRoutine("Mid Right -> Outpost", m_autoRoutines::midRightToOutpost);
-    m_autoChooser.addRoutine("Mid Start -> Depot", m_autoRoutines::midStartToDepot);
-    m_autoChooser.addRoutine("Mid Start -> Left Start", m_autoRoutines::midStartToLeftStart);
-    m_autoChooser.addRoutine("Outpost -> Mid Right", m_autoRoutines::outpostToMidRight);
-    m_autoChooser.addRoutine("Right Start -> Center", m_autoRoutines::rightStartToCenter);
-    m_autoChooser.addRoutine("Right Start -> Steal Balls", m_autoRoutines::rightToStealBalls);
-    m_autoChooser.addRoutine("Left Start -> Steal Balls", m_autoRoutines::leftToStealBalls);
-    m_autoChooser.addRoutine("Left Start -> Right Start", m_autoRoutines::leftStartToRightStart);
-    m_autoChooser.addRoutine("Right Start -> Left Start", m_autoRoutines::rightStartToleftStart);
-
-    SmartDashboard.putData("Auto Chooser", m_autoChooser);
-    new Trigger(DriverStation::isAutonomousEnabled).whileTrue(m_autoChooser.selectedCommandScheduler());
+    // FIX 1d: Populate the auto chooser via the dedicated method (no duplicate
+    // inline block, no shadowing local variable).
+    generateAutoChooser();
   }
 
   public Translation2d getTarget() {
@@ -310,15 +298,15 @@ public class Robot extends TimedRobot {
   }
 
   public Command snakeDrive() {
+    // FIX 2 & 3: m_headingController is a field — it is created once and never
+    // closed mid-loop. Continuous input only needs to be enabled once.
+    m_headingController.enableContinuousInput(-Math.PI, Math.PI);
 
     return Commands.run(() -> {
-      final PIDController headingController = new PIDController(100, 0, 0);
       final boolean snakeDriveActive = !(Math.abs(m_controls.getDriveRotation()) > 0);
 
       ChassisSpeeds speeds;
       if (snakeDriveActive) {
-        headingController.enableContinuousInput(-Math.PI, Math.PI);
-
         speeds = new ChassisSpeeds(
             m_controls.getDriveForward() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
                 * Constants.kLinearSpeedMultiplier,
@@ -329,7 +317,8 @@ public class Robot extends TimedRobot {
         Angle headingAngle = Radians.of(Math.atan2(speeds.vyMetersPerSecond, speeds.vxMetersPerSecond) + Math.PI);
 
         if (Math.abs(speeds.vyMetersPerSecond) > 0.1 || Math.abs(speeds.vxMetersPerSecond) > 0.1) {
-          speeds.omegaRadiansPerSecond = headingController.calculate(m_drive.getPose().getRotation().getRadians(),
+          speeds.omegaRadiansPerSecond = m_headingController.calculate(
+              m_drive.getPose().getRotation().getRadians(),
               headingAngle.in(Radians));
         }
       } else {
@@ -342,15 +331,12 @@ public class Robot extends TimedRobot {
                 m_controls.getDriveRotation() * m_controls.getDriveRotation()
                     * Constants.kAngularMaxSpeed.in(RadiansPerSecond) * Constants.kAngluarSpeedMultiplier,
                 m_controls.getDriveRotation()));
-
       }
 
       m_drive.setControl(new SwerveRequest.FieldCentric()
           .withVelocityX(speeds.vxMetersPerSecond)
           .withVelocityY(speeds.vyMetersPerSecond)
           .withRotationalRate(speeds.omegaRadiansPerSecond));
-
-      headingController.close();
     }, m_drive);
   }
 
@@ -377,7 +363,6 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
-    
   }
 
   @Override
@@ -393,7 +378,6 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-
   }
 
   @Override
