@@ -34,7 +34,7 @@ public class Constants {
   public static final ControlMode kControlMode = ControlMode.FourWay;
 
   public static final boolean kUseWeirdSnakeDrive = false;
-  public static final boolean kUseFixedTurretMode = true;
+  public static final boolean kUseFixedTurretMode = false;
 
   public static final Angle kFixedTurretRotation = Radians.of((3*Math.PI)/2);
 
