@@ -236,7 +236,8 @@ public class Robot extends TimedRobot {
       Commands.either(
         Commands.parallel(
           stowIntakeCommand(),
-          m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity())),
+          m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
+          joyStickDrive()),
         Commands.parallel(
           stowIntakeCommand(),
           m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
@@ -248,7 +249,8 @@ public class Robot extends TimedRobot {
       Commands.either(
         Commands.parallel(
           runIntakeCommand(),
-          m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity())),
+          m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
+          joyStickDrive()),
         Commands.parallel(
           runIntakeCommand(),
           m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),

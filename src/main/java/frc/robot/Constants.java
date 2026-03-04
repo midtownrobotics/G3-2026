@@ -2,6 +2,7 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 
@@ -35,7 +36,7 @@ public class Constants {
   public static final boolean kUseWeirdSnakeDrive = false;
   public static final boolean kUseFixedTurretMode = false;
 
-  public static final Angle kFixedTurretRotation = Rotations.zero();
+  public static final Angle kFixedTurretRotation = Radians.of(-Math.PI/2);
 
   public static final Transform2d kRobotToTurret = new Transform2d(new Translation2d(-0.1, 0.2), new Rotation2d());
 }
