@@ -131,7 +131,7 @@ public class Robot extends TimedRobot {
         true,
         m_drive);
 
-    m_autoRoutines = new AutoRoutines(m_autoFactory);
+    m_autoRoutines = new AutoRoutines(m_autoFactory, m_drive::getPose);
     m_autoChooser = new AutoChooser("Do Nothing");
 
     m_shootingParameters = new ShootingParameters(m_state, this::getTarget);
@@ -173,10 +173,12 @@ public class Robot extends TimedRobot {
     double hubY = FieldConstants.getHubPosition2d().getY();
 
     if (robotY > (hubY - 0.762) && robotY < (hubY + 0.762)) {
-      if (robotY > hubY) {return new Translation2d(FieldConstants.getHubPosition2d().getX(), hubY + 1);}
+      if (robotY > hubY) {
+        return new Translation2d(FieldConstants.getHubPosition2d().getX(), hubY + 1);
+      }
       return new Translation2d(FieldConstants.getHubPosition2d().getX(), hubY - 1);
     }
-     
+
     return switch (alliance) {
       case Blue -> new Translation2d(FieldConstants.getHubPosition2d().getX(), robotY);
       case Red -> new Translation2d(FieldConstants.getHubPosition2d().getMeasureX(),
@@ -370,7 +372,7 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-    
+
   }
 
   @Override
