@@ -57,7 +57,7 @@ public class Camera {
   public List<PoseObservation> getLatestObservations() {
     List<PoseObservation> observations = new LinkedList<>();
 
-    for (var result : m_camera.getAllUnreadResults()) { 
+    for (var result : m_camera.getAllUnreadResults()) {
       DogLog.log("Cameras/" + m_camera.getName() + "/timeStamp", result.getTimestampSeconds());
       if (result.multitagResult.isPresent()) {
         DogLog.log("Cameras/" + m_camera.getName() + "/singleTag", false);
