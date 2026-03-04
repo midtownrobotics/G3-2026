@@ -263,15 +263,6 @@ public class Robot extends TimedRobot {
           rotateRobot(() -> m_shootingParameters.getTargetRotation(() -> getTarget()))),
         () -> !Constants.kUseFixedTurretMode)
     .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
-
-    controls.ericMode().onTrue(
-      Commands.parallel(
-        runIntakeCommand(),
-        m_shooter.setSpeedCommand(RPM.of(1700)),
-        runFeeders(),
-        m_transportRoller.setVoltageCommand(Volts.of(-5d))
-      )
-      );
   }
 
   public void configureTrimControlBindings(TrimControls controls) {
