@@ -64,6 +64,10 @@ public class TransportRoller extends SubsystemBase {
     return m_mechanism.setSpeed(speed);
   }
 
+  public Command setVoltageCommand(Voltage volts) {
+    return m_mechanism.setVoltage(volts);
+  }
+
   public Command stopCommand() {
     return m_mechanism.set(0.0);
   }

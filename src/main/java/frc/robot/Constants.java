@@ -36,7 +36,7 @@ public class Constants {
   public static final boolean kUseWeirdSnakeDrive = false;
   public static final boolean kUseFixedTurretMode = true;
 
-  public static final Angle kFixedTurretRotation = Radians.of(0);
+  public static final Angle kFixedTurretRotation = Radians.of((3*Math.PI)/2);
 
   public static final Transform2d kRobotToTurret = new Transform2d(new Translation2d(-0.1, 0.2), new Rotation2d());
 }

@@ -182,6 +182,7 @@ public class Robot extends TimedRobot {
 
     m_parametersHasShot.onTrue(runFeeders()).onFalse(stopFeeders());
 
+
     generateAutoChooser();
     m_log = new Logger(getClass());
   }
@@ -262,6 +263,15 @@ public class Robot extends TimedRobot {
           rotateRobot(() -> m_shootingParameters.getTargetRotation(() -> getTarget()))),
         () -> !Constants.kUseFixedTurretMode)
     .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
+
+    controls.ericMode().onTrue(
+      Commands.parallel(
+        runIntakeCommand(),
+        m_shooter.setSpeedCommand(RPM.of(1700)),
+        runFeeders(),
+        m_transportRoller.setVoltageCommand(Volts.of(-5d))
+      )
+      );
   }
 
   public void configureTrimControlBindings(TrimControls controls) {
@@ -372,7 +382,7 @@ public class Robot extends TimedRobot {
 
   public Command rotateRobot(Supplier<Rotation2d> rotation) {
     return Commands.run(() -> {
-      final PIDController headingController = new PIDController(10, 0, 0);
+      final PIDController headingController = new PIDController(7, 0, 0);
 
         headingController.enableContinuousInput(-Math.PI, Math.PI);
 
