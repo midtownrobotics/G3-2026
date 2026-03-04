@@ -398,6 +398,13 @@ public class Robot extends TimedRobot {
     }, m_drive);
   }
 
+  public Command zeroTurretHood() {
+    return Commands.sequence(
+      m_hood.setVoltage(Volts.of(-1.5)).until(m_hood.getCurrentSpikeTrigger()),
+      m_hood.setZeroToCurrentPosition()
+    );
+  }
+
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
