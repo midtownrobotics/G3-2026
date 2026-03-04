@@ -2,25 +2,35 @@ package frc.robot;
 
 import dev.doglog.DogLog;
 import dev.doglog.DogLogOptions;
+
+import frc.lib.Logger;
+
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 public class AutoRoutines {
   private final AutoFactory m_autoFactory;
+  private final Logger m_logger;
+  private final CommandSwerveDrivetrain m_drive;
 
-  public AutoRoutines(AutoFactory autoFactory) {
-    m_autoFactory = autoFactory;
+  public AutoRoutines() {
+    m_drive = TunerConstants.createDrivetrain();
+    m_autoFactory = m_drive.createAutoFactory();
+    m_logger = new Logger(getClass());
   }
 
   public AutoRoutine depotToLeftStart() {
     AutoRoutine routine = m_autoFactory.newRoutine("DepotToLeftStart");
     AutoTrajectory depotToLeftStart = routine.trajectory("DepotToLeftStart");
     
-    DogLog.log("Auto/CurrentPath", depotToLeftStart.active().getAsBoolean());
+    m_logger.log("Auto/CurrentPath", m_drive.getPose());
 
     routine.active().onTrue(
       Commands.sequence(
