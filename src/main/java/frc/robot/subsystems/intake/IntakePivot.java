@@ -22,6 +22,7 @@ import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.Logger;
 import frc.robot.Ports;
@@ -52,7 +53,7 @@ public class IntakePivot extends SubsystemBase {
         .withSimClosedLoopController(3.0, 0.0, 0.05, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(1000))
         .withFeedforward(new ArmFeedforward(0.0, 0.5, 0.0))
         .withGearing(new MechanismGearing(GearBox.fromStages("50:12", "60:20", "48:16")))
-        .withTelemetry("PivotMotor", TelemetryVerbosity.HIGH)
+        .withTelemetry("PivotMotor", TelemetryVerbosity.LOW)
         .withMotorInverted(true)
         .withIdleMode(MotorMode.BRAKE);
 
@@ -64,7 +65,7 @@ public class IntakePivot extends SubsystemBase {
         .withStartingPosition(getAbsoluteAngle())
         .withLength(Inches.of(30.5))
         .withMass(Pounds.of(4.0))
-        .withTelemetry("IntakePivot", TelemetryVerbosity.HIGH);
+        .withTelemetry("IntakePivot", TelemetryVerbosity.LOW);
 
     CANcoderConfiguration canCoderConfig = new CANcoderConfiguration();
     canCoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;

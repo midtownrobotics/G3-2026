@@ -35,7 +35,7 @@ public class TransportRoller extends SubsystemBase {
     SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.OPEN_LOOP)
         .withIdleMode(MotorMode.COAST)
-        .withTelemetry("TransportRollerMotor", TelemetryVerbosity.HIGH)
+        .withTelemetry("TransportRollerMotor", TelemetryVerbosity.LOW)
         .withGearing(20d / 14d);
 
     SmartMotorController motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorControllerConfig);
@@ -45,7 +45,7 @@ public class TransportRoller extends SubsystemBase {
         .withUpperSoftLimit(RPM.of(5000))
         .withLowerSoftLimit(RPM.of(-5000))
         .withDiameter(Inches.of(1.5))
-        .withTelemetry("TransportRoller", TelemetryVerbosity.HIGH);
+        .withTelemetry("TransportRoller", TelemetryVerbosity.LOW);
 
     m_mechanism = new FlyWheel(rollerConfig);
   }
@@ -62,6 +62,10 @@ public class TransportRoller extends SubsystemBase {
 
   public Command setSpeedCommand(AngularVelocity speed) {
     return m_mechanism.setSpeed(speed);
+  }
+
+  public Command setVoltageCommand(Voltage volts) {
+    return m_mechanism.setVoltage(volts);
   }
 
   public Command stopCommand() {

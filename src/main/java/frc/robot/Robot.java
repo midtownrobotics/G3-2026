@@ -31,6 +31,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -91,14 +92,15 @@ public class Robot extends TimedRobot {
 
   private final RobotViz m_viz;
 
-  private final PowerDistribution m_pdh;
+  // private final PowerDistribution m_pdh;
 
   private final Trigger m_parametersHasShot;
   private final Logger m_log;
 
   public Robot() {
-    m_pdh = new PowerDistribution();
-    m_pdh.setSwitchableChannel(true);
+    DriverStation.silenceJoystickConnectionWarning(true);
+    // m_pdh = new PowerDistribution();
+    // m_pdh.setSwitchableChannel(true);
 
     DogLog.setOptions(new DogLogOptions().withCaptureDs(true));
     // DogLog.setPdh(new PowerDistribution());
@@ -114,10 +116,12 @@ public class Robot extends TimedRobot {
     m_shooter = new Shooter();
     m_turret = new Turret();
 
+  
     Camera rear = new Camera("Rear", new Transform3d(new Translation3d(Inches.of(-11.018), Inches.of(7.388), Inches.of(14.444)), new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(180))));
-    Camera rearRight = new Camera("Rear Right", new Transform3d(new Translation3d(Inches.of(-8.758), Inches.of(-14.541), Inches.of(8.022)), new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(-33.26))));
-    Camera rearLeft = new Camera("Rear Left", new Transform3d(new Translation3d(Inches.of(-7.692), Inches.of(14.396), Inches.of(14.217)), new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(37.698))));
-    Camera frontLeft = new Camera("Front Left", new Transform3d(new Translation3d(Inches.of(-7.076), Inches.of(14.525), Inches.of(10.65)), new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(142.302))));
+    Camera rearRight = new Camera("Rear Right", new Transform3d(new Translation3d(Inches.of(-8.758), Inches.of(-14.541), Inches.of(8.022)), new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(-33.26-90))));
+    Camera rearLeft = new Camera("Rear Left", new Transform3d(new Translation3d(Inches.of(-7.692), Inches.of(14.396), Inches.of(14.217)), new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(31.475+90))));
+    Camera frontLeft = new Camera("Front Left", new Transform3d(new Translation3d(Inches.of(-7.076), Inches.of(14.525), Inches.of(10.65)), new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(90-37.698))));
+    
 
     m_vision = new Vision(
         (observation) -> m_drive.addVisionMeasurement(observation.pose().toPose2d(), observation.timestamp()),
@@ -125,7 +129,8 @@ public class Robot extends TimedRobot {
         rearRight,
         rearLeft,
         rear,
-        frontLeft);
+        frontLeft
+        );
 
     m_state = new RobotState(
         m_drive,
@@ -176,6 +181,7 @@ public class Robot extends TimedRobot {
     m_parametersHasShot = new Trigger(() -> !m_shootingParameters.getParameters().noShot());
 
     m_parametersHasShot.onTrue(runFeeders()).onFalse(stopFeeders());
+
 
     generateAutoChooser();
     m_log = new Logger(getClass());
@@ -236,7 +242,8 @@ public class Robot extends TimedRobot {
       Commands.either(
         Commands.parallel(
           stowIntakeCommand(),
-          m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity())),
+          m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
+          joyStickDrive()),
         Commands.parallel(
           stowIntakeCommand(),
           m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
@@ -248,7 +255,8 @@ public class Robot extends TimedRobot {
       Commands.either(
         Commands.parallel(
           runIntakeCommand(),
-          m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity())),
+          m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
+          joyStickDrive()),
         Commands.parallel(
           runIntakeCommand(),
           m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
@@ -365,7 +373,7 @@ public class Robot extends TimedRobot {
 
   public Command rotateRobot(Supplier<Rotation2d> rotation) {
     return Commands.run(() -> {
-      final PIDController headingController = new PIDController(10, 0, 0);
+      final PIDController headingController = new PIDController(7, 0, 0);
 
         headingController.enableContinuousInput(-Math.PI, Math.PI);
 
@@ -397,7 +405,7 @@ public class Robot extends TimedRobot {
     m_shootingParameters.periodic();
 
     m_log.log("autonomous", DriverStation.isAutonomousEnabled());
-    m_log.log("pdhSwitchableChannelEnabled", m_pdh.getSwitchableChannel());
+    // m_log.log("pdhSwitchableChannelEnabled", m_pdh.getSwitchableChannel());
   }
 
   @Override
@@ -456,5 +464,10 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testExit() {
+  }
+
+  @Override
+  public void robotInit() {
+    // Threads.setCurrentThreadPriority(true, 10);
   }
 }

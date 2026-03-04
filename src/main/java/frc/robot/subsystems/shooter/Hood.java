@@ -46,7 +46,7 @@ public class Hood extends SubsystemBase {
             RPM.of(300), RPM.of(500).per(Seconds))
         .withGearing(266)
         .withIdleMode(MotorMode.BRAKE)
-        .withTelemetry("HoodMotor", TelemetryVerbosity.HIGH)
+        .withTelemetry("HoodMotor", TelemetryVerbosity.LOW)
         .withFeedforward(new ArmFeedforward(0.01, 0, 0))
         .withStatorCurrentLimit(Amps.of(30))
         .withClosedLoopRampRate(Seconds.of(0.25))
@@ -58,7 +58,7 @@ public class Hood extends SubsystemBase {
     ArmConfig armConfig = new ArmConfig(motorController)
         .withHardLimit(Degrees.of(0), Degrees.of(59))
         .withSoftLimits(Degrees.of(2), Degrees.of(55))
-        .withTelemetry("Hood", TelemetryVerbosity.HIGH)
+        .withTelemetry("Hood", TelemetryVerbosity.LOW)
         .withMOI(KilogramSquareMeters.of(0.038))
         .withLength(Inches.of(6))
         .withStartingPosition(m_encoder.getAbsolutePosition().getValue().div(19));
