@@ -124,7 +124,7 @@ public class Robot extends TimedRobot {
 
     m_viz = new RobotViz(m_state);
 
-    m_autoFactory = new AutoFactory(
+    m_autoFactory = new AutoFactory(//adsa
         m_drive::getPose,
         m_drive::resetPose,
         m_drive::followPath,
