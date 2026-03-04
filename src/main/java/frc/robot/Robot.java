@@ -1,12 +1,9 @@
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
-
-import java.util.Optional;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -26,14 +23,13 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.Logger;
 import frc.robot.Constants.ControlMode;
@@ -209,6 +205,26 @@ public class Robot extends TimedRobot {
     };
   }
 
+  private void generateAutoChooser() {
+    m_autoChooser.addRoutine("Depot -> Left Start", m_autoRoutines::depotToLeftStart);
+    m_autoChooser.addRoutine("Depot -> Mid Left", m_autoRoutines::depotToMidLeft);
+    m_autoChooser.addRoutine("Left Start -> Center -> Mid-Left", m_autoRoutines::leftStartToCenter);
+    m_autoChooser.addRoutine("Left Start  -> Depot", m_autoRoutines::leftStartToDepot);
+    m_autoChooser.addRoutine("Mid Left -> Depot", m_autoRoutines::midLeftToDepot);
+    m_autoChooser.addRoutine("Mid Right -> Outpost", m_autoRoutines::midRightToOutpost);
+    m_autoChooser.addRoutine("Mid Start -> Depot", m_autoRoutines::midStartToDepot);
+    m_autoChooser.addRoutine("Mid Start -> Left Start", m_autoRoutines::midStartToLeftStart);
+    m_autoChooser.addRoutine("Outpost -> Mid Right", m_autoRoutines::outpostToMidRight);
+    m_autoChooser.addRoutine("Right Start -> Center -> Mid-Right", m_autoRoutines::rightStartToCenter);
+    m_autoChooser.addRoutine("Right Start -> Steal Balls -> Left Start", m_autoRoutines::rightToStealBalls);
+    m_autoChooser.addRoutine("Left Start -> Steal Balls -> Right Start", m_autoRoutines::leftToStealBalls);
+    m_autoChooser.addRoutine("Left Start -> Right Start", m_autoRoutines::leftStartToRightStart);
+    m_autoChooser.addRoutine("Right Start -> Left Start", m_autoRoutines::rightStartToleftStart);
+
+    SmartDashboard.putData("Auto Chooser", m_autoChooser);
+    new Trigger(DriverStation::isAutonomousEnabled).whileTrue(m_autoChooser.selectedCommandScheduler());
+  }
+
   public void configureConventionalBindings(ConventionalControls controls) {
     controls.shoot().onTrue(m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()))
         .onFalse(m_shooter.setSpeedCommand(RPM.of(0)));
@@ -355,11 +371,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
-    m_autonomousCommand = null;
-
-    if (m_autonomousCommand != null) {
-      CommandScheduler.getInstance().schedule(m_autonomousCommand);
-    }
+    
   }
 
   @Override
