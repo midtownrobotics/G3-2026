@@ -1,5 +1,27 @@
 package frc.robot;
 
+<<<<<<< HEAD
+import dev.doglog.DogLog;
+import dev.doglog.DogLogOptions;
+import choreo.auto.AutoFactory;
+import choreo.auto.AutoRoutine;
+import choreo.auto.AutoTrajectory;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import frc.lib.Logger;
+import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
+
+public class AutoRoutines {
+  private final AutoFactory m_autoFactory;
+  private final Logger m_logger;
+  private final CommandSwerveDrivetrain m_drive;
+
+  public AutoRoutines() {
+    m_drive = TunerConstants.createDrivetrain();
+    m_autoFactory = m_drive.createAutoFactory();
+    m_logger = new Logger(getClass());
+=======
 import java.util.function.Supplier;
 
 import choreo.auto.AutoFactory;
@@ -17,11 +39,17 @@ public class AutoRoutines {
   public AutoRoutines(AutoFactory autoFactory, Supplier<Pose2d> poseSupplier) {
     m_autoFactory = autoFactory;
     m_poseSupplier = poseSupplier;
+>>>>>>> 12ec24e9bfa10d630f376cddec38ad183f703ce7
   }
 
   public AutoRoutine depotToLeftStart() {//adsdsa
     AutoRoutine routine = m_autoFactory.newRoutine("DepotToLeftStart");
     AutoTrajectory depotToLeftStart = routine.trajectory("DepotToLeftStart");
+<<<<<<< HEAD
+    
+    m_logger.log("Auto/CurrentPath", m_drive.getPose());
+=======
+>>>>>>> 12ec24e9bfa10d630f376cddec38ad183f703ce7
 
     routine.active().onTrue(
       Commands.sequence(
