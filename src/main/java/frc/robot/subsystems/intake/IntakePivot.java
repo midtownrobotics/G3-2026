@@ -52,7 +52,7 @@ public class IntakePivot extends SubsystemBase {
         .withSimClosedLoopController(3.0, 0.0, 0.05, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(1000))
         .withFeedforward(new ArmFeedforward(0.0, 0.5, 0.0))
         .withGearing(new MechanismGearing(GearBox.fromStages("50:12", "60:20", "48:16")))
-        .withTelemetry("PivotMotor", TelemetryVerbosity.HIGH)
+        .withTelemetry("PivotMotor", TelemetryVerbosity.LOW)
         .withMotorInverted(true)
         .withIdleMode(MotorMode.BRAKE);
 
@@ -64,7 +64,7 @@ public class IntakePivot extends SubsystemBase {
         .withStartingPosition(getAbsoluteAngle())
         .withLength(Inches.of(30.5))
         .withMass(Pounds.of(4.0))
-        .withTelemetry("IntakePivot", TelemetryVerbosity.HIGH);
+        .withTelemetry("IntakePivot", TelemetryVerbosity.LOW);
 
     CANcoderConfiguration canCoderConfig = new CANcoderConfiguration();
     canCoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;

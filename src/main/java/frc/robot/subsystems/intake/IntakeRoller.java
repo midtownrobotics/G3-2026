@@ -37,7 +37,7 @@ public class IntakeRoller extends SubsystemBase {
         .withControlMode(ControlMode.OPEN_LOOP)
         .withIdleMode(MotorMode.COAST)
         .withGearing(1)
-        .withTelemetry("IntakeRollerMotor", TelemetryVerbosity.HIGH);
+        .withTelemetry("IntakeRollerMotor", TelemetryVerbosity.LOW);
 
     SmartMotorController motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorControllerConfig);
 
@@ -46,7 +46,7 @@ public class IntakeRoller extends SubsystemBase {
         .withUpperSoftLimit(RPM.of(6000))
         .withLowerSoftLimit(RPM.of(-6000))
         .withDiameter(Inches.of(1.5))
-        .withTelemetry("IntakeRoller", TelemetryVerbosity.HIGH);
+        .withTelemetry("IntakeRoller", TelemetryVerbosity.LOW);
 
     m_mechanism = new FlyWheel(rollerConfig);
   }

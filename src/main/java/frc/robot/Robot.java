@@ -91,14 +91,15 @@ public class Robot extends TimedRobot {
 
   private final RobotViz m_viz;
 
-  private final PowerDistribution m_pdh;
+  // private final PowerDistribution m_pdh;
 
   private final Trigger m_parametersHasShot;
   private final Logger m_log;
 
   public Robot() {
-    m_pdh = new PowerDistribution();
-    m_pdh.setSwitchableChannel(true);
+    DriverStation.silenceJoystickConnectionWarning(true);
+    // m_pdh = new PowerDistribution();
+    // m_pdh.setSwitchableChannel(true);
 
     DogLog.setOptions(new DogLogOptions().withCaptureDs(true));
     // DogLog.setPdh(new PowerDistribution());
@@ -121,11 +122,12 @@ public class Robot extends TimedRobot {
 
     m_vision = new Vision(
         (observation) -> m_drive.addVisionMeasurement(observation.pose().toPose2d(), observation.timestamp()),
-        m_drive::getPose,
-        rearRight,
-        rearLeft,
-        rear,
-        frontLeft);
+        m_drive::getPose//,
+        // rearRight,
+        // rearLeft,
+        // rear,
+        // frontLeft
+        );
 
     m_state = new RobotState(
         m_drive,
@@ -398,7 +400,7 @@ public class Robot extends TimedRobot {
     m_shootingParameters.periodic();
 
     m_log.log("autonomous", DriverStation.isAutonomousEnabled());
-    m_log.log("pdhSwitchableChannelEnabled", m_pdh.getSwitchableChannel());
+    // m_log.log("pdhSwitchableChannelEnabled", m_pdh.getSwitchableChannel());
   }
 
   @Override

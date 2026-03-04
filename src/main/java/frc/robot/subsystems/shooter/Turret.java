@@ -52,7 +52,7 @@ public class Turret extends SubsystemBase {
             DegreesPerSecond.of(950), DegreesPerSecondPerSecond.of(30))
         .withGearing(48)
         .withIdleMode(MotorMode.BRAKE)
-        .withTelemetry("TurretMotor", TelemetryVerbosity.HIGH)
+        .withTelemetry("TurretMotor", TelemetryVerbosity.LOW)
         .withStatorCurrentLimit(Amps.of(30))
         .withClosedLoopRampRate(Seconds.of(0.25))
         .withOpenLoopRampRate(Seconds.of(0.25));
@@ -62,7 +62,7 @@ public class Turret extends SubsystemBase {
     PivotConfig pivotConfig = new PivotConfig(motorController)
         .withStartingPosition(Degrees.of(0))
         .withHardLimit(Degrees.of(-255), Degrees.of(255))
-        .withTelemetry("Turret", TelemetryVerbosity.HIGH)
+        .withTelemetry("Turret", TelemetryVerbosity.LOW)
         .withMOI(KilogramSquareMeters.of(0.1457345474));
 
     m_mechanism = new Pivot(pivotConfig);
