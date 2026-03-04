@@ -1,13 +1,10 @@
 package frc.robot;
 
-import dev.doglog.DogLog;
-import dev.doglog.DogLogOptions;
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
-import edu.wpi.first.wpilibj2.command.Command;
+import dev.doglog.DogLog;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 public class AutoRoutines {
   private final AutoFactory m_autoFactory;
