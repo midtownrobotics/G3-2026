@@ -1,9 +1,9 @@
 package frc.robot;
 
-import dev.doglog.DogLog;
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.Logger;
 
@@ -22,6 +22,10 @@ public class AutoRoutines {
 
     routine.active().onTrue(
       Commands.sequence(
+        Commands.runOnce(() -> {
+          depotToLeftStart.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
+          m_logger.log("ActiveTrajectory", "DepotToLeftStart");
+        }),
         depotToLeftStart.resetOdometry(),
         depotToLeftStart.cmd()));
     return routine;
@@ -33,6 +37,10 @@ public class AutoRoutines {
 
     routine.active().onTrue(
       Commands.sequence(
+        Commands.runOnce(() -> {
+          depotToMidLeft.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
+          m_logger.log("ActiveTrajectory", "DepotToMidLeft");
+        }),
         depotToMidLeft.resetOdometry(),
         depotToMidLeft.cmd()));
     return routine;
@@ -44,6 +52,10 @@ public class AutoRoutines {
 
     routine.active().onTrue(
       Commands.sequence(
+        Commands.runOnce(() -> {
+          leftStartToCenter.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
+          m_logger.log("ActiveTrajectory", "LeftStartToCenter");
+        }),
         leftStartToCenter.resetOdometry(),
         leftStartToCenter.cmd()));
     return routine;
@@ -55,6 +67,10 @@ public class AutoRoutines {
 
     routine.active().onTrue(
       Commands.sequence(
+        Commands.runOnce(() -> {
+          leftStartToDepot.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
+          m_logger.log("ActiveTrajectory", "LeftStartToDepot");
+        }),
         leftStartToDepot.resetOdometry(),
         leftStartToDepot.cmd()));
     return routine;
@@ -66,6 +82,10 @@ public class AutoRoutines {
 
     routine.active().onTrue(
       Commands.sequence(
+        Commands.runOnce(() -> {
+          midLeftToDepot.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
+          m_logger.log("ActiveTrajectory", "MidLeftToDepot");
+        }),
         midLeftToDepot.resetOdometry(),
         midLeftToDepot.cmd()));
     return routine;
@@ -77,6 +97,10 @@ public class AutoRoutines {
 
     routine.active().onTrue(
       Commands.sequence(
+        Commands.runOnce(() -> {
+          midRightToOutpost.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
+          m_logger.log("ActiveTrajectory", "MidRightToOutpost");
+        }),
         midRightToOutpost.resetOdometry(),
         midRightToOutpost.cmd()));
     return routine;
@@ -88,6 +112,10 @@ public class AutoRoutines {
 
     routine.active().onTrue(
       Commands.sequence(
+        Commands.runOnce(() -> {
+          midStartToDepot.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
+          m_logger.log("ActiveTrajectory", "MidStartToDepot");
+        }),
         midStartToDepot.resetOdometry(),
         midStartToDepot.cmd()));
     return routine;
@@ -99,6 +127,10 @@ public class AutoRoutines {
 
     routine.active().onTrue(
       Commands.sequence(
+        Commands.runOnce(() -> {
+          midStartToLeftStart.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
+          m_logger.log("ActiveTrajectory", "MidStartToLeftStart");
+        }),
         midStartToLeftStart.resetOdometry(),
         midStartToLeftStart.cmd()));
     return routine;
@@ -110,6 +142,10 @@ public class AutoRoutines {
 
     routine.active().onTrue(
       Commands.sequence(
+        Commands.runOnce(() -> {
+          outpostToMidRight.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
+          m_logger.log("ActiveTrajectory", "OutpostToMidRight");
+        }),
         outpostToMidRight.resetOdometry(),
         outpostToMidRight.cmd()));
     return routine;
@@ -121,6 +157,10 @@ public class AutoRoutines {
 
     routine.active().onTrue(
       Commands.sequence(
+        Commands.runOnce(() -> {
+          rightStartToCenter.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
+          m_logger.log("ActiveTrajectory", "RightStartToCenter");
+        }),
         rightStartToCenter.resetOdometry(),
         rightStartToCenter.cmd()));
     return routine;
@@ -132,6 +172,10 @@ public class AutoRoutines {
 
     routine.active().onTrue(
       Commands.sequence(
+        Commands.runOnce(() -> {
+          rightToStealBalls.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
+          m_logger.log("ActiveTrajectory", "RightToStealBalls");
+        }),
         rightToStealBalls.resetOdometry(),
         rightToStealBalls.cmd()));
     return routine;
@@ -143,6 +187,10 @@ public class AutoRoutines {
 
     routine.active().onTrue(
       Commands.sequence(
+        Commands.runOnce(() -> {
+          leftToStealBalls.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
+          m_logger.log("ActiveTrajectory", "LeftToStealBalls");
+        }),
         leftToStealBalls.resetOdometry(),
         leftToStealBalls.cmd()));
     return routine;
@@ -154,6 +202,10 @@ public class AutoRoutines {
 
     routine.active().onTrue(
       Commands.sequence(
+        Commands.runOnce(() -> {
+          leftStartToRightStart.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
+          m_logger.log("ActiveTrajectory", "LeftStartToRightStart");
+        }),
         leftStartToRightStart.resetOdometry(),
         leftStartToRightStart.cmd()));
     return routine;
@@ -165,6 +217,10 @@ public class AutoRoutines {
 
     routine.active().onTrue(
       Commands.sequence(
+        Commands.runOnce(() -> {
+          rightStartToleftStart.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
+          m_logger.log("ActiveTrajectory", "RightStartToleftStart");
+        }),
         rightStartToleftStart.resetOdometry(),
         rightStartToleftStart.cmd()));
     return routine;

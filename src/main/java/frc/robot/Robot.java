@@ -173,7 +173,7 @@ public class Robot extends TimedRobot {
     m_log.log("target", new Pose2d(target, new Rotation2d()));
     return target;
   }
-
+// k
   private Translation2d calculateTarget() {
     if (m_state.inAllianceZone()) {
       return FieldConstants.getHubPosition2d();
