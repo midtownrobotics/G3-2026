@@ -31,6 +31,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -122,11 +123,11 @@ public class Robot extends TimedRobot {
 
     m_vision = new Vision(
         (observation) -> m_drive.addVisionMeasurement(observation.pose().toPose2d(), observation.timestamp()),
-        m_drive::getPose//,
-        // rearRight,
-        // rearLeft,
-        // rear,
-        // frontLeft
+        m_drive::getPose,
+        rearRight,
+        rearLeft,
+        rear,
+        frontLeft
         );
 
     m_state = new RobotState(
@@ -459,5 +460,10 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testExit() {
+  }
+
+  @Override
+  public void robotInit() {
+    Threads.setCurrentThreadPriority(true, 10);
   }
 }

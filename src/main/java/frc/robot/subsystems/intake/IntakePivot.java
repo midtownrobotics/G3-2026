@@ -22,6 +22,7 @@ import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.Logger;
 import frc.robot.Ports;
@@ -119,7 +120,8 @@ public class IntakePivot extends SubsystemBase {
   }
 
   public Command setAngleCommand(Angle angle) {
-    return m_mechanism.setAngle(angle);
+    // return m_mechanism.setAngle(angle);
+    return Commands.none();
   }
 
   public Angle getAngle() {
