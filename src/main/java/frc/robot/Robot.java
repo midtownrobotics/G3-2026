@@ -6,6 +6,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.Optional;
@@ -263,6 +264,8 @@ public class Robot extends TimedRobot {
           rotateRobot(() -> m_shootingParameters.getTargetRotation(() -> getTarget()))),
         () -> !Constants.kUseFixedTurretMode)
     .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
+
+    controls.zeroHood().onTrue(zeroTurretHood());
   }
 
   public void configureTrimControlBindings(TrimControls controls) {
@@ -397,6 +400,13 @@ public class Robot extends TimedRobot {
 
       headingController.close();
     }, m_drive);
+  }
+
+  public Command zeroTurretHood() {
+    return Commands.repeatingSequence(
+      m_hood.setVoltage(Volts.of(-1.5)).until(m_hood.isNearTrigger(() -> Degrees.zero(), Degrees.of(1))).withTimeout(Seconds.of(1)),
+      m_hood.setEncoderAngleCommand(Degrees.of(10))
+    ).withTimeout(4).until(m_hood.getCurrentSpikeTrigger()).andThen(m_hood.zeroEncoderAngleCommand());
   }
 
   @Override
