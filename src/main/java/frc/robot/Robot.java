@@ -143,7 +143,6 @@ public class Robot extends TimedRobot {
         m_hood);
 
     m_viz = new RobotViz(m_state);
-    m_log = new Logger(getClass());
 
     m_autoFactory = new AutoFactory(
         m_drive::getPose,
