@@ -146,8 +146,9 @@ public class RobotCommands {
 
     public Command snowBlow(DriveControls driveControls) {
         return Commands.parallel(
-                shoot(driveControls),
-                runIntake()).withInterruptBehavior(InterruptionBehavior.kCancelSelf);
+                revShooter(),
+                runIntake()).withInterruptBehavior(InterruptionBehavior.kCancelSelf)
+                .andThen(shoot(driveControls));
     }
 
     public Command empty(DriveControls driveControls) {

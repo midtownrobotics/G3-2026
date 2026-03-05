@@ -174,6 +174,7 @@ public class Robot extends TimedRobot {
   public void configureConventionalBindings(ConventionalControls controls) {
     controls.shoot().onTrue(m_robotCommands.shoot(m_controls)).onFalse(m_robotCommands.stopShooting());
     controls.intake().onTrue(m_robotCommands.runIntake()).onFalse(m_robotCommands.stowIntake());
+    controls.shoot().onTrue(m_robotCommands.revShooter()).onFalse(m_robotCommands.shoot());
   }
 
   public void configureFourWayBindings(FourWayControls controls) {

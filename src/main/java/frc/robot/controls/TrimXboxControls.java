@@ -56,4 +56,5 @@ public class TrimXboxControls implements TrimControls {
   public Trigger zeroHood() {
     return m_controller.a();
   }
+
 }
