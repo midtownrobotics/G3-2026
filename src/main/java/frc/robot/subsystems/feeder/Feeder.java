@@ -49,7 +49,7 @@ public class Feeder extends SubsystemBase {
         // .withClosedLoopController(0.3, 0, 0.01)
         // .withFeedforward(new SimpleMotorFeedforward(0.05, 0.12, 0))
         .withGearing(2)
-        .withTelemetry("FeederMotor", TelemetryVerbosity.LOW);
+        .withTelemetry("FeederMotor", TelemetryVerbosity.HIGH);
 
     SmartMotorController motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX44(1), motorControllerConfig);
 
@@ -58,7 +58,7 @@ public class Feeder extends SubsystemBase {
         .withUpperSoftLimit(RPM.of(6000))
         .withLowerSoftLimit(RPM.of(-6000))
         .withDiameter(Inches.of(2.0))
-        .withTelemetry("Feeder", TelemetryVerbosity.LOW);
+        .withTelemetry("Feeder", TelemetryVerbosity.HIGH);
 
     m_mechanism = new FlyWheel(beltConfig);
 

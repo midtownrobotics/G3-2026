@@ -65,7 +65,7 @@ public class Camera {
 
         Transform3d fieldToCamera = multitagResult.estimatedPose.best;
         Transform3d fieldToRobot = fieldToCamera.plus(m_robotToCamera.inverse());
-        Pose3d robotPose = new Pose3d(fieldToRobot.getTranslation(), fieldToCamera.getRotation());
+        Pose3d robotPose = new Pose3d(fieldToRobot.getTranslation(), fieldToRobot.getRotation());
 
         observations.add(
           new PoseObservation(
@@ -74,24 +74,24 @@ public class Camera {
             multitagResult.fiducialIDsUsed.size()));
 
        } else if (!result.targets.isEmpty()){
-        DogLog.log("Cameras/" + m_camera.getName() + "/singleTag", true);
-        var target = result.targets.get(0);
+      //   DogLog.log("Cameras/" + m_camera.getName() + "/singleTag", true);
+      //   var target = result.targets.get(0);
 
-        var tagPose = AprilTagFieldLayout
-                        .loadField(AprilTagFields.k2026RebuiltWelded)
-                        .getTagPose(target.getFiducialId());
+      //   var tagPose = AprilTagFieldLayout
+      //                   .loadField(AprilTagFields.k2026RebuiltWelded)
+      //                   .getTagPose(target.getFiducialId());
         
-        if (tagPose.isPresent()) {
-          Transform3d fieldToTarget = new Transform3d(tagPose.get().getTranslation(), tagPose.get().getRotation());
-          Transform3d cameraToTarget = target.bestCameraToTarget;
-          Transform3d fieldToCamera = fieldToTarget.plus(cameraToTarget.inverse());
-          Transform3d fieldToRobot = fieldToCamera.plus(m_robotToCamera.inverse());
-          Pose3d robotPose = new Pose3d(fieldToRobot.getTranslation(), fieldToRobot.getRotation());
+      //   if (tagPose.isPresent()) {
+      //     Transform3d fieldToTarget = new Transform3d(tagPose.get().getTranslation(), tagPose.get().getRotation());
+      //     Transform3d cameraToTarget = target.bestCameraToTarget;
+      //     Transform3d fieldToCamera = fieldToTarget.plus(cameraToTarget.inverse());
+      //     Transform3d fieldToRobot = fieldToCamera.plus(m_robotToCamera.inverse());
+      //     Pose3d robotPose = new Pose3d(fieldToRobot.getTranslation(), fieldToRobot.getRotation());
 
-          observations.add(
-            new PoseObservation(result.getTimestampSeconds(), robotPose, 1)
-          );
-        }
+      //     observations.add(
+      //       new PoseObservation(result.getTimestampSeconds(), robotPose, 1)
+      //     );
+      //   }
        }
       }
 

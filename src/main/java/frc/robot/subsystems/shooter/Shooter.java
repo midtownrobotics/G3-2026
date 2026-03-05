@@ -40,7 +40,7 @@ public class Shooter extends SubsystemBase {
     SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig(this)
         .withIdleMode(MotorMode.COAST)
         .withGearing(2d / 3d)
-        .withTelemetry("ShooterMotor", TelemetryVerbosity.LOW)
+        .withTelemetry("ShooterMotor", TelemetryVerbosity.HIGH)
         .withControlMode(ControlMode.CLOSED_LOOP)
         .withClosedLoopController(0.3, 0, 0,
             RPM.of(10000), RPM.of(1000).per(Second))
@@ -56,7 +56,7 @@ public class Shooter extends SubsystemBase {
 
     FlyWheelConfig flywheelConfig = new FlyWheelConfig(motorController)
         .withMOI(KilogramSquareMeters.of(0.0021175394))
-        .withTelemetry("Shooter", TelemetryVerbosity.LOW);
+        .withTelemetry("Shooter", TelemetryVerbosity.HIGH);
 
     MotorOutputConfigs outputConfigs = new MotorOutputConfigs();
     outputConfigs.PeakReverseDutyCycle = 0;
