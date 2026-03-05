@@ -1,6 +1,5 @@
 package frc.robot.subsystems.shooter;
 
-import static edu.wpi.first.units.Units.Amp;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
@@ -21,6 +20,8 @@ import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -39,11 +40,14 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 @Logged(strategy = Strategy.OPT_IN)
 public class Hood extends SubsystemBase {
   private final Arm m_mechanism;
-  private final TalonFX m_motor;
   private final CANcoder m_encoder;
   private final Logger m_log;
   private final Trigger m_currentSpikeTrigger;
   private final LinearFilter m_currentSpikeFilter;
+  private final Alert m_talonConnectionAlert = new Alert("Hood TalonFX motor is not connected",
+      AlertType.kWarning);
+  private final Alert m_stallAlert = new Alert("Hood stalling", AlertType.kWarning);
+  private final TalonFX m_motor;
 
   public Hood() {
     m_motor = new TalonFX(Ports.kTurretHood.canId(), Ports.kTurretHood.canbus());
@@ -57,8 +61,8 @@ public class Hood extends SubsystemBase {
         .withIdleMode(MotorMode.BRAKE)
         .withTelemetry("HoodMotor", TelemetryVerbosity.LOW)
         .withFeedforward(new ArmFeedforward(0.01, 0, 0))
-        .withStatorCurrentLimit(Amps.of(30))
         .withClosedLoopRampRate(Seconds.of(0.25))
+        .withStatorCurrentLimit(Amps.of(40))
         .withOpenLoopRampRate(Seconds.of(0.25));
 
     SmartMotorController motorController = new TalonFXWrapper(m_motor, DCMotor.getKrakenX44(1),
@@ -88,6 +92,9 @@ public class Hood extends SubsystemBase {
     m_log.log("encoderPosition", m_encoder.getAbsolutePosition().getValueAsDouble());
     m_log.log("ampsDrawn", m_mechanism.getMotor().getStatorCurrent().in(Amps));
     m_log.log("currentSpike", getIsCurrentSpiking());
+    m_talonConnectionAlert.set(!m_motor.isAlive());
+    boolean highCurrent = m_motor.getStatorCurrent().getValueAsDouble() > 30;
+    m_stallAlert.set(highCurrent);
   }
 
   @Override

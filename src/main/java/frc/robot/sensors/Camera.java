@@ -1,11 +1,7 @@
 package frc.robot.sensors;
 
-import java.sql.ResultSet;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -18,12 +14,15 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 
 public class Camera {
   private PhotonCamera m_camera;
   private PhotonPoseEstimator m_estimator;
   private Transform3d m_robotToCamera;
   private String m_name;
+  private final Alert m_connectionAlert;
 
   public static record PoseObservation(double timestamp, Pose3d pose, int tagCount) {
   }
@@ -35,6 +34,11 @@ public class Camera {
         robotToCamera);
 
     m_robotToCamera = robotToCamera;
+    m_connectionAlert = new Alert("Camera " + name + " is not connected!", AlertType.kWarning);
+  }
+
+  public void periodic() {
+    m_connectionAlert.set(!m_camera.isConnected());
   }
 
   public String getName() {

@@ -41,6 +41,7 @@ public class Vision extends SubsystemBase {
   @Override
   public void periodic() {
     for (var camera : m_cameras) {
+      camera.periodic();
       m_log.log("cameraPoses/" + camera.getName(), new Pose3d(m_poseSupplier.get()).transformBy(camera.getRobotToCamera()));
       for (var observation : camera.getLatestObservations()) {
         m_log.log(camera.getName()+"/observedPose", observation.pose());
