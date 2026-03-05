@@ -1,5 +1,6 @@
 package frc.robot.subsystems.indexer;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
@@ -10,6 +11,8 @@ import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Ports;
@@ -25,17 +28,22 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 @Logged(strategy = Strategy.OPT_IN)
 public class TransportRoller extends SubsystemBase {
   private final FlyWheel m_mechanism;
+  private final Alert m_talonConnectionAlert = new Alert("TransportRoller TalonFX motor is not connected",
+      AlertType.kWarning);
+  private final Alert m_stallAlert = new Alert("TransportRoller stalling", AlertType.kWarning);
+  private final TalonFX m_motor;
 
   public TransportRoller() {
-    TalonFX motor = new TalonFX(Ports.kIndexerTransportRoller.canId(), Ports.kIndexerTransportRoller.canbus());
+    m_motor = new TalonFX(Ports.kIndexerTransportRoller.canId(), Ports.kIndexerTransportRoller.canbus());
 
     SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.OPEN_LOOP)
         .withIdleMode(MotorMode.COAST)
         .withTelemetry("TransportRollerMotor", TelemetryVerbosity.HIGH)
+        .withStatorCurrentLimit(Amps.of(60))
         .withGearing(20d / 14d);
 
-    SmartMotorController motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorControllerConfig);
+    SmartMotorController motorController = new TalonFXWrapper(m_motor, DCMotor.getKrakenX60(1), motorControllerConfig);
 
     FlyWheelConfig rollerConfig = new FlyWheelConfig(motorController)
         .withMass(Pounds.of(0.5))
@@ -50,6 +58,10 @@ public class TransportRoller extends SubsystemBase {
   @Override
   public void periodic() {
     m_mechanism.updateTelemetry();
+    m_talonConnectionAlert.set(!m_motor.isAlive());
+    boolean highCurrent = m_motor.getStatorCurrent().getValueAsDouble() > 45; 
+    boolean notMoving = Math.abs(m_motor.getVelocity().getValueAsDouble()) < 2;
+    m_stallAlert.set(highCurrent && notMoving);
   }
 
   @Override

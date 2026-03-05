@@ -17,6 +17,8 @@ import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.Logger;
@@ -35,9 +37,13 @@ public class Hood extends SubsystemBase {
   private final Arm m_mechanism;
   private final CANcoder m_encoder;
   private final Logger m_log;
+  private final Alert m_talonConnectionAlert = new Alert("Hood TalonFX motor is not connected",
+      AlertType.kWarning);
+  private final Alert m_stallAlert = new Alert("Hood stalling", AlertType.kWarning);
+  private final TalonFX m_motor;
 
   public Hood() {
-    TalonFX motor = new TalonFX(Ports.kTurretHood.canId(), Ports.kTurretHood.canbus());
+    m_motor = new TalonFX(Ports.kTurretHood.canId(), Ports.kTurretHood.canbus());
     m_encoder = new CANcoder(Ports.kTurretHoodEncoder.canId(), Ports.kTurretHoodEncoder.canbus());
 
     SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig(this)
@@ -50,9 +56,10 @@ public class Hood extends SubsystemBase {
         .withFeedforward(new ArmFeedforward(0.01, 0, 0))
         .withStatorCurrentLimit(Amps.of(30))
         .withClosedLoopRampRate(Seconds.of(0.25))
+        .withStatorCurrentLimit(Amps.of(40))
         .withOpenLoopRampRate(Seconds.of(0.25));
 
-    SmartMotorController motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX44(1),
+    SmartMotorController motorController = new TalonFXWrapper(m_motor, DCMotor.getKrakenX44(1),
         motorControllerConfig);
 
     ArmConfig armConfig = new ArmConfig(motorController)
@@ -71,6 +78,9 @@ public class Hood extends SubsystemBase {
   public void periodic() {
     m_mechanism.updateTelemetry();
     m_log.log("encoderPosition", m_encoder.getAbsolutePosition().getValueAsDouble());
+    m_talonConnectionAlert.set(!m_motor.isAlive());
+    boolean highCurrent = m_motor.getStatorCurrent().getValueAsDouble() > 30;
+    m_stallAlert.set(highCurrent);
   }
 
   @Override

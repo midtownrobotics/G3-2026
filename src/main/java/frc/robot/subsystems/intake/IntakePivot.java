@@ -1,5 +1,6 @@
 package frc.robot.subsystems.intake;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
@@ -21,6 +22,8 @@ import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Ports;
@@ -39,9 +42,13 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 public class IntakePivot extends SubsystemBase {
   private final Arm m_mechanism;
   private final CANcoder m_encoder;
+  private final Alert m_talonConnectionAlert = new Alert("IntakePivot TalonFX motor is not connected",
+      AlertType.kWarning);
+  private final Alert m_stallAlert = new Alert("IntakePivot stalling", AlertType.kWarning);
+  private final TalonFX m_motor;
 
   public IntakePivot() {
-    TalonFX motor = new TalonFX(Ports.kIntakePivot.canId(), Ports.kIntakePivot.canbus());
+    m_motor = new TalonFX(Ports.kIntakePivot.canId(), Ports.kIntakePivot.canbus());
     m_encoder = new CANcoder(Ports.kIntakePivotEncoder.canId(), Ports.kIntakePivotEncoder.canbus());
 
     SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig(this)
@@ -52,9 +59,10 @@ public class IntakePivot extends SubsystemBase {
         .withGearing(new MechanismGearing(GearBox.fromStages("50:12", "60:20", "48:16")))
         .withTelemetry("PivotMotor", TelemetryVerbosity.HIGH)
         .withMotorInverted(true)
+        .withStatorCurrentLimit(Amps.of(60))
         .withIdleMode(MotorMode.BRAKE);
 
-    SmartMotorController motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorControllerConfig);
+    SmartMotorController motorController = new TalonFXWrapper(m_motor, DCMotor.getKrakenX60(1), motorControllerConfig);
 
     ArmConfig armConfig = new ArmConfig(motorController)
         .withHardLimit(Degrees.of(0), Degrees.of(70))
@@ -71,13 +79,14 @@ public class IntakePivot extends SubsystemBase {
     m_mechanism = new Arm(armConfig);
 
     var mmConfigs = new MotionMagicConfigs();
-    motor.getConfigurator().refresh(mmConfigs);
+    m_motor.getConfigurator().refresh(mmConfigs);
     mmConfigs.MotionMagicJerk = 10;
-    motor.getConfigurator().apply(mmConfigs);
+    m_motor.getConfigurator().apply(mmConfigs);
   }
 
   private Angle getAbsoluteAngle() {
-    // Set this to the value of "Intake/IntakeAbsoluteEncoderOffset" when the intake is all the way down.
+    // Set this to the value of "Intake/IntakeAbsoluteEncoderOffset" when the intake
+    // is all the way down.
     final double WRAP_OFFSET = 4.8;
 
     double encoderDeg = m_encoder.getAbsolutePosition().getValue().in(Degrees);
@@ -106,6 +115,9 @@ public class IntakePivot extends SubsystemBase {
     m_mechanism.updateTelemetry();
     DogLog.log("Intake/IntakeAbsoluteEncoder", getAbsoluteAngle().in(Degrees));
     DogLog.log("Intake/IntakeAbsoluteEncoderOffset", getAbsoluteOffsetAt0().in(Degrees));
+    m_talonConnectionAlert.set(!m_motor.isAlive());
+    boolean highCurrent = m_motor.getStatorCurrent().getValueAsDouble() > 45;
+    m_stallAlert.set(highCurrent);
   }
 
   @Override
