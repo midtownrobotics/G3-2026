@@ -2,17 +2,9 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
-
-import java.util.Optional;
-import java.util.function.Supplier;
-
-import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
@@ -20,22 +12,11 @@ import dev.doglog.DogLog;
 import dev.doglog.DogLogOptions;
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.Threads;
-import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -46,7 +27,6 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.Logger;
 import frc.robot.constants.Constants;
-import frc.robot.constants.FieldConstants;
 import frc.robot.constants.Constants.ControlMode;
 import frc.robot.controls.ConventionalControls;
 import frc.robot.controls.ConventionalXboxControls;
@@ -63,7 +43,6 @@ import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.indexer.TransportRoller;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
-import frc.robot.subsystems.intake.IntakeSetpoint;
 import frc.robot.subsystems.shooter.Hood;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.Turret;
@@ -118,12 +97,18 @@ public class Robot extends TimedRobot {
     m_shooter = new Shooter();
     m_turret = new Turret();
 
-  
-    Camera rear = new Camera("Rear", new Transform3d(new Translation3d(Inches.of(-11.018), Inches.of(7.388), Inches.of(14.444)), new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(180))));
-    Camera rearRight = new Camera("Rear Right", new Transform3d(new Translation3d(Inches.of(-8.758), Inches.of(-14.541), Inches.of(8.022)), new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(-33.26-90))));
-    Camera rearLeft = new Camera("Rear Left", new Transform3d(new Translation3d(Inches.of(-7.692), Inches.of(14.396), Inches.of(14.217)), new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(31.475+90))));
-    Camera frontLeft = new Camera("Front Left", new Transform3d(new Translation3d(Inches.of(-7.076), Inches.of(14.525), Inches.of(10.65)), new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(90-37.698))));
-    
+    Camera rear = new Camera("Rear",
+        new Transform3d(new Translation3d(Inches.of(-11.018), Inches.of(7.388), Inches.of(14.444)),
+            new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(180))));
+    Camera rearRight = new Camera("Rear Right",
+        new Transform3d(new Translation3d(Inches.of(-8.758), Inches.of(-14.541), Inches.of(8.022)),
+            new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(-33.26 - 90))));
+    Camera rearLeft = new Camera("Rear Left",
+        new Transform3d(new Translation3d(Inches.of(-7.692), Inches.of(14.396), Inches.of(14.217)),
+            new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(31.475 + 90))));
+    Camera frontLeft = new Camera("Front Left",
+        new Transform3d(new Translation3d(Inches.of(-7.076), Inches.of(14.525), Inches.of(10.65)),
+            new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(90 - 37.698))));
 
     m_vision = new Vision(
         (observation) -> m_drive.addVisionMeasurement(observation.pose().toPose2d(), observation.timestamp()),
@@ -131,8 +116,7 @@ public class Robot extends TimedRobot {
         rearRight,
         rearLeft,
         rear,
-        frontLeft
-        );
+        frontLeft);
 
     m_state = new RobotState(
         m_drive,
@@ -156,7 +140,7 @@ public class Robot extends TimedRobot {
 
     m_autoRoutines = new AutoRoutines(m_autoFactory, this);
     m_autoChooser = new AutoChooser("Do Nothing");
-    
+
     generateAutoChooser();
 
     m_shootingParameters = new ShootingParameters(m_state, this::getTarget);
@@ -182,40 +166,12 @@ public class Robot extends TimedRobot {
     m_trimControls = new TrimXboxControls(1);
     configureTrimControlBindings(m_trimControls);
 
-    m_parametersHasShot = new Trigger(() -> !m_shootingParameters.getParameters().noShot()).and(RobotModeTriggers.autonomous().negate());
+    m_parametersHasShot = new Trigger(() -> !m_shootingParameters.getParameters().noShot())
+        .and(RobotModeTriggers.autonomous().negate());
 
     m_parametersHasShot.onTrue(runFeeders()).onFalse(stopFeeders());
 
     m_transportRoller.setDefaultCommand(m_transportRoller.setVoltageCommand(Volts.of(-10)));
-  }
-
-  public Translation2d getTarget() {
-    Translation2d target = calculateTarget();
-    m_log.log("target", new Pose2d(target, new Rotation2d()));
-    return target;
-  }
-
-  private Translation2d calculateTarget() {
-    if (m_state.inAllianceZone()) {
-      return FieldConstants.getHubPosition2d();
-    }
-
-    Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
-    double robotY = m_state.getRobotPose().getY();
-    double hubY = FieldConstants.getHubPosition2d().getY();
-
-    if (robotY > (hubY - 0.762) && robotY < (hubY + 0.762)) {
-      if (robotY > hubY) {
-        return new Translation2d(FieldConstants.getHubPosition2d().getX(), hubY + 1);
-      }
-      return new Translation2d(FieldConstants.getHubPosition2d().getX(), hubY - 1);
-    }
-
-    return switch (alliance) {
-      case Blue -> new Translation2d(FieldConstants.getHubPosition2d().getX(), robotY);
-      case Red -> new Translation2d(FieldConstants.getHubPosition2d().getMeasureX(),
-          m_state.getRobotPose().getMeasureY());
-    };
   }
 
   private void generateAutoChooser() {
@@ -257,30 +213,30 @@ public class Robot extends TimedRobot {
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
     controls.shoot().onTrue(
-      Commands.either(
-        Commands.parallel(
-          stowIntakeCommand(),
-          m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
-          m_feeder.setVoltageCommand(Volts.of(-7)),
-          joyStickDrive()),
-          shootCommand(),
-        () -> !Constants.kUseFixedTurretMode)
-    .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
+        Commands.either(
+            Commands.parallel(
+                stowIntakeCommand(),
+                m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
+                m_feeder.setVoltageCommand(Volts.of(-7)),
+                joyStickDrive()),
+            shootCommand(),
+            () -> !Constants.kUseFixedTurretMode)
+            .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
     controls.snowBlow().onTrue(
-      Commands.either(
-        Commands.parallel(
-          runIntakeCommand(),
-          m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
-          m_feeder.setVoltageCommand(Volts.of(-7)),
-          joyStickDrive()),
-        Commands.parallel(
-          runIntakeCommand(),
-          m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
-          m_feeder.setVoltageCommand(Volts.of(-7)),
-          rotateRobot(() -> m_shootingParameters.getTargetRotation(() -> getTarget()))),
-        () -> !Constants.kUseFixedTurretMode)
-    .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
+        Commands.either(
+            Commands.parallel(
+                runIntakeCommand(),
+                m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
+                m_feeder.setVoltageCommand(Volts.of(-7)),
+                joyStickDrive()),
+            Commands.parallel(
+                runIntakeCommand(),
+                m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
+                m_feeder.setVoltageCommand(Volts.of(-7)),
+                rotateRobot(() -> m_shootingParameters.getTargetRotation(() -> getTarget()))),
+            () -> !Constants.kUseFixedTurretMode)
+            .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
     controls.zeroHood().onTrue(zeroTurretHood());
   }
@@ -298,143 +254,16 @@ public class Robot extends TimedRobot {
         .onTrue(Commands.runOnce(m_shootingParameters::decreaseVelocityCompensation));
   }
 
-  public Command shootCommand() {
-    return Commands.parallel(
-          stowIntakeCommand(),
-          m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
-          m_feeder.setVoltageCommand(Volts.of(-10)),
-          rotateRobot(() -> m_shootingParameters.getTargetRotation(() -> getTarget())));
-  }
-
   public Command revFlywheels() {
     return m_shooter.setSpeedCommand(RPM.of(1800));
   }
 
-  private Command setIntakeSetpointCommand(IntakeSetpoint setpoint) {
-    return Commands.parallel(
-        m_intakePivot.setAngleCommand(setpoint.angle),
-        m_intakeRoller.setVoltageCommand(setpoint.voltage));
-  }
-
-  public Command runIntakeCommand() {
-    return setIntakeSetpointCommand(IntakeSetpoint.INTAKING);
-  }
-
-  private Command stowIntakeCommand() {
-    return setIntakeSetpointCommand(IntakeSetpoint.STOW);
-  }
-
-  private Command startIntakeCommand() {
-    return setIntakeSetpointCommand(IntakeSetpoint.START);
-  }
-
-  private Command runFeeders() {
-    return m_feeder.setVoltageCommand(Volts.of(5));
-  }
-
-  private Command stopFeeders() {
-    return m_feeder.setVoltageCommand(Volts.of(0));
-  }
-
-
-  public Command joyStickDrive() {
-    return Commands.run(() -> {
-      ChassisSpeeds speeds = new ChassisSpeeds(
-          m_controls.getDriveForward() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
-              * Constants.kLinearSpeedMultiplier,
-
-          m_controls.getDriveLeft() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
-              * Constants.kLinearSpeedMultiplier,
-              
-          Math.copySign(
-              m_controls.getDriveRotation() * m_controls.getDriveRotation()
-                  * Constants.kAngularMaxSpeed.in(RadiansPerSecond) * Constants.kAngluarSpeedMultiplier,
-              m_controls.getDriveRotation()));
-
-      m_drive.setControl(new SwerveRequest.FieldCentric()
-          .withVelocityX(speeds.vxMetersPerSecond)
-          .withVelocityY(speeds.vyMetersPerSecond)
-          .withRotationalRate(speeds.omegaRadiansPerSecond));
-    }, m_drive);
-  }
-
-  public Command snakeDrive() {
-    return Commands.run(() -> {
-      final PIDController headingController = new PIDController(100, 0, 0);
-      final boolean snakeDriveActive = !(Math.abs(m_controls.getDriveRotation()) > 0);
-
-      ChassisSpeeds speeds;
-      if (snakeDriveActive) {
-        headingController.enableContinuousInput(-Math.PI, Math.PI);
-
-        speeds = new ChassisSpeeds(
-            m_controls.getDriveForward() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
-                * Constants.kLinearSpeedMultiplier,
-            m_controls.getDriveLeft() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
-                * Constants.kLinearSpeedMultiplier,
-            0);
-
-        Angle headingAngle = Radians.of(Math.atan2(speeds.vyMetersPerSecond, speeds.vxMetersPerSecond) + Math.PI);
-
-        if (Math.abs(speeds.vyMetersPerSecond) > 0.1 || Math.abs(speeds.vxMetersPerSecond) > 0.1) {
-          speeds.omegaRadiansPerSecond = headingController.calculate(m_drive.getPose().getRotation().getRadians(),
-              headingAngle.in(Radians));
-        }
-      } else {
-        speeds = new ChassisSpeeds(
-            m_controls.getDriveForward() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
-                * Constants.kLinearSpeedMultiplier,
-            m_controls.getDriveLeft() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
-                * Constants.kLinearSpeedMultiplier,
-            Math.copySign(
-                m_controls.getDriveRotation() * m_controls.getDriveRotation()
-                    * Constants.kAngularMaxSpeed.in(RadiansPerSecond) * Constants.kAngluarSpeedMultiplier,
-                m_controls.getDriveRotation()));
-      }
-
-      m_drive.setControl(new SwerveRequest.FieldCentric()
-          .withVelocityX(speeds.vxMetersPerSecond)
-          .withVelocityY(speeds.vyMetersPerSecond)
-          .withRotationalRate(speeds.omegaRadiansPerSecond));
-
-      headingController.close();
-    }, m_drive);
-  }
-
-
-  public Command rotateRobot(Supplier<Rotation2d> rotation) {
-    return Commands.run(() -> {
-      final PIDController headingController = new PIDController(7, 0, 0);
-
-        headingController.enableContinuousInput(-Math.PI, Math.PI);
-
-        final var speeds = new ChassisSpeeds(
-            m_controls.getDriveForward() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
-                * Constants.kLinearSpeedMultiplier,
-            m_controls.getDriveLeft() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
-                * Constants.kLinearSpeedMultiplier,
-            0);
-    
-      double fieldRelativeAngle = m_drive.getPose().getRotation().getRadians();
-
-
-      speeds.omegaRadiansPerSecond = headingController.calculate(fieldRelativeAngle,
-                                           rotation.get().getMeasure().in(Radians));
-
-      m_drive.setControl(new SwerveRequest.FieldCentric()
-          .withVelocityX(speeds.vxMetersPerSecond)
-          .withVelocityY(speeds.vyMetersPerSecond)
-          .withRotationalRate(speeds.omegaRadiansPerSecond));
-
-      headingController.close();
-    }, m_drive);
-  }
-
   public Command zeroTurretHood() {
     return Commands.repeatingSequence(
-      m_hood.setVoltage(Volts.of(-1.5)).until(m_hood.isNearTrigger(() -> Degrees.zero(), Degrees.of(1))).withTimeout(Seconds.of(1)),
-      m_hood.setEncoderAngleCommand(Degrees.of(10))
-    ).withTimeout(4).until(m_hood.getCurrentSpikeTrigger()).andThen(m_hood.zeroEncoderAngleCommand());
+        m_hood.setVoltage(Volts.of(-1.5)).until(m_hood.isNearTrigger(() -> Degrees.zero(), Degrees.of(1)))
+            .withTimeout(Seconds.of(1)),
+        m_hood.setEncoderAngleCommand(Degrees.of(10))).withTimeout(4).until(m_hood.getCurrentSpikeTrigger())
+        .andThen(m_hood.zeroEncoderAngleCommand());
   }
 
   @Override
@@ -445,22 +274,28 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+  }
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+  }
 
   @Override
-  public void disabledExit() {}
+  public void disabledExit() {
+  }
 
   @Override
-  public void autonomousInit() {}
+  public void autonomousInit() {
+  }
 
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+  }
 
   @Override
-  public void autonomousExit() {}
+  public void autonomousExit() {
+  }
 
   @Override
   public void teleopInit() {
@@ -470,10 +305,12 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+  }
 
   @Override
-  public void teleopExit() {}
+  public void teleopExit() {
+  }
 
   @Override
   public void testInit() {
@@ -481,7 +318,8 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+  }
 
   @Override
   public void testExit() {
