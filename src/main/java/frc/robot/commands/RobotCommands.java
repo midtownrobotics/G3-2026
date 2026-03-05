@@ -43,7 +43,6 @@ public class RobotCommands {
     private final ShootingParameters m_shootingParameters;
     private final Logger m_log;
     private final RobotState m_state;
-    private final DriveControls m_driveControls;
     private final Trigger m_parametersHasShot;
 
     public RobotCommands(
@@ -56,8 +55,7 @@ public class RobotCommands {
             TransportRoller transportRoller,
             Shooter shooter,
             Hood hood,
-            RobotState state,
-            DriveControls driveControls) {
+            RobotState state) {
         m_drive = drive;
         m_intakePivot = intakePivot;
         m_intakeRoller = intakeRoller;
@@ -67,7 +65,6 @@ public class RobotCommands {
         m_shooter = shooter;
         m_hood = hood;
         m_state = state;
-        m_driveControls = driveControls;
         m_log = new Logger(getClass());
         m_shootingParameters = new ShootingParameters(m_state, this::getTarget);
         m_parametersHasShot = new Trigger(() -> !m_shootingParameters.getParameters().noShot())
@@ -78,24 +75,40 @@ public class RobotCommands {
         return m_parametersHasShot;
     }
 
-    private Command fixedTurretShootCommand() {
+    private Command fixedTurretShootCommand(DriveControls driveControls) {
         return Commands.parallel(
                 m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
-                m_feeder.setVoltageCommand(Volts.of(-10)),
                 DriveCommands.rotateRobot(m_drive, () -> m_shootingParameters.getTargetRotation(),
-                        m_driveControls::getDriveForward, m_driveControls::getDriveLeft));
+                        driveControls::getDriveForward, driveControls::getDriveLeft));
     }
 
     private Command movingTurretShootCommand() {
         return Commands.parallel(
+                m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()));
+    }
+
+    private Command fixedTurretShootCommand() {
+        return Commands.parallel(
                 m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
-                m_feeder.setVoltageCommand(Volts.of(-10)),
-                DriveCommands.driveCommand(m_drive, m_driveControls::getDriveForward,
-                        m_driveControls::getDriveLeft, m_driveControls::getDriveRotation));
+                DriveCommands.rotateRobot(m_drive, () -> m_shootingParameters.getTargetRotation()));
+    }
+
+    private Command movingTurretShootCommand(DriveControls driveControls) {
+        return Commands.parallel(
+                m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
+                DriveCommands.driveCommand(m_drive, driveControls::getDriveForward,
+                        driveControls::getDriveLeft, driveControls::getDriveRotation));
+    }
+
+    public Command shoot(DriveControls driveControls) {
+        return (Constants.kUseFixedTurretMode ? fixedTurretShootCommand(driveControls)
+                : movingTurretShootCommand(driveControls))
+                .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
     }
 
     public Command shoot() {
-        return (Constants.kUseFixedTurretMode ? fixedTurretShootCommand() : movingTurretShootCommand())
+        return (Constants.kUseFixedTurretMode ? fixedTurretShootCommand()
+                : movingTurretShootCommand())
                 .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
     }
 
@@ -131,15 +144,15 @@ public class RobotCommands {
                 .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
     }
 
-    public Command snowBlow() {
+    public Command snowBlow(DriveControls driveControls) {
         return Commands.parallel(
-                shoot(),
+                shoot(driveControls),
                 runIntake()).withInterruptBehavior(InterruptionBehavior.kCancelSelf);
     }
 
-    public Command empty() {
+    public Command empty(DriveControls driveControls) {
         return Commands.parallel(
-                shoot(),
+                shoot(driveControls),
                 stowIntake()).withInterruptBehavior(InterruptionBehavior.kCancelSelf);
     }
 
@@ -180,9 +193,9 @@ public class RobotCommands {
                 : m_turret.setAngleCommand(() -> m_shootingParameters.getParameters().turretAngle());
     }
 
-    public Command driveCommand() {
-        return DriveCommands.driveCommand(m_drive, m_driveControls::getDriveForward,
-                m_driveControls::getDriveLeft, m_driveControls::getDriveRotation);
+    public Command driveCommand(DriveControls driveControls) {
+        return DriveCommands.driveCommand(m_drive, driveControls::getDriveForward,
+                driveControls::getDriveLeft, driveControls::getDriveRotation);
     }
 
     public Command zeroTurretHood() {
