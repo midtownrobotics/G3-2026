@@ -91,8 +91,6 @@ public class Robot extends TimedRobot {
   private final RobotState m_state;
 
   private final RobotViz m_viz;
-  private final Camera m_rearRight;
-  private final Camera m_rearLeft;
 
   // private final PowerDistribution m_pdh;
 
@@ -120,16 +118,16 @@ public class Robot extends TimedRobot {
 
   
     Camera rear = new Camera("Rear", new Transform3d(new Translation3d(Inches.of(-11.018), Inches.of(7.388), Inches.of(14.444)), new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(180))));
-    m_rearRight = new Camera("Rear Right", new Transform3d(new Translation3d(Inches.of(-8.758), Inches.of(-14.541), Inches.of(8.022)), new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(-33.26-90))));
-    m_rearLeft = new Camera("Rear Left", new Transform3d(new Translation3d(Inches.of(-7.692), Inches.of(14.396), Inches.of(14.217)), new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(31.475+90))));
+    Camera rearRight = new Camera("Rear Right", new Transform3d(new Translation3d(Inches.of(-8.758), Inches.of(-14.541), Inches.of(8.022)), new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(-33.26-90))));
+    Camera rearLeft = new Camera("Rear Left", new Transform3d(new Translation3d(Inches.of(-7.692), Inches.of(14.396), Inches.of(14.217)), new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(31.475+90))));
     Camera frontLeft = new Camera("Front Left", new Transform3d(new Translation3d(Inches.of(-7.076), Inches.of(14.525), Inches.of(10.65)), new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(90-37.698))));
     
 
     m_vision = new Vision(
         (observation) -> m_drive.addVisionMeasurement(observation.pose().toPose2d(), observation.timestamp()),
         m_drive::getPose,
-        // rearRight,
-        // rearLeft,
+        rearRight,
+        rearLeft,
         rear,
         frontLeft
         );
@@ -170,7 +168,6 @@ public class Robot extends TimedRobot {
     }
 
     m_hood.setDefaultCommand(m_hood.setAngleCommand(() -> m_shootingParameters.getParameters().hoodAngle()));
-    m_transportRoller.setDefaultCommand(m_transportRoller.setVoltageCommand(Volts.of(-7)));
 
     if (!Constants.kUseFixedTurretMode) {
       m_turret.setDefaultCommand(m_turret.setAngleCommand(() -> m_shootingParameters.getParameters().turretAngle()));

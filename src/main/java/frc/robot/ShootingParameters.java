@@ -54,9 +54,6 @@ public class ShootingParameters {
     Map.entry(Feet.of(11).in(Meters), Degrees.of(23).in(Radians)),
     Map.entry(Feet.of(26.875).in(Meters), Degrees.of(20).in(Radians))
   );
-  // public final InterpolatingDoubleTreeMap m_hoodAngleMap = InterpolatingDoubleTreeMap.ofEntries(
-  //    Map.entry(Feet.of(0).in(Meters), Degrees.of(0).in(Radians))
-  // );
   // Takes in a distance in meters and outputs an angular velocity in radians per second
   public final InterpolatingDoubleTreeMap m_flywheelVelocityMap = InterpolatingDoubleTreeMap.ofEntries(
     Map.entry(Feet.of(4.25).in(Meters), RPM.of(1750).in(RadiansPerSecond)),
@@ -70,14 +67,10 @@ public class ShootingParameters {
     Map.entry(Feet.of(10).in(Meters), RPM.of(2000).in(RadiansPerSecond)),
     Map.entry(Feet.of(11).in(Meters), RPM.of(2100).in(RadiansPerSecond)),
     Map.entry(Feet.of(26.875).in(Meters), RPM.of(3200).in(RadiansPerSecond))
-  );
-
-// public final InterpolatingDoubleTreeMap m_flywheelVelocityMap = InterpolatingDoubleTreeMap.ofEntries(
-//   Map.entry(Feet.of(0).in(Meters), RPM.of(0).in(RadiansPerSecond))
-// );
+);
 
   private double m_flywheelVelocityModifier = 1;
-  private Angle m_hoodAngleModifier = Degrees.of(5);
+  private Angle m_hoodAngleModifier = Degrees.of(0);
   private double m_ToFModifier = 1;
   private Angle m_turretAngleModifier = Degrees.of(0);
 
@@ -175,9 +168,6 @@ public class ShootingParameters {
           true);
       return;
     }
-
-    final Double distance = pose.get().getTranslation().getDistance(target);
-    DogLog.log("DistanceMaping", Meters.of(distance).in(Feet));
 
     if (!shootingParametersAreWithinTolerance(m_currentCycleParameters)) {
       final Pose2d uncompensatedPose = m_state.getTurretPose();
