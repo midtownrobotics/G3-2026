@@ -96,7 +96,7 @@ public class Robot extends TimedRobot {
   // private final PowerDistribution m_pdh;
 
   private final Trigger m_parametersHasShot;
-  private final Logger m_log;
+  private final Logger m_log = new Logger(getClass());
 
   public Robot() {
     DriverStation.silenceJoystickConnectionWarning(true);
@@ -190,7 +190,7 @@ public class Robot extends TimedRobot {
     m_log.log("target", new Pose2d(target, new Rotation2d()));
     return target;
   }
-// k
+
   private Translation2d calculateTarget() {
     if (m_state.inAllianceZone()) {
       return FieldConstants.getHubPosition2d();
