@@ -9,10 +9,12 @@ import frc.lib.Logger;
 
 public class AutoRoutines {
   private final AutoFactory m_autoFactory;
+  private final Robot robot;
   private final Logger m_logger;
 
-  public AutoRoutines(AutoFactory autoFactory) {
+  public AutoRoutines(AutoFactory autoFactory, Robot robot) {
     m_autoFactory = autoFactory;
+    this.robot = robot;
     m_logger = new Logger(getClass());
   }
 
@@ -28,6 +30,21 @@ public class AutoRoutines {
         }),
         depotToLeftStart.resetOdometry(),
         depotToLeftStart.cmd()));
+    return routine;
+  }
+  
+  public AutoRoutine pickupDepotAndShoot() {
+    AutoRoutine routine = m_autoFactory.newRoutine("DepotToShoot");
+    AutoTrajectory leftStartToDepot = routine.trajectory("LeftStartToDepot");
+    AutoTrajectory depotToShoot = routine.trajectory("DepotToShoot");
+
+    leftStartToDepot.done().onTrue(depotToShoot.cmd());
+    depotToShoot.doneDelayed(0.5).onTrue(robot.shootCommand());
+
+    routine.active().onTrue(
+      Commands.sequence(
+        leftStartToDepot.resetOdometry(),
+        leftStartToDepot.cmd()));
     return routine;
   }
 

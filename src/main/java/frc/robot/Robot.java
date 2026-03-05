@@ -151,7 +151,7 @@ public class Robot extends TimedRobot {
         true,
         m_drive);
 
-    m_autoRoutines = new AutoRoutines(m_autoFactory);
+    m_autoRoutines = new AutoRoutines(m_autoFactory, this);
     m_autoChooser = new AutoChooser("Do Nothing");
 
     m_autoChooser.addRoutine("Depot -> Left Start", m_autoRoutines::depotToLeftStart);
@@ -256,11 +256,7 @@ public class Robot extends TimedRobot {
           m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
           m_feeder.setVoltageCommand(Volts.of(-7)),
           joyStickDrive()),
-        Commands.parallel(
-          stowIntakeCommand(),
-          m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
-          m_feeder.setVoltageCommand(Volts.of(-7)),
-          rotateRobot(() -> m_shootingParameters.getTargetRotation(() -> getTarget()))),
+          shootCommand(),
         () -> !Constants.kUseFixedTurretMode)
     .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
@@ -293,6 +289,14 @@ public class Robot extends TimedRobot {
         .onTrue(Commands.runOnce(m_shootingParameters::increaseVelocityCompensation));
     controls.decreaseVelocityCompensation()
         .onTrue(Commands.runOnce(m_shootingParameters::decreaseVelocityCompensation));
+  }
+
+  public Command shootCommand() {
+    return Commands.parallel(
+          stowIntakeCommand(),
+          m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
+          m_feeder.setVoltageCommand(Volts.of(-7)),
+          rotateRobot(() -> m_shootingParameters.getTargetRotation(() -> getTarget())));
   }
 
   private Command setIntakeSetpointCommand(IntakeSetpoint setpoint) {
