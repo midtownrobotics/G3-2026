@@ -244,10 +244,12 @@ public class Robot extends TimedRobot {
         Commands.parallel(
           stowIntakeCommand(),
           m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
+          m_feeder.setVoltageCommand(Volts.of(-7)),
           joyStickDrive()),
         Commands.parallel(
           stowIntakeCommand(),
           m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
+          m_feeder.setVoltageCommand(Volts.of(-7)),
           rotateRobot(() -> m_shootingParameters.getTargetRotation(() -> getTarget()))),
         () -> !Constants.kUseFixedTurretMode)
     .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
@@ -257,10 +259,12 @@ public class Robot extends TimedRobot {
         Commands.parallel(
           runIntakeCommand(),
           m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
+          m_feeder.setVoltageCommand(Volts.of(-7)),
           joyStickDrive()),
         Commands.parallel(
           runIntakeCommand(),
           m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
+          m_feeder.setVoltageCommand(Volts.of(-7)),
           rotateRobot(() -> m_shootingParameters.getTargetRotation(() -> getTarget()))),
         () -> !Constants.kUseFixedTurretMode)
     .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
