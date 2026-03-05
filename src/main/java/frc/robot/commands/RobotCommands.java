@@ -143,12 +143,28 @@ public class RobotCommands {
                 stowIntake()).withInterruptBehavior(InterruptionBehavior.kCancelSelf);
     }
 
-    public Command runFeeders() {
+    private Command runFeeders() {
         return SubsystemCommands.runFeeders(m_feeder);
     }
 
-    public Command stopFeeders() {
+    private Command stopFeeders() {
         return SubsystemCommands.stopFeeders(m_feeder);
+    }
+
+    private Command runTransportRollers() {
+        return SubsystemCommands.runTransportRollers(m_transportRoller);
+    }
+
+    private Command stopTransportRollers() {
+        return SubsystemCommands.stopTransportRollers(m_transportRoller);
+    }
+
+    public Command feedFuel() {
+        return Commands.parallel(runFeeders(), runTransportRollers());
+    }
+
+    public Command stopFeedingFuel() {
+        return Commands.parallel(stopFeeders(), stopTransportRollers());
     }
 
     public Command revShooter() {

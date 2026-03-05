@@ -2,7 +2,6 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Volts;
 
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
@@ -161,10 +160,8 @@ public class Robot extends TimedRobot {
     m_trimControls = new TrimXboxControls(1);
     configureTrimControlBindings(m_trimControls);
 
-    m_robotCommands.parametersHasShot().onTrue(m_robotCommands.runFeeders())
-        .onFalse(m_robotCommands.stopFeeders());
-
-    m_transportRoller.setDefaultCommand(m_transportRoller.setVoltageCommand(Volts.of(-10)));
+    m_robotCommands.parametersHasShot().onTrue(m_robotCommands.feedFuel())
+        .onFalse(m_robotCommands.stopFeedingFuel());
   }
 
   private void generateAutoChooser() {
