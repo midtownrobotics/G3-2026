@@ -65,7 +65,7 @@ public class Camera {
 
         Transform3d fieldToCamera = multitagResult.estimatedPose.best;
         Transform3d fieldToRobot = fieldToCamera.plus(m_robotToCamera.inverse());
-        Pose3d robotPose = new Pose3d(fieldToRobot.getTranslation(), fieldToCamera.getRotation());
+        Pose3d robotPose = new Pose3d(fieldToRobot.getTranslation(), fieldToRobot.getRotation());
 
         observations.add(
           new PoseObservation(
@@ -73,7 +73,7 @@ public class Camera {
             robotPose, 
             multitagResult.fiducialIDsUsed.size()));
 
-       } else if (!result.targets.isEmpty()){
+       } else if (false && !result.targets.isEmpty()){
         DogLog.log("Cameras/" + m_camera.getName() + "/singleTag", true);
         var target = result.targets.get(0);
 
