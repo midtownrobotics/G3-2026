@@ -38,7 +38,9 @@ public class AutoRoutines {
     AutoTrajectory leftStartToDepot = routine.trajectory("LeftStartToDepot");
     AutoTrajectory depotToShoot = routine.trajectory("DepotToShoot");
 
-    leftStartToDepot.done().onTrue(depotToShoot.cmd());
+    leftStartToDepot.active().onTrue(robot.revFlywheels());
+    leftStartToDepot.active().onTrue(robot.runIntakeCommand());
+    leftStartToDepot.doneDelayed(1).onTrue(depotToShoot.cmd());
     depotToShoot.doneDelayed(0.5).onTrue(robot.shootCommand());
 
     routine.active().onTrue(

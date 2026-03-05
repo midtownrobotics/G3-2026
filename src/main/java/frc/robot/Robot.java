@@ -180,9 +180,11 @@ public class Robot extends TimedRobot {
     m_trimControls = new TrimXboxControls(1);
     configureTrimControlBindings(m_trimControls);
 
-    m_parametersHasShot = new Trigger(() -> !m_shootingParameters.getParameters().noShot());
+    m_parametersHasShot = new Trigger(() -> !m_shootingParameters.getParameters().noShot()).and(RobotModeTriggers.autonomous().negate());
 
     m_parametersHasShot.onTrue(runFeeders()).onFalse(stopFeeders());
+
+    m_transportRoller.setDefaultCommand(m_transportRoller.setVoltageCommand(Volts.of(-10)));
   }
 
   public Translation2d getTarget() {
@@ -215,6 +217,7 @@ public class Robot extends TimedRobot {
   }
 
   private void generateAutoChooser() {
+    m_autoChooser.addRoutine("Left Depot Shoot", m_autoRoutines::pickupDepotAndShoot);
     m_autoChooser.addRoutine("Depot -> Left Start", m_autoRoutines::depotToLeftStart);
     m_autoChooser.addRoutine("Depot -> Mid Left", m_autoRoutines::depotToMidLeft);
     m_autoChooser.addRoutine("Left Start -> Center -> Mid-Left", m_autoRoutines::leftStartToCenter);
@@ -297,8 +300,12 @@ public class Robot extends TimedRobot {
     return Commands.parallel(
           stowIntakeCommand(),
           m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
-          m_feeder.setVoltageCommand(Volts.of(-7)),
+          m_feeder.setVoltageCommand(Volts.of(-10)),
           rotateRobot(() -> m_shootingParameters.getTargetRotation(() -> getTarget())));
+  }
+
+  public Command revFlywheels() {
+    return m_shooter.setSpeedCommand(RPM.of(1800));
   }
 
   private Command setIntakeSetpointCommand(IntakeSetpoint setpoint) {
@@ -307,7 +314,7 @@ public class Robot extends TimedRobot {
         m_intakeRoller.setVoltageCommand(setpoint.voltage));
   }
 
-  private Command runIntakeCommand() {
+  public Command runIntakeCommand() {
     return setIntakeSetpointCommand(IntakeSetpoint.INTAKING);
   }
 
