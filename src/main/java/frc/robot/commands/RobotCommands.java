@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -8,11 +9,14 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.Logger;
 import frc.robot.RobotState;
 import frc.robot.ShootingParameters;
+import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
+import frc.robot.controls.DriveControls;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
@@ -35,6 +39,7 @@ public class RobotCommands {
     private final ShootingParameters m_shootingParameters;
     private final Logger m_log;
     private final RobotState m_state;
+    private final DriveControls m_driveControls;
 
     public RobotCommands(
             CommandSwerveDrivetrain drive,
@@ -47,7 +52,8 @@ public class RobotCommands {
             Shooter shooter,
             Hood hood,
             ShootingParameters shootingParameters,
-            RobotState state) {
+            RobotState state,
+            DriveControls driveControls) {
         m_drive = drive;
         m_intakePivot = intakePivot;
         m_intakeRoller = intakeRoller;
@@ -57,28 +63,67 @@ public class RobotCommands {
         m_shooter = shooter;
         m_hood = hood;
         m_shootingParameters = shootingParameters;
-        m_log = new Logger(getClass());
         m_state = state;
+        m_driveControls = driveControls;
+        m_log = new Logger(getClass());
     }
 
-    public Command shootCommand() {
+    private Command fixedTurretShootCommand() {
         return Commands.parallel(
-                stowIntake(),
                 m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
                 m_feeder.setVoltageCommand(Volts.of(-10)),
-                DriveCommands.rotateRobot(m_drive, () -> m_shootingParameters.getTargetRotation(() -> getTarget())));
+                DriveCommands.rotateRobot(m_drive, () -> m_shootingParameters.getTargetRotation(() -> getTarget()),
+                        m_driveControls::getDriveForward, m_driveControls::getDriveLeft));
     }
 
-    public Command runIntake() {
+    private Command movingTurretShootCommand() {
+        return Commands.parallel(
+                m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
+                m_feeder.setVoltageCommand(Volts.of(-10)),
+                DriveCommands.driveCommand(m_drive, m_driveControls::getDriveForward,
+                        m_driveControls::getDriveLeft, m_driveControls::getDriveRotation));
+    }
+
+    public Command shoot() {
+        return Constants.kUseFixedTurretMode ? fixedTurretShootCommand() : movingTurretShootCommand();
+    }
+
+    private Command runIntake() {
         return Commands.parallel(
                 SubsystemCommands.intakeRunPosition(m_intakePivot),
                 SubsystemCommands.runIntakeRollers(m_intakeRoller));
     }
 
-    public Command stowIntake() {
+    private Command stowIntake() {
         return Commands.parallel(
                 SubsystemCommands.intakeStowPosition(m_intakePivot),
                 SubsystemCommands.stopIntakeRollers(m_intakeRoller));
+    }
+
+    public Command idle() {
+        return Commands.parallel(
+                m_shooter.setSpeedCommand(RPM.of(0)),
+                stowIntake())
+                .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
+    }
+
+    public Command fill() {
+        return Commands.parallel(
+                m_shooter.setSpeedCommand(RPM.of(0)),
+                runIntake())
+                .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
+    }
+
+    public Command snowBlow() {
+        return Commands.parallel(
+                shoot(),
+                runIntake()).withInterruptBehavior(InterruptionBehavior.kCancelSelf);
+    }
+
+    public Command empty() {
+        return Commands.parallel(
+                shoot(),
+                stowIntake()).withInterruptBehavior(InterruptionBehavior.kCancelSelf);
     }
 
     private Translation2d getTarget() {

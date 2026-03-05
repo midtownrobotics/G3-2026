@@ -219,7 +219,7 @@ public class Robot extends TimedRobot {
                 m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
                 m_feeder.setVoltageCommand(Volts.of(-7)),
                 joyStickDrive()),
-            shootCommand(),
+            shoot(),
             () -> !Constants.kUseFixedTurretMode)
             .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
