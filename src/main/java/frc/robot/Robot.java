@@ -144,7 +144,6 @@ public class Robot extends TimedRobot {
         m_hood);
 
     m_viz = new RobotViz(m_state);
-    m_log = new Logger(getClass());
 
     m_autoFactory = new AutoFactory(
         m_drive::getPose,
@@ -153,7 +152,7 @@ public class Robot extends TimedRobot {
         true,
         m_drive);
 
-    m_autoRoutines = new AutoRoutines(m_autoFactory);
+    m_autoRoutines = new AutoRoutines(m_autoFactory, this);
     m_autoChooser = new AutoChooser("Do Nothing");
     
     generateAutoChooser();
@@ -184,8 +183,6 @@ public class Robot extends TimedRobot {
     m_parametersHasShot = new Trigger(() -> !m_shootingParameters.getParameters().noShot());
 
     m_parametersHasShot.onTrue(runFeeders()).onFalse(stopFeeders());
-
-    // m_log = new Logger(getClass());
   }
 
   public Translation2d getTarget() {
@@ -261,11 +258,7 @@ public class Robot extends TimedRobot {
           m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
           m_feeder.setVoltageCommand(Volts.of(-7)),
           joyStickDrive()),
-        Commands.parallel(
-          stowIntakeCommand(),
-          m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
-          m_feeder.setVoltageCommand(Volts.of(-7)),
-          rotateRobot(() -> m_shootingParameters.getTargetRotation(() -> getTarget()))),
+          shootCommand(),
         () -> !Constants.kUseFixedTurretMode)
     .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
@@ -298,6 +291,14 @@ public class Robot extends TimedRobot {
         .onTrue(Commands.runOnce(m_shootingParameters::increaseVelocityCompensation));
     controls.decreaseVelocityCompensation()
         .onTrue(Commands.runOnce(m_shootingParameters::decreaseVelocityCompensation));
+  }
+
+  public Command shootCommand() {
+    return Commands.parallel(
+          stowIntakeCommand(),
+          m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
+          m_feeder.setVoltageCommand(Volts.of(-7)),
+          rotateRobot(() -> m_shootingParameters.getTargetRotation(() -> getTarget())));
   }
 
   private Command setIntakeSetpointCommand(IntakeSetpoint setpoint) {
