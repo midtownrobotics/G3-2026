@@ -36,11 +36,13 @@ import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.Logger;
 import frc.robot.Constants.ControlMode;
@@ -86,11 +88,9 @@ public class Robot extends TimedRobot {
   private final AutoChooser m_autoChooser;
 
   private final Feeder m_feeder;
-
   private final TransportRoller m_transportRoller;
 
   private final RobotState m_state;
-
   private final RobotViz m_viz;
 
   // private final PowerDistribution m_pdh;
@@ -104,7 +104,6 @@ public class Robot extends TimedRobot {
     // m_pdh.setSwitchableChannel(true);
 
     DogLog.setOptions(new DogLogOptions().withCaptureDs(true));
-    // DogLog.setPdh(new PowerDistribution());
     DataLogManager.start();
     Epilogue.bind(this);
 
@@ -145,6 +144,7 @@ public class Robot extends TimedRobot {
         m_hood);
 
     m_viz = new RobotViz(m_state);
+    m_log = new Logger(getClass());
 
     m_autoFactory = new AutoFactory(
         m_drive::getPose,
@@ -155,6 +155,8 @@ public class Robot extends TimedRobot {
 
     m_autoRoutines = new AutoRoutines(m_autoFactory);
     m_autoChooser = new AutoChooser("Do Nothing");
+    
+    generateAutoChooser();
 
     m_shootingParameters = new ShootingParameters(m_state, this::getTarget);
 
@@ -183,9 +185,7 @@ public class Robot extends TimedRobot {
 
     m_parametersHasShot.onTrue(runFeeders()).onFalse(stopFeeders());
 
-
-    generateAutoChooser();
-    m_log = new Logger(getClass());
+    // m_log = new Logger(getClass());
   }
 
   public Translation2d getTarget() {
@@ -193,7 +193,7 @@ public class Robot extends TimedRobot {
     m_log.log("target", new Pose2d(target, new Rotation2d()));
     return target;
   }
-
+// k
   private Translation2d calculateTarget() {
     if (m_state.inAllianceZone()) {
       return FieldConstants.getHubPosition2d();
@@ -204,10 +204,12 @@ public class Robot extends TimedRobot {
     double hubY = FieldConstants.getHubPosition2d().getY();
 
     if (robotY > (hubY - 0.762) && robotY < (hubY + 0.762)) {
-      if (robotY > hubY) {return new Translation2d(FieldConstants.getHubPosition2d().getX(), hubY + 1);}
+      if (robotY > hubY) {
+        return new Translation2d(FieldConstants.getHubPosition2d().getX(), hubY + 1);
+      }
       return new Translation2d(FieldConstants.getHubPosition2d().getX(), hubY - 1);
     }
-     
+
     return switch (alliance) {
       case Blue -> new Translation2d(FieldConstants.getHubPosition2d().getX(), robotY);
       case Red -> new Translation2d(FieldConstants.getHubPosition2d().getMeasureX(),
@@ -216,10 +218,23 @@ public class Robot extends TimedRobot {
   }
 
   private void generateAutoChooser() {
-    m_autoChooser.addRoutine("Example Movement", m_autoRoutines::exampleMovementAuto);
+    m_autoChooser.addRoutine("Depot -> Left Start", m_autoRoutines::depotToLeftStart);
+    m_autoChooser.addRoutine("Depot -> Mid Left", m_autoRoutines::depotToMidLeft);
+    m_autoChooser.addRoutine("Left Start -> Center -> Mid-Left", m_autoRoutines::leftStartToCenter);
+    m_autoChooser.addRoutine("Left Start -> Depot", m_autoRoutines::leftStartToDepot);
+    m_autoChooser.addRoutine("Mid Left -> Depot", m_autoRoutines::midLeftToDepot);
+    m_autoChooser.addRoutine("Mid Right -> Outpost", m_autoRoutines::midRightToOutpost);
+    m_autoChooser.addRoutine("Mid Start -> Depot", m_autoRoutines::midStartToDepot);
+    m_autoChooser.addRoutine("Mid Start -> Left Start", m_autoRoutines::midStartToLeftStart);
+    m_autoChooser.addRoutine("Outpost -> Mid Right", m_autoRoutines::outpostToMidRight);
+    m_autoChooser.addRoutine("Right Start -> Center -> Mid-Right", m_autoRoutines::rightStartToCenter);
+    m_autoChooser.addRoutine("Right Start -> Steal Balls -> Left Start", m_autoRoutines::rightToStealBalls);
+    m_autoChooser.addRoutine("Left Start -> Steal Balls -> Right Start", m_autoRoutines::leftToStealBalls);
+    m_autoChooser.addRoutine("Left Start -> Right Start", m_autoRoutines::leftStartToRightStart);
+    m_autoChooser.addRoutine("Right Start -> Left Start", m_autoRoutines::rightStartToleftStart);
 
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
-    new Trigger(DriverStation::isAutonomousEnabled).whileTrue(m_autoChooser.selectedCommandScheduler());
+    RobotModeTriggers.autonomous().whileTrue(m_autoChooser.selectedCommandScheduler());
   }
 
   public void configureConventionalBindings(ConventionalControls controls) {
@@ -365,7 +380,6 @@ public class Robot extends TimedRobot {
                 m_controls.getDriveRotation() * m_controls.getDriveRotation()
                     * Constants.kAngularMaxSpeed.in(RadiansPerSecond) * Constants.kAngluarSpeedMultiplier,
                 m_controls.getDriveRotation()));
-
       }
 
       m_drive.setControl(new SwerveRequest.FieldCentric()
@@ -418,55 +432,38 @@ public class Robot extends TimedRobot {
     CommandScheduler.getInstance().run();
     m_viz.periodic();
     m_shootingParameters.periodic();
-
-    m_log.log("autonomous", DriverStation.isAutonomousEnabled());
-    // m_log.log("pdhSwitchableChannelEnabled", m_pdh.getSwitchableChannel());
   }
 
   @Override
-  public void disabledInit() {
-  }
+  public void disabledInit() {}
 
   @Override
-  public void disabledPeriodic() {
-  }
+  public void disabledPeriodic() {}
 
   @Override
-  public void disabledExit() {
-  }
+  public void disabledExit() {}
 
   @Override
-  public void autonomousInit() {
-    m_autonomousCommand = null;
-
-    if (m_autonomousCommand != null) {
-      CommandScheduler.getInstance().schedule(m_autonomousCommand);
-    }
-  }
+  public void autonomousInit() {}
 
   @Override
-  public void autonomousPeriodic() {
-  }
+  public void autonomousPeriodic() {}
 
   @Override
-  public void autonomousExit() {
-  }
+  public void autonomousExit() {}
 
   @Override
   public void teleopInit() {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-    
   }
 
   @Override
-  public void teleopPeriodic() {
-  }
+  public void teleopPeriodic() {}
 
   @Override
-  public void teleopExit() {
-  }
+  public void teleopExit() {}
 
   @Override
   public void testInit() {
@@ -474,8 +471,7 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void testPeriodic() {
-  }
+  public void testPeriodic() {}
 
   @Override
   public void testExit() {
