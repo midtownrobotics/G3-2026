@@ -6,15 +6,12 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.Rotation;
 import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import dev.doglog.DogLog;
-import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -31,6 +28,7 @@ public class ShootingParameters {
   private static final int kMaximumIterations = 100;
   private static final Angle kHoodAngleTolerance = Degrees.of(5);
   private static final Angle kTurretAngleTolerance = Degrees.of(5);
+  private static final Angle kRobotRotationAngleTolerance = Degrees.of(10);
   private static final AngularVelocity kFlywhweelVelocityTolerance = RPM.of(150);
   private static final double kToFTrimStep = 0.05;
   private static final double kFlywheelVelocityTrimStep = 0.05;
@@ -38,37 +36,35 @@ public class ShootingParameters {
 
   // Takes in a distance in meters and outputs a time in seconds
   private final InterpolatingDoubleTreeMap m_timeOfFlightMap = InterpolatingDoubleTreeMap.ofEntries(
-    Map.entry(5d, 3d)
-  );
+      Map.entry(5d, 3d));
 
-  // Takes in a distance in meters and outputs an angle in radians 
+  // Takes in a distance in meters and outputs an angle in radians
   public final InterpolatingDoubleTreeMap m_hoodAngleMap = InterpolatingDoubleTreeMap.ofEntries(
-    Map.entry(Feet.of(4.25).in(Meters), Degrees.of(2).in(Radians)),
-    Map.entry(Feet.of(4.75).in(Meters), Degrees.of(4).in(Radians)),
-    Map.entry(Feet.of(5).in(Meters), Degrees.of(3).in(Radians)),
-    Map.entry(Feet.of(5.5).in(Meters), Degrees.of(3).in(Radians)),
-    Map.entry(Feet.of(6).in(Meters), Degrees.of(10).in(Radians)),
-    Map.entry(Feet.of(7).in(Meters), Degrees.of(12).in(Radians)),
-    Map.entry(Feet.of(8).in(Meters), Degrees.of(13).in(Radians)),
-    Map.entry(Feet.of(9).in(Meters), Degrees.of(18).in(Radians)),
-    Map.entry(Feet.of(10).in(Meters), Degrees.of(20).in(Radians)),
-    Map.entry(Feet.of(11).in(Meters), Degrees.of(23).in(Radians)),
-    Map.entry(Feet.of(26.875).in(Meters), Degrees.of(20).in(Radians))
-  );
-  // Takes in a distance in meters and outputs an angular velocity in radians per second
+      Map.entry(Feet.of(4.25).in(Meters), Degrees.of(2).in(Radians)),
+      Map.entry(Feet.of(4.75).in(Meters), Degrees.of(4).in(Radians)),
+      Map.entry(Feet.of(5).in(Meters), Degrees.of(3).in(Radians)),
+      Map.entry(Feet.of(5.5).in(Meters), Degrees.of(3).in(Radians)),
+      Map.entry(Feet.of(6).in(Meters), Degrees.of(10).in(Radians)),
+      Map.entry(Feet.of(7).in(Meters), Degrees.of(12).in(Radians)),
+      Map.entry(Feet.of(8).in(Meters), Degrees.of(13).in(Radians)),
+      Map.entry(Feet.of(9).in(Meters), Degrees.of(18).in(Radians)),
+      Map.entry(Feet.of(10).in(Meters), Degrees.of(20).in(Radians)),
+      Map.entry(Feet.of(11).in(Meters), Degrees.of(23).in(Radians)),
+      Map.entry(Feet.of(26.875).in(Meters), Degrees.of(20).in(Radians)));
+  // Takes in a distance in meters and outputs an angular velocity in radians per
+  // second
   public final InterpolatingDoubleTreeMap m_flywheelVelocityMap = InterpolatingDoubleTreeMap.ofEntries(
-    Map.entry(Feet.of(4.25).in(Meters), RPM.of(1750).in(RadiansPerSecond)),
-    Map.entry(Feet.of(4.75).in(Meters), RPM.of(1700).in(RadiansPerSecond)),
-    Map.entry(Feet.of(5).in(Meters), RPM.of(1650).in(RadiansPerSecond)),
-    Map.entry(Feet.of(5.5).in(Meters), RPM.of(1650).in(RadiansPerSecond)),
-    Map.entry(Feet.of(6).in(Meters), RPM.of(1700).in(RadiansPerSecond)),
-    Map.entry(Feet.of(7).in(Meters), RPM.of(1800).in(RadiansPerSecond)),
-    Map.entry(Feet.of(8).in(Meters), RPM.of(1800).in(RadiansPerSecond)),
-    Map.entry(Feet.of(9).in(Meters), RPM.of(1950).in(RadiansPerSecond)),
-    Map.entry(Feet.of(10).in(Meters), RPM.of(2000).in(RadiansPerSecond)),
-    Map.entry(Feet.of(11).in(Meters), RPM.of(2100).in(RadiansPerSecond)),
-    Map.entry(Feet.of(26.875).in(Meters), RPM.of(3200).in(RadiansPerSecond))
-);
+      Map.entry(Feet.of(4.25).in(Meters), RPM.of(1750).in(RadiansPerSecond)),
+      Map.entry(Feet.of(4.75).in(Meters), RPM.of(1700).in(RadiansPerSecond)),
+      Map.entry(Feet.of(5).in(Meters), RPM.of(1650).in(RadiansPerSecond)),
+      Map.entry(Feet.of(5.5).in(Meters), RPM.of(1650).in(RadiansPerSecond)),
+      Map.entry(Feet.of(6).in(Meters), RPM.of(1700).in(RadiansPerSecond)),
+      Map.entry(Feet.of(7).in(Meters), RPM.of(1800).in(RadiansPerSecond)),
+      Map.entry(Feet.of(8).in(Meters), RPM.of(1800).in(RadiansPerSecond)),
+      Map.entry(Feet.of(9).in(Meters), RPM.of(1950).in(RadiansPerSecond)),
+      Map.entry(Feet.of(10).in(Meters), RPM.of(2000).in(RadiansPerSecond)),
+      Map.entry(Feet.of(11).in(Meters), RPM.of(2100).in(RadiansPerSecond)),
+      Map.entry(Feet.of(26.875).in(Meters), RPM.of(3200).in(RadiansPerSecond)));
 
   private double m_flywheelVelocityModifier = 1;
   private Angle m_hoodAngleModifier = Degrees.of(0);
@@ -139,7 +135,13 @@ public class ShootingParameters {
   }
 
   public boolean shootingParametersAreWithinTolerance(Parameters parameters) {
-    if (!parameters.turretAngle.isNear(m_state.getTurretAngle(), kTurretAngleTolerance) && !Constants.kUseFixedTurretMode) {
+    if (!parameters.turretAngle.isNear(m_state.getTurretAngle(), kTurretAngleTolerance)
+        && !Constants.kUseFixedTurretMode) {
+      return false;
+    }
+
+    if (!getTargetRotation().getMeasure().isNear(m_state.getTurretPose().getRotation().getMeasure(),
+        kRobotRotationAngleTolerance)) {
       return false;
     }
 
@@ -189,8 +191,9 @@ public class ShootingParameters {
     return m_currentCycleParameters;
   }
 
-  public Rotation2d getTargetRotation(Supplier<Translation2d> target) {
-    return target.get().minus(m_state.getRobotPose().getTranslation()).getAngle().plus(new Rotation2d(Constants.kFixedTurretRotation));  
+  public Rotation2d getTargetRotation() {
+    return m_target.get().minus(m_state.getRobotPose().getTranslation()).getAngle()
+        .plus(new Rotation2d(Constants.kFixedTurretRotation));
   }
 
   public void increaseFlywheelVelocity() {

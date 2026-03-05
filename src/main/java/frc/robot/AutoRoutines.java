@@ -5,16 +5,17 @@ import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.Logger;
+import frc.robot.commands.RobotCommands;
 
 public class AutoRoutines {
   private final AutoFactory m_autoFactory;
-  private final Robot robot;
-  private final Logger m_logger;
+  private final Logger m_log;
+  private final RobotCommands m_robotCommands;
 
-  public AutoRoutines(AutoFactory autoFactory, Robot robot) {
+  public AutoRoutines(AutoFactory autoFactory, Robot robot, RobotCommands robotCommands) {
     m_autoFactory = autoFactory;
-    this.robot = robot;
-    m_logger = new Logger(getClass());
+    m_log = new Logger(getClass());
+    m_robotCommands = robotCommands;
   }
 
   public AutoRoutine depotToLeftStart() {
@@ -24,8 +25,8 @@ public class AutoRoutines {
     routine.active().onTrue(
         Commands.sequence(
             Commands.runOnce(() -> {
-              depotToLeftStart.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
-              m_logger.log("ActiveTrajectory", "DepotToLeftStart");
+              depotToLeftStart.getInitialPose().ifPresent(pose -> m_log.log("InitialPose", pose));
+              m_log.log("ActiveTrajectory", "DepotToLeftStart");
             }),
             depotToLeftStart.resetOdometry(),
             depotToLeftStart.cmd()));
@@ -37,10 +38,10 @@ public class AutoRoutines {
     AutoTrajectory leftStartToDepot = routine.trajectory("LeftStartToDepot");
     AutoTrajectory depotToShoot = routine.trajectory("DepotToShoot");
 
-    leftStartToDepot.active().onTrue(robot.revFlywheels());
-    leftStartToDepot.active().onTrue(robot.runIntakeCommand());
+    leftStartToDepot.active().onTrue(m_robotCommands.revShooter());
+    leftStartToDepot.active().onTrue(m_robotCommands.runIntake());
     leftStartToDepot.doneDelayed(1).onTrue(depotToShoot.cmd());
-    depotToShoot.doneDelayed(0.5).onTrue(robot.shoot());
+    depotToShoot.doneDelayed(0.5).onTrue(m_robotCommands.shoot());
 
     routine.active().onTrue(
         Commands.sequence(
@@ -56,8 +57,8 @@ public class AutoRoutines {
     routine.active().onTrue(
         Commands.sequence(
             Commands.runOnce(() -> {
-              depotToMidLeft.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
-              m_logger.log("ActiveTrajectory", "DepotToMidLeft");
+              depotToMidLeft.getInitialPose().ifPresent(pose -> m_log.log("InitialPose", pose));
+              m_log.log("ActiveTrajectory", "DepotToMidLeft");
             }),
             depotToMidLeft.resetOdometry(),
             depotToMidLeft.cmd()));
@@ -71,8 +72,8 @@ public class AutoRoutines {
     routine.active().onTrue(
         Commands.sequence(
             Commands.runOnce(() -> {
-              leftStartToCenter.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
-              m_logger.log("ActiveTrajectory", "LeftStartToCenter");
+              leftStartToCenter.getInitialPose().ifPresent(pose -> m_log.log("InitialPose", pose));
+              m_log.log("ActiveTrajectory", "LeftStartToCenter");
             }),
             leftStartToCenter.resetOdometry(),
             leftStartToCenter.cmd()));
@@ -86,8 +87,8 @@ public class AutoRoutines {
     routine.active().onTrue(
         Commands.sequence(
             Commands.runOnce(() -> {
-              leftStartToDepot.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
-              m_logger.log("ActiveTrajectory", "LeftStartToDepot");
+              leftStartToDepot.getInitialPose().ifPresent(pose -> m_log.log("InitialPose", pose));
+              m_log.log("ActiveTrajectory", "LeftStartToDepot");
             }),
             leftStartToDepot.resetOdometry(),
             leftStartToDepot.cmd()));
@@ -101,8 +102,8 @@ public class AutoRoutines {
     routine.active().onTrue(
         Commands.sequence(
             Commands.runOnce(() -> {
-              midLeftToDepot.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
-              m_logger.log("ActiveTrajectory", "MidLeftToDepot");
+              midLeftToDepot.getInitialPose().ifPresent(pose -> m_log.log("InitialPose", pose));
+              m_log.log("ActiveTrajectory", "MidLeftToDepot");
             }),
             midLeftToDepot.resetOdometry(),
             midLeftToDepot.cmd()));
@@ -116,8 +117,8 @@ public class AutoRoutines {
     routine.active().onTrue(
         Commands.sequence(
             Commands.runOnce(() -> {
-              midRightToOutpost.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
-              m_logger.log("ActiveTrajectory", "MidRightToOutpost");
+              midRightToOutpost.getInitialPose().ifPresent(pose -> m_log.log("InitialPose", pose));
+              m_log.log("ActiveTrajectory", "MidRightToOutpost");
             }),
             midRightToOutpost.resetOdometry(),
             midRightToOutpost.cmd()));
@@ -131,8 +132,8 @@ public class AutoRoutines {
     routine.active().onTrue(
         Commands.sequence(
             Commands.runOnce(() -> {
-              midStartToDepot.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
-              m_logger.log("ActiveTrajectory", "MidStartToDepot");
+              midStartToDepot.getInitialPose().ifPresent(pose -> m_log.log("InitialPose", pose));
+              m_log.log("ActiveTrajectory", "MidStartToDepot");
             }),
             midStartToDepot.resetOdometry(),
             midStartToDepot.cmd()));
@@ -146,8 +147,8 @@ public class AutoRoutines {
     routine.active().onTrue(
         Commands.sequence(
             Commands.runOnce(() -> {
-              midStartToLeftStart.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
-              m_logger.log("ActiveTrajectory", "MidStartToLeftStart");
+              midStartToLeftStart.getInitialPose().ifPresent(pose -> m_log.log("InitialPose", pose));
+              m_log.log("ActiveTrajectory", "MidStartToLeftStart");
             }),
             midStartToLeftStart.resetOdometry(),
             midStartToLeftStart.cmd()));
@@ -161,8 +162,8 @@ public class AutoRoutines {
     routine.active().onTrue(
         Commands.sequence(
             Commands.runOnce(() -> {
-              outpostToMidRight.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
-              m_logger.log("ActiveTrajectory", "OutpostToMidRight");
+              outpostToMidRight.getInitialPose().ifPresent(pose -> m_log.log("InitialPose", pose));
+              m_log.log("ActiveTrajectory", "OutpostToMidRight");
             }),
             outpostToMidRight.resetOdometry(),
             outpostToMidRight.cmd()));
@@ -176,8 +177,8 @@ public class AutoRoutines {
     routine.active().onTrue(
         Commands.sequence(
             Commands.runOnce(() -> {
-              rightStartToCenter.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
-              m_logger.log("ActiveTrajectory", "RightStartToCenter");
+              rightStartToCenter.getInitialPose().ifPresent(pose -> m_log.log("InitialPose", pose));
+              m_log.log("ActiveTrajectory", "RightStartToCenter");
             }),
             rightStartToCenter.resetOdometry(),
             rightStartToCenter.cmd()));
@@ -191,8 +192,8 @@ public class AutoRoutines {
     routine.active().onTrue(
         Commands.sequence(
             Commands.runOnce(() -> {
-              rightToStealBalls.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
-              m_logger.log("ActiveTrajectory", "RightToStealBalls");
+              rightToStealBalls.getInitialPose().ifPresent(pose -> m_log.log("InitialPose", pose));
+              m_log.log("ActiveTrajectory", "RightToStealBalls");
             }),
             rightToStealBalls.resetOdometry(),
             rightToStealBalls.cmd()));
@@ -206,8 +207,8 @@ public class AutoRoutines {
     routine.active().onTrue(
         Commands.sequence(
             Commands.runOnce(() -> {
-              leftToStealBalls.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
-              m_logger.log("ActiveTrajectory", "LeftToStealBalls");
+              leftToStealBalls.getInitialPose().ifPresent(pose -> m_log.log("InitialPose", pose));
+              m_log.log("ActiveTrajectory", "LeftToStealBalls");
             }),
             leftToStealBalls.resetOdometry(),
             leftToStealBalls.cmd()));
@@ -221,8 +222,8 @@ public class AutoRoutines {
     routine.active().onTrue(
         Commands.sequence(
             Commands.runOnce(() -> {
-              leftStartToRightStart.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
-              m_logger.log("ActiveTrajectory", "LeftStartToRightStart");
+              leftStartToRightStart.getInitialPose().ifPresent(pose -> m_log.log("InitialPose", pose));
+              m_log.log("ActiveTrajectory", "LeftStartToRightStart");
             }),
             leftStartToRightStart.resetOdometry(),
             leftStartToRightStart.cmd()));
@@ -236,8 +237,8 @@ public class AutoRoutines {
     routine.active().onTrue(
         Commands.sequence(
             Commands.runOnce(() -> {
-              rightStartToleftStart.getInitialPose().ifPresent(pose -> m_logger.log("InitialPose", pose));
-              m_logger.log("ActiveTrajectory", "RightStartToleftStart");
+              rightStartToleftStart.getInitialPose().ifPresent(pose -> m_log.log("InitialPose", pose));
+              m_log.log("ActiveTrajectory", "RightStartToleftStart");
             }),
             rightStartToleftStart.resetOdometry(),
             rightStartToleftStart.cmd()));

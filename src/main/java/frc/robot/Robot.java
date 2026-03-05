@@ -2,8 +2,6 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 import choreo.auto.AutoChooser;
@@ -20,12 +18,10 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.Logger;
+import frc.robot.commands.RobotCommands;
 import frc.robot.constants.Constants;
 import frc.robot.constants.Constants.ControlMode;
 import frc.robot.controls.ConventionalControls;
@@ -62,7 +58,6 @@ public class Robot extends TimedRobot {
   private final Turret m_turret;
   private final Shooter m_shooter;
   private final Hood m_hood;
-  private final ShootingParameters m_shootingParameters;
 
   private final AutoFactory m_autoFactory;
   private final AutoRoutines m_autoRoutines;
@@ -76,7 +71,8 @@ public class Robot extends TimedRobot {
 
   // private final PowerDistribution m_pdh;
 
-  private final Trigger m_parametersHasShot;
+  private final RobotCommands m_robotCommands;
+
   private final Logger m_log = new Logger(getClass());
 
   public Robot() {
@@ -129,22 +125,6 @@ public class Robot extends TimedRobot {
         m_shooter,
         m_hood);
 
-    m_viz = new RobotViz(m_state);
-
-    m_autoFactory = new AutoFactory(
-        m_drive::getPose,
-        m_drive::resetPose,
-        m_drive::followPath,
-        true,
-        m_drive);
-
-    m_autoRoutines = new AutoRoutines(m_autoFactory, this);
-    m_autoChooser = new AutoChooser("Do Nothing");
-
-    generateAutoChooser();
-
-    m_shootingParameters = new ShootingParameters(m_state, this::getTarget);
-
     if (Constants.kControlMode == ControlMode.Conventional) {
       var controls = new ConventionalXboxControls(0);
       configureConventionalBindings(controls);
@@ -155,21 +135,34 @@ public class Robot extends TimedRobot {
       m_controls = controls;
     }
 
-    m_hood.setDefaultCommand(m_hood.setAngleCommand(() -> m_shootingParameters.getParameters().hoodAngle()));
+    m_robotCommands = new RobotCommands(m_drive, m_intakePivot, m_intakeRoller, m_turret, m_feeder, m_vision,
+        m_transportRoller, m_shooter, m_hood, m_state, m_controls);
 
-    if (!Constants.kUseFixedTurretMode) {
-      m_turret.setDefaultCommand(m_turret.setAngleCommand(() -> m_shootingParameters.getParameters().turretAngle()));
-    }
+    m_viz = new RobotViz(m_state);
 
-    m_drive.setDefaultCommand(Constants.kUseWeirdSnakeDrive ? snakeDrive() : joyStickDrive());
+    m_autoFactory = new AutoFactory(
+        m_drive::getPose,
+        m_drive::resetPose,
+        m_drive::followPath,
+        true,
+        m_drive);
+
+    m_autoRoutines = new AutoRoutines(m_autoFactory, this, m_robotCommands);
+    m_autoChooser = new AutoChooser("Do Nothing");
+
+    generateAutoChooser();
+
+    m_hood.setDefaultCommand(m_robotCommands.alignHood());
+
+    m_turret.setDefaultCommand(m_robotCommands.alignTurret());
+
+    m_drive.setDefaultCommand(m_robotCommands.driveCommand());
 
     m_trimControls = new TrimXboxControls(1);
     configureTrimControlBindings(m_trimControls);
 
-    m_parametersHasShot = new Trigger(() -> !m_shootingParameters.getParameters().noShot())
-        .and(RobotModeTriggers.autonomous().negate());
-
-    m_parametersHasShot.onTrue(runFeeders()).onFalse(stopFeeders());
+    m_robotCommands.parametersHasShot().onTrue(m_robotCommands.runFeeders())
+        .onFalse(m_robotCommands.stopFeeders());
 
     m_transportRoller.setDefaultCommand(m_transportRoller.setVoltageCommand(Volts.of(-10)));
   }
@@ -196,81 +189,40 @@ public class Robot extends TimedRobot {
   }
 
   public void configureConventionalBindings(ConventionalControls controls) {
-    controls.shoot().onTrue(m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()))
-        .onFalse(m_shooter.setSpeedCommand(RPM.of(0)));
-    controls.intake().onTrue(runIntakeCommand()).onFalse(stowIntakeCommand());
+    controls.shoot().onTrue(m_robotCommands.shoot()).onFalse(m_robotCommands.stopShooting());
+    controls.intake().onTrue(m_robotCommands.runIntake()).onFalse(m_robotCommands.stowIntake());
   }
 
   public void configureFourWayBindings(FourWayControls controls) {
-    controls.idle().onTrue(Commands.parallel(
-        stowIntakeCommand(),
-        m_shooter.setSpeedCommand(RPM.of(0)))
-        .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
+    controls.idle().onTrue(m_robotCommands.idle());
 
-    controls.intake().onTrue(Commands.parallel(
-        runIntakeCommand(),
-        m_shooter.setSpeedCommand(RPM.of(0)))
-        .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
+    controls.intake().onTrue(m_robotCommands.fill());
 
-    controls.shoot().onTrue(
-        Commands.either(
-            Commands.parallel(
-                stowIntakeCommand(),
-                m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
-                m_feeder.setVoltageCommand(Volts.of(-7)),
-                joyStickDrive()),
-            shoot(),
-            () -> !Constants.kUseFixedTurretMode)
-            .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
+    controls.shoot().onTrue(m_robotCommands.empty());
 
-    controls.snowBlow().onTrue(
-        Commands.either(
-            Commands.parallel(
-                runIntakeCommand(),
-                m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
-                m_feeder.setVoltageCommand(Volts.of(-7)),
-                joyStickDrive()),
-            Commands.parallel(
-                runIntakeCommand(),
-                m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()),
-                m_feeder.setVoltageCommand(Volts.of(-7)),
-                rotateRobot(() -> m_shootingParameters.getTargetRotation(() -> getTarget()))),
-            () -> !Constants.kUseFixedTurretMode)
-            .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
+    controls.snowBlow().onTrue(m_robotCommands.snowBlow());
 
-    controls.zeroHood().onTrue(zeroTurretHood());
+    controls.zeroHood().onTrue(m_robotCommands.zeroTurretHood());
   }
 
   public void configureTrimControlBindings(TrimControls controls) {
-    controls.increaseFlywheelVelocity().onTrue(Commands.runOnce(m_shootingParameters::increaseFlywheelVelocity));
-    controls.decreaseFlywheelVelocity().onTrue(Commands.runOnce(m_shootingParameters::decreaseFlywheelVelocity));
+    controls.increaseFlywheelVelocity().onTrue(m_robotCommands.increaseFlywheelVelocity());
+    controls.decreaseFlywheelVelocity().onTrue(m_robotCommands.decreaseFlywheelVelocity());
 
-    controls.increaseHoodAngle().onTrue(Commands.runOnce(m_shootingParameters::increaseHoodAngle));
-    controls.decreaseHoodAngle().onTrue(Commands.runOnce(m_shootingParameters::decreaseHoodAngle));
+    controls.increaseHoodAngle().onTrue(m_robotCommands.increaseHoodAngle());
+    controls.decreaseHoodAngle().onTrue(m_robotCommands.decreaseHoodAngle());
 
     controls.increaseVelocityCompensation()
-        .onTrue(Commands.runOnce(m_shootingParameters::increaseVelocityCompensation));
+        .onTrue(m_robotCommands.increaseVelocityCompensation());
     controls.decreaseVelocityCompensation()
-        .onTrue(Commands.runOnce(m_shootingParameters::decreaseVelocityCompensation));
-  }
-
-  public Command revFlywheels() {
-    return m_shooter.setSpeedCommand(RPM.of(1800));
-  }
-
-  public Command zeroTurretHood() {
-    return Commands.repeatingSequence(
-        m_hood.setVoltage(Volts.of(-1.5)).until(m_hood.isNearTrigger(() -> Degrees.zero(), Degrees.of(1)))
-            .withTimeout(Seconds.of(1)),
-        m_hood.setEncoderAngleCommand(Degrees.of(10))).withTimeout(4).until(m_hood.getCurrentSpikeTrigger())
-        .andThen(m_hood.zeroEncoderAngleCommand());
+        .onTrue(m_robotCommands.decreaseVelocityCompensation());
   }
 
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     m_viz.periodic();
-    m_shootingParameters.periodic();
+    m_robotCommands.periodic();
   }
 
   @Override
