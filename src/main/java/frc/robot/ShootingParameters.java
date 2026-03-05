@@ -24,6 +24,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Time;
+import frc.robot.constants.Constants;
 
 public class ShootingParameters {
   private static final Time kTimeOfFlightTolerance = Seconds.of(0.1);
