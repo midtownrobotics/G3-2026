@@ -402,10 +402,10 @@ public class Robot extends TimedRobot {
   }
 
   public Command zeroTurretHood() {
-    return Commands.sequence(
-      m_hood.setVoltage(Volts.of(-1.5)).until(m_hood.getCurrentSpikeTrigger()).withTimeout(Seconds.of(5)),
-      m_hood.setZeroToCurrentPosition()
-    );
+    return Commands.repeatingSequence(
+      m_hood.setVoltage(Volts.of(-1.5)).until(m_hood.isNearTrigger(() -> Degrees.zero(), Degrees.of(1))).withTimeout(Seconds.of(1)),
+      m_hood.setEncoderAngleCommand(Degrees.of(10))
+    ).withTimeout(4).until(m_hood.getCurrentSpikeTrigger()).andThen(m_hood.zeroEncoderAngleCommand());
   }
 
   @Override

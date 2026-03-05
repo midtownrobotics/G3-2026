@@ -108,8 +108,16 @@ public class Hood extends SubsystemBase {
     return m_currentSpikeTrigger;
   }
 
-  public Command setZeroToCurrentPosition() {
-    return Commands.runOnce(() -> m_mechanism.setAngle(Degrees.zero()));
+  public Trigger isNearTrigger(Supplier<Angle> angle, Angle threshold) {
+    return new Trigger(() -> m_mechanism.getAngle().isNear(angle.get(), threshold));
+  }
+
+  public Command setEncoderAngleCommand(Angle angle) {
+    return Commands.runOnce(() -> m_mechanism.getMotor().setEncoderPosition(angle));
+  }
+
+  public Command zeroEncoderAngleCommand() {
+    return setEncoderAngleCommand(Degrees.zero());
   }
 
   public Command setAngleCommand(Angle angle) {
