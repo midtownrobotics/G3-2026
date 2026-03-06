@@ -1,7 +1,11 @@
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+
+import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
@@ -9,20 +13,28 @@ import dev.doglog.DogLog;
 import dev.doglog.DogLogOptions;
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
-import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.Logger;
 import frc.robot.commands.RobotCommands;
 import frc.robot.constants.Constants;
 import frc.robot.constants.Constants.ControlMode;
+import frc.robot.constants.FieldConstants;
 import frc.robot.controls.ConventionalControls;
 import frc.robot.controls.ConventionalXboxControls;
 import frc.robot.controls.DriveControls;
@@ -38,6 +50,7 @@ import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.indexer.TransportRoller;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
+import frc.robot.subsystems.intake.IntakeSetpoint;
 import frc.robot.subsystems.shooter.Hood;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.Turret;
@@ -57,29 +70,27 @@ public class Robot extends TimedRobot {
   private final Turret m_turret;
   private final Shooter m_shooter;
   private final Hood m_hood;
+  private final ShootingParameters m_shootingParameters;
 
   private final AutoFactory m_autoFactory;
-  private final AutoRoutines m_autoRoutines;
   private final AutoChooser m_autoChooser;
+  private final AutoRoutines m_autoRoutines;
 
   private final Feeder m_feeder;
+
   private final TransportRoller m_transportRoller;
 
   private final RobotState m_state;
-  private final RobotViz m_viz;
-
-  // private final PowerDistribution m_pdh;
 
   private final RobotCommands m_robotCommands;
 
-  private final Logger m_log = new Logger(getClass());
+  private final RobotViz m_viz;
+
+  private final Logger m_log;
 
   public Robot() {
-    DriverStation.silenceJoystickConnectionWarning(true);
-    // m_pdh = new PowerDistribution();
-    // m_pdh.setSwitchableChannel(true);
-
     DogLog.setOptions(new DogLogOptions().withCaptureDs(true));
+    // DogLog.setPdh(new PowerDistribution());
     DataLogManager.start();
     Epilogue.bind(this);
 
@@ -92,26 +103,18 @@ public class Robot extends TimedRobot {
     m_shooter = new Shooter();
     m_turret = new Turret();
 
-    Camera rear = new Camera("Rear",
-        new Transform3d(new Translation3d(Inches.of(-11.018), Inches.of(7.388), Inches.of(14.444)),
-            new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(180))));
-    Camera rearRight = new Camera("Rear Right",
-        new Transform3d(new Translation3d(Inches.of(-8.758), Inches.of(-14.541), Inches.of(8.022)),
-            new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(-33.26 - 90))));
-    Camera rearLeft = new Camera("Rear Left",
-        new Transform3d(new Translation3d(Inches.of(-7.692), Inches.of(14.396), Inches.of(14.217)),
-            new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(31.475 + 90))));
-    Camera frontLeft = new Camera("Front Left",
-        new Transform3d(new Translation3d(Inches.of(-7.076), Inches.of(14.525), Inches.of(10.65)),
-            new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(90 - 37.698))));
+    Camera rearFacingRightCamera = new Camera("rearFacingRightCamera", new Transform3d());
+    Camera frontFacingRightCamera = new Camera("frontFacingRightCamera", new Transform3d());
+    Camera rearFacingLeftCamera = new Camera("rearFacingLeftCamera", new Transform3d());
+    Camera frontFacingLeftCamera = new Camera("frontFacingLeftCamera", new Transform3d());
 
     m_vision = new Vision(
         (observation) -> m_drive.addVisionMeasurement(observation.pose().toPose2d(), observation.timestamp()),
         m_drive::getPose,
-        rearRight,
-        rearLeft,
-        rear,
-        frontLeft);
+        rearFacingRightCamera,
+        frontFacingRightCamera,
+        rearFacingLeftCamera,
+        frontFacingLeftCamera);
 
     m_state = new RobotState(
         m_drive,
@@ -124,19 +127,6 @@ public class Robot extends TimedRobot {
         m_shooter,
         m_hood);
 
-    m_robotCommands = new RobotCommands(m_drive, m_intakePivot, m_intakeRoller, m_turret, m_feeder, m_vision,
-        m_transportRoller, m_shooter, m_hood, m_state);
-
-    if (Constants.kControlMode == ControlMode.Conventional) {
-      var controls = new ConventionalXboxControls(0);
-      m_controls = controls;
-      configureConventionalBindings(controls);
-    } else {
-      var controls = new FourWayXboxControls(0);
-      m_controls = controls;
-      configureFourWayBindings(controls);
-    }
-
     m_viz = new RobotViz(m_state);
 
     m_autoFactory = new AutoFactory(
@@ -146,66 +136,228 @@ public class Robot extends TimedRobot {
         true,
         m_drive);
 
-    m_autoRoutines = new AutoRoutines(m_autoFactory, this, m_robotCommands);
+    if (Constants.kControlMode == ControlMode.Conventional) {
+      var controls = new ConventionalXboxControls(0);
+      configureConventionalBindings(controls);
+      m_controls = controls;
+    } else {
+      var controls = new FourWayXboxControls(0);
+      configureFourWayBindings(controls);
+      m_controls = controls;
+    }
+
+    m_robotCommands = new RobotCommands(m_drive, m_intakePivot, m_intakeRoller, m_turret, m_feeder, m_vision,
+        m_transportRoller, m_shooter, m_hood, m_state, m_controls);
+
+    m_autoRoutines = new AutoRoutines(m_autoFactory, m_robotCommands);
     m_autoChooser = new AutoChooser("Do Nothing");
 
-    generateAutoChooser();
+    m_shootingParameters = new ShootingParameters(m_state, this::getTarget);
 
-    m_hood.setDefaultCommand(m_robotCommands.alignHood());
+    m_hood.setDefaultCommand(m_hood.setAngleCommand(() -> m_shootingParameters.getParameters().hoodAngle()));
 
-    m_turret.setDefaultCommand(m_robotCommands.alignTurret());
-
-    m_drive.setDefaultCommand(m_robotCommands.driveCommand(m_controls));
+    m_drive.setDefaultCommand(Constants.kUseWeirdSnakeDrive ? snakeDrive() : joyStickDrive());
 
     m_trimControls = new TrimXboxControls(1);
     configureTrimControlBindings(m_trimControls);
 
-    m_robotCommands.parametersHasShot().onTrue(m_robotCommands.feedFuel())
-        .onFalse(m_robotCommands.stopFeedingFuel());
+    generateAutoChooser();
+    m_log = new Logger(getClass());
+  }
+
+  public Translation2d getTarget() {
+    Translation2d target = calculateTarget();
+    m_log.log("target", new Pose2d(target, new Rotation2d()));
+    return target;
+  }
+
+  private Translation2d calculateTarget() {
+    if (m_state.inAllianceZone()) {
+      return FieldConstants.getHubPosition2d();
+    }
+
+    Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
+    double robotY = m_state.getRobotPose().getY();
+    double hubY = FieldConstants.getHubPosition2d().getY();
+
+    if (robotY > (hubY - 0.762) && robotY < (hubY + 0.762)) {
+      if (robotY > hubY) {
+        return new Translation2d(FieldConstants.getHubPosition2d().getX(), hubY + 1);
+      }
+      return new Translation2d(FieldConstants.getHubPosition2d().getX(), hubY - 1);
+    }
+
+    return switch (alliance) {
+      case Blue -> new Translation2d(FieldConstants.getHubPosition2d().getX(), robotY);
+      case Red -> new Translation2d(FieldConstants.getHubPosition2d().getMeasureX(),
+          m_state.getRobotPose().getMeasureY());
+    };
   }
 
   private void generateAutoChooser() {
-    m_autoChooser.addRoutine("Left Depot Shoot", m_autoRoutines::pickupDepotAndShoot);
-
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
-    RobotModeTriggers.autonomous().whileTrue(m_autoChooser.selectedCommandScheduler());
+    new Trigger(DriverStation::isAutonomousEnabled).whileTrue(m_autoChooser.selectedCommandScheduler());
   }
 
   public void configureConventionalBindings(ConventionalControls controls) {
-    controls.shoot().onTrue(m_robotCommands.shoot(m_controls)).onFalse(m_robotCommands.stopShooting());
-    controls.intake().onTrue(m_robotCommands.runIntake()).onFalse(m_robotCommands.stowIntake());
+    controls.shoot().onTrue(m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()))
+        .onFalse(m_shooter.setSpeedCommand(RPM.of(0)));
+    controls.intake().onTrue(runIntakeCommand()).onFalse(stowIntakeCommand());
   }
 
   public void configureFourWayBindings(FourWayControls controls) {
-    controls.idle().onTrue(m_robotCommands.idle());
+    controls.idle().onTrue(Commands.parallel(
+        stowIntakeCommand(),
+        m_shooter.setSpeedCommand(RPM.of(0)))
+        .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
-    controls.intake().onTrue(m_robotCommands.fill());
+    controls.intake().onTrue(Commands.parallel(
+        runIntakeCommand(),
+        m_shooter.setSpeedCommand(RPM.of(0)))
+        .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
-    controls.shoot().onTrue(m_robotCommands.empty(m_controls));
+    controls.shoot().onTrue(Commands.parallel(
+        stowIntakeCommand(),
+        m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()))
+        .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
 
-    controls.snowBlow().onTrue(m_robotCommands.snowBlow(m_controls));
+    controls.snowBlow().onTrue(Commands.parallel(
+        runIntakeCommand(),
+        m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()))
+        .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
   }
 
   public void configureTrimControlBindings(TrimControls controls) {
-    controls.increaseFlywheelVelocity().onTrue(m_robotCommands.increaseFlywheelVelocity());
-    controls.decreaseFlywheelVelocity().onTrue(m_robotCommands.decreaseFlywheelVelocity());
+    controls.increaseFlywheelVelocity().onTrue(Commands.runOnce(m_shootingParameters::increaseFlywheelVelocity));
+    controls.decreaseFlywheelVelocity().onTrue(Commands.runOnce(m_shootingParameters::decreaseFlywheelVelocity));
 
-    controls.increaseHoodAngle().onTrue(m_robotCommands.increaseHoodAngle());
-    controls.decreaseHoodAngle().onTrue(m_robotCommands.decreaseHoodAngle());
+    controls.increaseHoodAngle().onTrue(Commands.runOnce(m_shootingParameters::increaseHoodAngle));
+    controls.decreaseHoodAngle().onTrue(Commands.runOnce(m_shootingParameters::decreaseHoodAngle));
 
     controls.increaseVelocityCompensation()
-        .onTrue(m_robotCommands.increaseVelocityCompensation());
+        .onTrue(Commands.runOnce(m_shootingParameters::increaseVelocityCompensation));
     controls.decreaseVelocityCompensation()
-        .onTrue(m_robotCommands.decreaseVelocityCompensation());
+        .onTrue(Commands.runOnce(m_shootingParameters::decreaseVelocityCompensation));
+  }
 
-    controls.zeroHood().onTrue(m_robotCommands.zeroTurretHood());
+  private Command setIntakeSetpointCommand(IntakeSetpoint setpoint) {
+    return Commands.parallel(
+        m_intakePivot.setAngleCommand(setpoint.angle),
+        m_intakeRoller.setVoltageCommand(setpoint.voltage));
+  }
+
+  private Command runIntakeCommand() {
+    return setIntakeSetpointCommand(IntakeSetpoint.INTAKING);
+  }
+
+  private Command stowIntakeCommand() {
+    return setIntakeSetpointCommand(IntakeSetpoint.STOW);
+  }
+
+  private Command startIntakeCommand() {
+    return setIntakeSetpointCommand(IntakeSetpoint.START);
+  }
+
+  public Command joyStickDrive() {
+    return Commands.run(() -> {
+      ChassisSpeeds speeds = new ChassisSpeeds(
+          m_controls.getDriveForward() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+              * Constants.kLinearSpeedMultiplier,
+          m_controls.getDriveLeft() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+              * Constants.kLinearSpeedMultiplier,
+          Math.copySign(
+              m_controls.getDriveRotation() * m_controls.getDriveRotation()
+                  * Constants.kAngularMaxSpeed.in(RadiansPerSecond) * Constants.kAngluarSpeedMultiplier,
+              m_controls.getDriveRotation()));
+
+      m_drive.setControl(new SwerveRequest.FieldCentric()
+          .withVelocityX(speeds.vxMetersPerSecond)
+          .withVelocityY(speeds.vyMetersPerSecond)
+          .withRotationalRate(speeds.omegaRadiansPerSecond));
+    }, m_drive);
+  }
+
+  public Command snakeDrive() {
+
+    return Commands.run(() -> {
+      final PIDController headingController = new PIDController(100, 0, 0);
+      final boolean snakeDriveActive = !(Math.abs(m_controls.getDriveRotation()) > 0);
+
+      ChassisSpeeds speeds;
+      if (snakeDriveActive) {
+        headingController.enableContinuousInput(-Math.PI, Math.PI);
+
+        speeds = new ChassisSpeeds(
+            m_controls.getDriveForward() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                * Constants.kLinearSpeedMultiplier,
+            m_controls.getDriveLeft() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                * Constants.kLinearSpeedMultiplier,
+            0);
+
+        Angle headingAngle = Radians.of(Math.atan2(speeds.vyMetersPerSecond, speeds.vxMetersPerSecond) + Math.PI);
+
+        if (Math.abs(speeds.vyMetersPerSecond) > 0.1 || Math.abs(speeds.vxMetersPerSecond) > 0.1) {
+          speeds.omegaRadiansPerSecond = headingController.calculate(m_drive.getPose().getRotation().getRadians(),
+              headingAngle.in(Radians));
+        }
+      } else {
+        speeds = new ChassisSpeeds(
+            m_controls.getDriveForward() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                * Constants.kLinearSpeedMultiplier,
+            m_controls.getDriveLeft() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                * Constants.kLinearSpeedMultiplier,
+            Math.copySign(
+                m_controls.getDriveRotation() * m_controls.getDriveRotation()
+                    * Constants.kAngularMaxSpeed.in(RadiansPerSecond) * Constants.kAngluarSpeedMultiplier,
+                m_controls.getDriveRotation()));
+
+      }
+
+      m_drive.setControl(new SwerveRequest.FieldCentric()
+          .withVelocityX(speeds.vxMetersPerSecond)
+          .withVelocityY(speeds.vyMetersPerSecond)
+          .withRotationalRate(speeds.omegaRadiansPerSecond));
+
+      headingController.close();
+    }, m_drive);
   }
 
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     m_viz.periodic();
-    m_robotCommands.periodic();
+    m_shootingParameters.periodic();
+
+    DogLog.log("Autonomous", DriverStation.isAutonomousEnabled());
+  }
+
+  @Override
+  public void disabledInit() {
+  }
+
+  @Override
+  public void disabledPeriodic() {
+  }
+
+  @Override
+  public void disabledExit() {
+  }
+
+  @Override
+  public void autonomousInit() {
+    m_autonomousCommand = null;
+
+    if (m_autonomousCommand != null) {
+      CommandScheduler.getInstance().schedule(m_autonomousCommand);
+    }
+  }
+
+  @Override
+  public void autonomousPeriodic() {
+  }
+
+  @Override
+  public void autonomousExit() {
   }
 
   @Override
@@ -213,10 +365,27 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+
+  }
+
+  @Override
+  public void teleopPeriodic() {
+  }
+
+  @Override
+  public void teleopExit() {
   }
 
   @Override
   public void testInit() {
     CommandScheduler.getInstance().cancelAll();
+  }
+
+  @Override
+  public void testPeriodic() {
+  }
+
+  @Override
+  public void testExit() {
   }
 }
