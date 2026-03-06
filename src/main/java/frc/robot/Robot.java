@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.lib.Logger;
+import frc.robot.RobotState.RobotMode;
 import frc.robot.commands.RobotCommands;
 import frc.robot.constants.Constants;
 import frc.robot.constants.Constants.ControlMode;
@@ -182,18 +183,27 @@ public class Robot extends TimedRobot {
   }
 
   public void configureFourWayBindings(FourWayControls controls) {
-    controls.idle().onTrue(m_robotCommands.idle());
+    controls.idle().onTrue(m_state.setRobotModeCommand(RobotMode.kIdle));
 
-    controls.intake().onTrue(m_robotCommands.fill());
+    controls.intake().onTrue(m_state.setRobotModeCommand(RobotMode.kIntake));
 
-    controls.shoot().onTrue(m_robotCommands.autoAimAndPrepareShootTeleop());
+    controls.shoot().onTrue(m_state.setRobotModeCommand(RobotMode.kAutoAim));
 
-    controls.snowBlow().onTrue(m_robotCommands.snowBlow());
+    controls.snowBlow().onTrue(m_state.setRobotModeCommand(RobotMode.kSnowBlow));
 
-    controls.reverseFuel().onTrue(m_robotCommands.reverseFeedFuel())
-                          .onFalse(m_robotCommands.stopFeedingFuel());
+    controls.reverseFuel().onTrue(m_state.setRobotModeCommand(RobotMode.kUnjam));
+
     controls.zeroHood().onTrue(m_robotCommands.zeroTurretHood());
 
+    controls.setpointShoot().onTrue(m_state.setRobotModeCommand(RobotMode.kSetpointShoot));
+
+    m_state.getModeTrigger(RobotMode.kIdle).whileTrue(m_robotCommands.idle());
+
+    m_state.getModeTrigger(RobotMode.kIntake).whileTrue(m_robotCommands.fill());
+
+    m_state.getModeTrigger(RobotMode.kAutoAim).whileTrue(m_robotCommands.autoAimAndPrepareShootTeleop());
+
+    m_state.getModeTrigger(RobotMode.kSetpointShoot).whileTrue(m_robotCommands.setPointShoot());
   }
 
   public void configureTrimControlBindings(TrimControls controls) {

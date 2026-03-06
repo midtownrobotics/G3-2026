@@ -16,4 +16,6 @@ public interface FourWayControls {
   public Trigger reverseFuel();
 
   public Trigger zeroHood();
+
+  public Trigger setpointShoot();
 }

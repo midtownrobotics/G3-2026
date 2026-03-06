@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.Logger;
 import frc.robot.RobotState;
+import frc.robot.RobotState.RobotMode;
 import frc.robot.ShootingParameters;
 import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
@@ -69,7 +70,9 @@ public class RobotCommands {
         m_state = state;
         m_log = new Logger(getClass());
         m_shootingParameters = new ShootingParameters(m_state, this::getTarget);
-        m_parametersHasShot = new Trigger(() -> !m_shootingParameters.getParameters().noShot());
+        m_parametersHasShot = new Trigger(() -> (!m_shootingParameters.getParameters().noShot())).or(m_state
+                .getModeTrigger(RobotMode.kSetpointShoot)
+                .and(() -> m_shooter.getSpeed().isNear(RPM.of(1800), RPM.of(150))));
     }
 
     public Trigger parametersHasShot() {
@@ -184,6 +187,11 @@ public class RobotCommands {
 
     public Command revShooter() {
         return m_shooter.setSpeedCommand(RPM.of(1800));
+    }
+
+    public Command setPointShoot() {
+        return Commands.parallel(m_shooter.setSpeedCommand(RPM.of(1800)),
+                m_hood.setAngleCommand(Degrees.of(2)));
     }
 
     public Command alignHood() {

@@ -50,12 +50,16 @@ public class FourWayXboxControls implements FourWayControls, DriveControls {
 
   @Override
   public Trigger reverseFuel() {
-      return m_controller.povLeft();
+    return m_controller.povLeft();
   }
 
-  
   @Override
   public Trigger zeroHood() {
     return m_controller.a();
+  }
+
+  @Override
+  public Trigger setpointShoot() {
+    return m_controller.x();
   }
 }

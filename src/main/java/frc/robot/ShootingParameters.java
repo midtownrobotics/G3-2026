@@ -104,7 +104,6 @@ public class ShootingParameters {
     final Double distance = pose.getTranslation().getDistance(target);
     DogLog.log("DistanceToTarget", distance);
     return RadiansPerSecond.of(m_flywheelVelocityMap.get(distance)).times(m_flywheelVelocityModifier);
-    // return RPM.of(1000);
   }
 
   private Angle getTurretAngle(Translation2d target, Pose2d pose) {
@@ -228,5 +227,5 @@ public class ShootingParameters {
 
   public void decreaseTurretAngle() {
     m_turretAngleModifier = m_turretAngleModifier.minus(kTurretAngleTolerance);
-   }
+  }
 }
