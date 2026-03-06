@@ -91,7 +91,6 @@ public class Robot extends TimedRobot {
     DogLog.setOptions(new DogLogOptions().withCaptureDs(true));
     // DogLog.setPdh(new PowerDistribution());
     DataLogManager.start();
-    Epilogue.bind(this);
 
     m_drive = TunerConstants.createDrivetrain();
     m_intakePivot = new IntakePivot();
@@ -159,8 +158,10 @@ public class Robot extends TimedRobot {
 
     generateAutoChooser();
     m_log = new Logger(getClass());
-  }
 
+    Epilogue.bind(this); 
+  }
+  
   public Translation2d getTarget() {
     Translation2d target = calculateTarget();
     m_log.log("target", new Pose2d(target, new Rotation2d()));
@@ -274,15 +275,13 @@ public class Robot extends TimedRobot {
   }
 
   public Command snakeDrive() {
-
+    final PIDController headingController = new PIDController(100, 0, 0); 
+    headingController.enableContinuousInput(-Math.PI, Math.PI);           
     return Commands.run(() -> {
-      final PIDController headingController = new PIDController(100, 0, 0);
       final boolean snakeDriveActive = !(Math.abs(m_controls.getDriveRotation()) > 0);
 
       ChassisSpeeds speeds;
       if (snakeDriveActive) {
-        headingController.enableContinuousInput(-Math.PI, Math.PI);
-
         speeds = new ChassisSpeeds(
             m_controls.getDriveForward() * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
                 * Constants.kLinearSpeedMultiplier,
@@ -306,7 +305,6 @@ public class Robot extends TimedRobot {
                 m_controls.getDriveRotation() * m_controls.getDriveRotation()
                     * Constants.kAngularMaxSpeed.in(RadiansPerSecond) * Constants.kAngluarSpeedMultiplier,
                 m_controls.getDriveRotation()));
-
       }
 
       m_drive.setControl(new SwerveRequest.FieldCentric()
@@ -314,7 +312,6 @@ public class Robot extends TimedRobot {
           .withVelocityY(speeds.vyMetersPerSecond)
           .withRotationalRate(speeds.omegaRadiansPerSecond));
 
-      headingController.close();
     }, m_drive);
   }
 
@@ -361,7 +358,6 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-    
   }
 
   @Override
