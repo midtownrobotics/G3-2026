@@ -33,9 +33,10 @@ public class ShootingParameters {
 
   // Takes in a distance in meters and outputs a time in seconds
   private final InterpolatingDoubleTreeMap m_timeOfFlightMap = new InterpolatingDoubleTreeMap();
-  // Takes in a distance in meters and outputs an angle in radians 
+  // Takes in a distance in meters and outputs an angle in radians
   private final InterpolatingDoubleTreeMap m_hoodAngleMap = new InterpolatingDoubleTreeMap();
-  // Takes in a distance in meters and outputs an angular velocity in radians per second
+  // Takes in a distance in meters and outputs an angular velocity in radians per
+  // second
   private final InterpolatingDoubleTreeMap m_flywheelVelocityMap = new InterpolatingDoubleTreeMap();
 
   private double m_flywheelVelocityModifier = 1;
@@ -82,7 +83,6 @@ public class ShootingParameters {
     m_hoodAngleMap.put(Feet.of(10).in(Meters), Degrees.of(20).in(Radians));
     m_hoodAngleMap.put(Feet.of(11).in(Meters), Degrees.of(23).in(Radians));
     m_hoodAngleMap.put(Feet.of(26.875).in(Meters), Degrees.of(20).in(Radians));
-
 
     m_timeOfFlightMap.put(5d, 3d);
   }
@@ -132,7 +132,7 @@ public class ShootingParameters {
   }
 
   public boolean shootingParametersAreWithinTolerance(Parameters parameters) {
-    if (!parameters.turretAngle.isNear(Degrees.of(0), kTurretAngleTolerance)) {
+    if (!parameters.turretAngle.isNear(m_state.getTurretAngle(), kTurretAngleTolerance)) {
       return false;
     }
 
@@ -191,11 +191,11 @@ public class ShootingParameters {
   }
 
   public void increaseHoodAngle() {
-    m_hoodAngleModifier.plus(kHoodAngleTrimStep);
+    m_hoodAngleModifier = m_hoodAngleModifier.plus(kHoodAngleTrimStep);
   }
 
   public void decreaseHoodAngle() {
-    m_hoodAngleModifier.minus(kHoodAngleTrimStep);
+    m_hoodAngleModifier = m_hoodAngleModifier.minus(kHoodAngleTrimStep);
   }
 
   public void increaseVelocityCompensation() {
@@ -207,10 +207,10 @@ public class ShootingParameters {
   }
 
   public void increaseTurretAngle() {
-    m_turretAngleModifier.plus(kTurretAngleTolerance);
+    m_turretAngleModifier = m_turretAngleModifier.plus(kTurretAngleTolerance);
   }
 
   public void decreaseTurretAngle() {
-    m_turretAngleModifier.minus(kTurretAngleTolerance);
+    m_turretAngleModifier = m_turretAngleModifier.minus(kTurretAngleTolerance);
   }
 }
