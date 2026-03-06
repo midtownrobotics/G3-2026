@@ -127,7 +127,8 @@ public class RobotCommands {
     public Command idle() {
         return Commands.parallel(
                 m_shooter.setSpeedCommand(RPM.of(0)),
-                stowIntake())
+                stowIntake(),
+                stopFeedingFuel())
                 .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
     }
 
@@ -210,7 +211,7 @@ public class RobotCommands {
 
     public Command zeroTurretHood() {
         return Commands.repeatingSequence(
-                m_hood.setVoltage(Volts.of(-1.5)).until(m_hood.isNearTrigger(() -> Degrees.zero(), Degrees.of(1)))
+                m_hood.setVoltage(Volts.of(-3.5)).until(m_hood.isNearTrigger(() -> Degrees.zero(), Degrees.of(1)))
                         .withTimeout(Seconds.of(1)),
                 m_hood.setEncoderAngleCommand(Degrees.of(10))).withTimeout(4).until(m_hood.getCurrentSpikeTrigger())
                 .andThen(m_hood.zeroEncoderAngleCommand());
