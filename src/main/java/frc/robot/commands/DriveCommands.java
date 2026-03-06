@@ -19,11 +19,12 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 public class DriveCommands {
+
         protected static Command rotateRobot(CommandSwerveDrivetrain drive, Supplier<Rotation2d> rotation,
                         Supplier<Double> driveForward,
                         Supplier<Double> driveLeft) {
+                final PIDController headingController = new PIDController(7, 0, 0);
                 return Commands.run(() -> {
-                        final PIDController headingController = new PIDController(7, 0, 0);
 
                         headingController.enableContinuousInput(-Math.PI, Math.PI);
 
@@ -43,8 +44,6 @@ public class DriveCommands {
                                         .withVelocityX(speeds.vxMetersPerSecond)
                                         .withVelocityY(speeds.vyMetersPerSecond)
                                         .withRotationalRate(speeds.omegaRadiansPerSecond));
-
-                        headingController.close();
                 }, drive);
         }
 
