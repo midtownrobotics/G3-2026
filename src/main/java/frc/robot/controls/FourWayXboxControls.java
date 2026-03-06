@@ -49,7 +49,7 @@ public class FourWayXboxControls implements FourWayControls, DriveControls {
   }
 
   @Override
-  public Trigger unjam() {
+  public Trigger reverseFuel() {
     return m_controller.povLeft();
   }
 
@@ -60,6 +60,6 @@ public class FourWayXboxControls implements FourWayControls, DriveControls {
 
   @Override
   public Trigger setpointShoot() {
-    return m_controller.y();
+    return m_controller.x();
   }
 }

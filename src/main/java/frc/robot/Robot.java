@@ -191,7 +191,7 @@ public class Robot extends TimedRobot {
 
     controls.snowBlow().onTrue(m_state.setRobotModeCommand(RobotMode.kSnowBlow));
 
-    controls.unjam().onTrue(m_state.setRobotModeCommand(RobotMode.kUnjam));
+    controls.reverseFuel().onTrue(m_state.setRobotModeCommand(RobotMode.kUnjam));
 
     controls.zeroHood().onTrue(m_robotCommands.zeroTurretHood());
 
@@ -204,8 +204,6 @@ public class Robot extends TimedRobot {
     m_state.getModeTrigger(RobotMode.kAutoAim).whileTrue(m_robotCommands.autoAimAndPrepareShootTeleop());
 
     m_state.getModeTrigger(RobotMode.kSetpointShoot).whileTrue(m_robotCommands.setPointShoot());
-
-    m_state.getModeTrigger(RobotMode.kUnjam).whileTrue(m_robotCommands.reverseFeedFuel());
   }
 
   public void configureTrimControlBindings(TrimControls controls) {

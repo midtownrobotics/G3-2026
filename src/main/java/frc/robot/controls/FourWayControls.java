@@ -13,7 +13,7 @@ public interface FourWayControls {
 
   public Trigger snowBlow();
 
-  public Trigger unjam();
+  public Trigger reverseFuel();
 
   public Trigger zeroHood();
 
