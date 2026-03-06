@@ -205,11 +205,11 @@ public class ShootingParameters {
   }
 
   public void increaseHoodAngle() {
-    m_hoodAngleModifier.plus(kHoodAngleTrimStep);
+    m_hoodAngleModifier = m_hoodAngleModifier.plus(kHoodAngleTrimStep);
   }
 
   public void decreaseHoodAngle() {
-    m_hoodAngleModifier.minus(kHoodAngleTrimStep);
+    m_hoodAngleModifier = m_hoodAngleModifier.minus(kHoodAngleTrimStep);
   }
 
   public void increaseVelocityCompensation() {
@@ -221,10 +221,10 @@ public class ShootingParameters {
   }
 
   public void increaseTurretAngle() {
-    m_turretAngleModifier.plus(kTurretAngleTolerance);
+    m_turretAngleModifier = m_turretAngleModifier.plus(kTurretAngleTolerance);
   }
 
   public void decreaseTurretAngle() {
-    m_turretAngleModifier.minus(kTurretAngleTolerance);
+    m_turretAngleModifier = m_turretAngleModifier.minus(kTurretAngleTolerance);
   }
 }
