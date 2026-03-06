@@ -189,6 +189,11 @@ public class Robot extends TimedRobot {
     controls.shoot().onTrue(m_robotCommands.autoAimAndPrepareShootTeleop());
 
     controls.snowBlow().onTrue(m_robotCommands.snowBlow());
+
+    controls.reverseFuel().onTrue(m_robotCommands.reverseFeedFuel())
+                          .onFalse(m_robotCommands.stopFeedingFuel());
+    controls.zeroHood().onTrue(m_robotCommands.zeroTurretHood());
+
   }
 
   public void configureTrimControlBindings(TrimControls controls) {
@@ -202,8 +207,6 @@ public class Robot extends TimedRobot {
         .onTrue(m_robotCommands.increaseVelocityCompensation());
     controls.decreaseVelocityCompensation()
         .onTrue(m_robotCommands.decreaseVelocityCompensation());
-
-    controls.zeroHood().onTrue(m_robotCommands.zeroTurretHood());
   }
 
   @Override

@@ -34,12 +34,20 @@ public class SubsystemCommands {
         return feeder.setVoltageCommand(Volts.of(5));
     }
 
+    protected static Command runFeedersReverse(Feeder feeder) {
+        return feeder.setVoltageCommand(Volts.of(-10));
+    }
+
     protected static Command stopFeeders(Feeder feeder) {
         return feeder.setVoltageCommand(Volts.of(0));
     }
 
     protected static Command runTransportRollers(TransportRoller transportRoller) {
         return transportRoller.setVoltageCommand(Volts.of(-10));
+    }
+
+    protected static Command runTransportRollersReverse(TransportRoller transportRoller) {
+        return transportRoller.setVoltageCommand(Volts.of(3));
     }
 
     protected static Command stopTransportRollers(TransportRoller transportRoller) {
