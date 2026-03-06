@@ -77,8 +77,9 @@ public class Turret extends SubsystemBase {
     Supplier<Angle> encoder2PositionSupplier = () -> m_encoder2.getAbsolutePosition().getValue();
 
     EasyCRTConfig easyCRTConfig = new EasyCRTConfig(encoder1PositionSupplier, encoder2PositionSupplier)
-        .withEncoderRatios(0.0, 0.0)
-        .withAbsoluteEncoderInversions(false, false)
+        .withAbsoluteEncoder1GearingStages(82, 10)
+        .withAbsoluteEncoder2GearingStages(82, 10, 21, 20)
+        .withAbsoluteEncoderInversions(true, false)
         .withAbsoluteEncoderOffsets(Rotations.of(0.0), Rotations.of(0.0));
 
     m_easyCRTSolver = new EasyCRT(easyCRTConfig);

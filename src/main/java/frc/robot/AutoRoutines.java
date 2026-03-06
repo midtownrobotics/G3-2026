@@ -12,7 +12,7 @@ public class AutoRoutines {
   private final Logger m_logger;
   private final RobotCommands m_commands;
 
-  public AutoRoutines(AutoFactory autoFactory, RobotCommands robotCommands) {
+  public AutoRoutines(AutoFactory autoFactory, Robot robot, RobotCommands robotCommands) {
     m_autoFactory = autoFactory;
     m_logger = new Logger(getClass());
     m_commands = robotCommands;

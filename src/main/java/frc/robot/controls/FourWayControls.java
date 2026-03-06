@@ -12,4 +12,10 @@ public interface FourWayControls {
   public Trigger shoot();
 
   public Trigger snowBlow();
+
+  public Trigger unjam();
+
+  public Trigger zeroHood();
+
+  public Trigger setpointShoot();
 }

@@ -16,6 +16,8 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
@@ -40,6 +42,17 @@ public class RobotState {
   public final TransportRoller m_transportRoller;
   public final Shooter m_shooter;
   public final Hood m_hood;
+
+  private RobotMode m_mode = RobotMode.kIdle;
+
+  public enum RobotMode {
+    kAutoAim,
+    kSnowBlow,
+    kIdle,
+    kIntake,
+    kSetpointShoot,
+    kUnjam
+  }
 
   public RobotState(
       CommandSwerveDrivetrain drive,
@@ -126,5 +139,9 @@ public class RobotState {
 
   public Trigger fuelSensorTripped() {
     return m_feeder.fuelSensorTripped();
+  }
+
+  public Command setRobotModeCommand(RobotMode mode) {
+    return Commands.runOnce(() -> m_mode = mode);
   }
 }

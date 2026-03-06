@@ -47,4 +47,19 @@ public class FourWayXboxControls implements FourWayControls, DriveControls {
   public Trigger snowBlow() {
     return m_controller.rightTrigger();
   }
+
+  @Override
+  public Trigger unjam() {
+    return m_controller.povLeft();
+  }
+
+  @Override
+  public Trigger zeroHood() {
+    return m_controller.a();
+  }
+
+  @Override
+  public Trigger setpointShoot() {
+    return m_controller.y();
+  }
 }
