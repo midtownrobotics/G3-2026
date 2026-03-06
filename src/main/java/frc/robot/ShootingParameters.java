@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import dev.doglog.DogLog;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -54,11 +55,11 @@ public class ShootingParameters {
   // Takes in a distance in meters and outputs an angular velocity in radians per
   // second
   public final InterpolatingDoubleTreeMap m_flywheelVelocityMap = InterpolatingDoubleTreeMap.ofEntries(
-      Map.entry(Feet.of(4.25).in(Meters), RPM.of(1750).in(RadiansPerSecond)),
-      Map.entry(Feet.of(4.75).in(Meters), RPM.of(1700).in(RadiansPerSecond)),
-      Map.entry(Feet.of(5).in(Meters), RPM.of(1650).in(RadiansPerSecond)),
-      Map.entry(Feet.of(5.5).in(Meters), RPM.of(1650).in(RadiansPerSecond)),
-      Map.entry(Feet.of(6).in(Meters), RPM.of(1700).in(RadiansPerSecond)),
+      Map.entry(Feet.of(4.25).in(Meters), RPM.of(1800).in(RadiansPerSecond)),
+      Map.entry(Feet.of(4.75).in(Meters), RPM.of(1750).in(RadiansPerSecond)),
+      Map.entry(Feet.of(5).in(Meters), RPM.of(1700).in(RadiansPerSecond)),
+      Map.entry(Feet.of(5.5).in(Meters), RPM.of(1700).in(RadiansPerSecond)),
+      Map.entry(Feet.of(6).in(Meters), RPM.of(1750).in(RadiansPerSecond)),
       Map.entry(Feet.of(7).in(Meters), RPM.of(1800).in(RadiansPerSecond)),
       Map.entry(Feet.of(8).in(Meters), RPM.of(1800).in(RadiansPerSecond)),
       Map.entry(Feet.of(9).in(Meters), RPM.of(1950).in(RadiansPerSecond)),
@@ -101,6 +102,7 @@ public class ShootingParameters {
 
   private AngularVelocity getFlyWheelVelocity(Translation2d target, Pose2d pose) {
     final Double distance = pose.getTranslation().getDistance(target);
+    DogLog.log("DistanceToTarget", distance);
     return RadiansPerSecond.of(m_flywheelVelocityMap.get(distance)).times(m_flywheelVelocityModifier);
     // return RPM.of(1000);
   }
@@ -226,5 +228,5 @@ public class ShootingParameters {
 
   public void decreaseTurretAngle() {
     m_turretAngleModifier = m_turretAngleModifier.minus(kTurretAngleTolerance);
-  }
+   }
 }

@@ -52,8 +52,4 @@ public class TrimXboxControls implements TrimControls {
     return m_controller.povLeft();
   }
 
-  @Override
-  public Trigger zeroHood() {
-    return m_controller.a();
-  }
 }

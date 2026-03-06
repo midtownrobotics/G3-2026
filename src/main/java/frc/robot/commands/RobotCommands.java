@@ -150,6 +150,10 @@ public class RobotCommands {
         return SubsystemCommands.runFeeders(m_feeder);
     }
 
+    private Command runFeederReverse() {
+        return SubsystemCommands.runFeedersReverse(m_feeder);
+    }
+
     private Command stopFeeder() {
         return SubsystemCommands.stopFeeders(m_feeder);
     }
@@ -162,12 +166,20 @@ public class RobotCommands {
         return SubsystemCommands.stopTransportRollers(m_transportRoller);
     }
 
+    private Command runTransportRollersReverse() {
+        return SubsystemCommands.runTransportRollersReverse(m_transportRoller);
+    }
+
     public Command feedFuel() {
         return Commands.parallel(runFeeder(), runTransportRollers());
     }
 
     public Command stopFeedingFuel() {
         return Commands.parallel(stopFeeder(), stopTransportRollers());
+    }
+
+    public Command reverseFeedFuel() {
+        return Commands.parallel(runFeederReverse(), runTransportRollersReverse(), driveCommand());
     }
 
     public Command revShooter() {
