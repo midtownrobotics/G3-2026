@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.photonvision.PhotonCamera;
 import org.photonvision.simulation.PhotonCameraSim;
@@ -47,8 +48,12 @@ public class DetectionCam {
     return new PhotonCameraSim(this.getCamera(), properties);
   }
 
-  public PhotonPipelineResult getLatestResult() {
-    return m_camera.getLatestResult();
+  public Optional<PhotonPipelineResult> getLatestResult() {
+    List<PhotonPipelineResult> results = m_camera.getAllUnreadResults();
+    if (results.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.of(results.get(results.size() - 1));
   }
 
   public List<DetectionResult> getLatestDetectionResults() {
