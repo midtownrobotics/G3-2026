@@ -6,6 +6,8 @@ import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
 
+import java.util.function.Supplier;
+
 import com.ctre.phoenix6.configs.CANrangeConfiguration;
 import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -16,11 +18,12 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.Logger;
-import frc.robot.Ports;
+import frc.robot.constants.Ports;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
 import yams.motorcontrollers.SmartMotorController;
@@ -43,10 +46,10 @@ public class Feeder extends SubsystemBase {
     SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.OPEN_LOOP)
         .withIdleMode(MotorMode.COAST)
-        .withClosedLoopController(0.3, 0, 0.01)
-        .withFeedforward(new SimpleMotorFeedforward(0.05, 0.12, 0))
+        // .withClosedLoopController(0.3, 0, 0.01)
+        // .withFeedforward(new SimpleMotorFeedforward(0.05, 0.12, 0))
         .withGearing(2)
-        .withTelemetry("FeederMotor", TelemetryVerbosity.HIGH);
+        .withTelemetry("FeederMotor", TelemetryVerbosity.LOW);
 
     SmartMotorController motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX44(1), motorControllerConfig);
 
@@ -55,7 +58,7 @@ public class Feeder extends SubsystemBase {
         .withUpperSoftLimit(RPM.of(6000))
         .withLowerSoftLimit(RPM.of(-6000))
         .withDiameter(Inches.of(2.0))
-        .withTelemetry("Feeder", TelemetryVerbosity.HIGH);
+        .withTelemetry("Feeder", TelemetryVerbosity.LOW);
 
     m_mechanism = new FlyWheel(beltConfig);
 
@@ -91,5 +94,13 @@ public class Feeder extends SubsystemBase {
 
   public Command setSpeedCommand(AngularVelocity angularVelocity) {
     return m_mechanism.setSpeed(angularVelocity);
+  }
+
+  public Command setVoltageCommand(Supplier<Voltage> voltage) {
+    return m_mechanism.setVoltage(voltage);
+  }
+
+  public Command setVoltageCommand(Voltage voltage) {
+    return m_mechanism.setVoltage(voltage);
   }
 }

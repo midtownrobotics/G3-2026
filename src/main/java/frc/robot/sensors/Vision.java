@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.Logger;
 import frc.robot.Robot;
 import frc.robot.sensors.Camera.PoseObservation;
 
@@ -19,6 +20,7 @@ public class Vision extends SubsystemBase {
   private final Consumer<PoseObservation> m_addVisionMeasurement;
   private final Supplier<Pose2d> m_poseSupplier;
   private VisionSystemSim m_visionSim;
+  private final Logger m_log;
 
   StructArrayPublisher<Pose3d> posePublisher = NetworkTableInstance.getDefault()
       .getStructArrayTopic("Vision/poses", Pose3d.struct).publish();
@@ -32,21 +34,19 @@ public class Vision extends SubsystemBase {
       m_visionSim = new VisionSystemSim("main");
       m_cameras.forEach(c -> m_visionSim.addCamera(c.getSimCamera(), c.getRobotToCamera()));
     }
+
+    m_log = new Logger(getClass());
   }
 
   @Override
   public void periodic() {
     for (var camera : m_cameras) {
+      m_log.log("cameraPoses/" + camera.getName(), new Pose3d(m_poseSupplier.get()).transformBy(camera.getRobotToCamera()));
       for (var observation : camera.getLatestObservations()) {
+        m_log.log(camera.getName()+"/observedPose", observation.pose());
         m_addVisionMeasurement.accept(observation);
       }
     }
-
-    posePublisher.accept(m_cameras.stream()
-        .map((cam) -> cam.getLatestObservations())
-        .flatMap(List::stream)
-        .map((obs) -> obs.pose()).toArray(Pose3d[]::new));
-
   }
 
   @Override

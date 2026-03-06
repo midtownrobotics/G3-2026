@@ -20,9 +20,10 @@ import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Ports;
+import frc.robot.constants.Ports;
 import yams.mechanisms.config.PivotConfig;
 import yams.mechanisms.positional.Pivot;
 import yams.motorcontrollers.SmartMotorController;
@@ -48,11 +49,12 @@ public class Turret extends SubsystemBase {
 
     SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
-        .withClosedLoopController(10, 0, 0,
-            DegreesPerSecond.of(950), DegreesPerSecondPerSecond.of(30))
+        // .withClosedLoopController(10, 0, 0,
+            // DegreesPerSecond.of(950), DegreesPerSecondPerSecond.of(30))
+        .withClosedLoopController(0, 0, 0)
         .withGearing(48)
         .withIdleMode(MotorMode.BRAKE)
-        .withTelemetry("TurretMotor", TelemetryVerbosity.HIGH)
+        .withTelemetry("TurretMotor", TelemetryVerbosity.LOW)
         .withStatorCurrentLimit(Amps.of(30))
         .withClosedLoopRampRate(Seconds.of(0.25))
         .withOpenLoopRampRate(Seconds.of(0.25));
@@ -62,7 +64,7 @@ public class Turret extends SubsystemBase {
     PivotConfig pivotConfig = new PivotConfig(motorController)
         .withStartingPosition(Degrees.of(0))
         .withHardLimit(Degrees.of(-255), Degrees.of(255))
-        .withTelemetry("Turret", TelemetryVerbosity.HIGH)
+        .withTelemetry("Turret", TelemetryVerbosity.LOW)
         .withMOI(KilogramSquareMeters.of(0.1457345474));
 
     m_mechanism = new Pivot(pivotConfig);

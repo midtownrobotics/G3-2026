@@ -15,7 +15,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Ports;
+import frc.robot.constants.Ports;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
 import yams.motorcontrollers.SmartMotorController;
@@ -37,7 +37,7 @@ public class IntakeRoller extends SubsystemBase {
         .withControlMode(ControlMode.OPEN_LOOP)
         .withIdleMode(MotorMode.COAST)
         .withGearing(1)
-        .withTelemetry("IntakeRollerMotor", TelemetryVerbosity.HIGH);
+        .withTelemetry("IntakeRollerMotor", TelemetryVerbosity.LOW);
 
     SmartMotorController motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorControllerConfig);
 
@@ -46,7 +46,7 @@ public class IntakeRoller extends SubsystemBase {
         .withUpperSoftLimit(RPM.of(6000))
         .withLowerSoftLimit(RPM.of(-6000))
         .withDiameter(Inches.of(1.5))
-        .withTelemetry("IntakeRoller", TelemetryVerbosity.HIGH);
+        .withTelemetry("IntakeRoller", TelemetryVerbosity.LOW);
 
     m_mechanism = new FlyWheel(rollerConfig);
   }

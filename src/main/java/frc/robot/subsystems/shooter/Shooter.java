@@ -19,7 +19,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Ports;
+import frc.robot.constants.Ports;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
 import yams.motorcontrollers.SmartMotorController;
@@ -40,7 +40,7 @@ public class Shooter extends SubsystemBase {
     SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig(this)
         .withIdleMode(MotorMode.COAST)
         .withGearing(2d / 3d)
-        .withTelemetry("ShooterMotor", TelemetryVerbosity.HIGH)
+        .withTelemetry("ShooterMotor", TelemetryVerbosity.LOW)
         .withControlMode(ControlMode.CLOSED_LOOP)
         .withClosedLoopController(0.3, 0, 0,
             RPM.of(10000), RPM.of(1000).per(Second))
@@ -56,7 +56,7 @@ public class Shooter extends SubsystemBase {
 
     FlyWheelConfig flywheelConfig = new FlyWheelConfig(motorController)
         .withMOI(KilogramSquareMeters.of(0.0021175394))
-        .withTelemetry("Shooter", TelemetryVerbosity.HIGH);
+        .withTelemetry("Shooter", TelemetryVerbosity.LOW);
 
     MotorOutputConfigs outputConfigs = new MotorOutputConfigs();
     outputConfigs.PeakReverseDutyCycle = 0;

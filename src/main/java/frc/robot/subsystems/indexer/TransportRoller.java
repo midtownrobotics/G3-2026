@@ -4,15 +4,18 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
 
+import java.util.function.Supplier;
+
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Ports;
+import frc.robot.constants.Ports;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
 import yams.motorcontrollers.SmartMotorController;
@@ -32,7 +35,7 @@ public class TransportRoller extends SubsystemBase {
     SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.OPEN_LOOP)
         .withIdleMode(MotorMode.COAST)
-        .withTelemetry("TransportRollerMotor", TelemetryVerbosity.HIGH)
+        .withTelemetry("TransportRollerMotor", TelemetryVerbosity.LOW)
         .withGearing(20d / 14d);
 
     SmartMotorController motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorControllerConfig);
@@ -42,7 +45,7 @@ public class TransportRoller extends SubsystemBase {
         .withUpperSoftLimit(RPM.of(5000))
         .withLowerSoftLimit(RPM.of(-5000))
         .withDiameter(Inches.of(1.5))
-        .withTelemetry("TransportRoller", TelemetryVerbosity.HIGH);
+        .withTelemetry("TransportRoller", TelemetryVerbosity.LOW);
 
     m_mechanism = new FlyWheel(rollerConfig);
   }
@@ -59,6 +62,10 @@ public class TransportRoller extends SubsystemBase {
 
   public Command setSpeedCommand(AngularVelocity speed) {
     return m_mechanism.setSpeed(speed);
+  }
+
+  public Command setVoltageCommand(Voltage volts) {
+    return m_mechanism.setVoltage(volts);
   }
 
   public Command stopCommand() {

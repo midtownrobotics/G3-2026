@@ -22,8 +22,10 @@ import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Ports;
+import frc.lib.Logger;
+import frc.robot.constants.Ports;
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.ArmConfig;
@@ -39,6 +41,7 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 public class IntakePivot extends SubsystemBase {
   private final Arm m_mechanism;
   private final CANcoder m_encoder;
+  private final Logger m_log;
 
   public IntakePivot() {
     TalonFX motor = new TalonFX(Ports.kIntakePivot.canId(), Ports.kIntakePivot.canbus());
@@ -50,7 +53,7 @@ public class IntakePivot extends SubsystemBase {
         .withSimClosedLoopController(3.0, 0.0, 0.05, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(1000))
         .withFeedforward(new ArmFeedforward(0.0, 0.5, 0.0))
         .withGearing(new MechanismGearing(GearBox.fromStages("50:12", "60:20", "48:16")))
-        .withTelemetry("PivotMotor", TelemetryVerbosity.HIGH)
+        .withTelemetry("PivotMotor", TelemetryVerbosity.LOW)
         .withMotorInverted(true)
         .withIdleMode(MotorMode.BRAKE);
 
@@ -62,7 +65,7 @@ public class IntakePivot extends SubsystemBase {
         .withStartingPosition(getAbsoluteAngle())
         .withLength(Inches.of(30.5))
         .withMass(Pounds.of(4.0))
-        .withTelemetry("IntakePivot", TelemetryVerbosity.HIGH);
+        .withTelemetry("IntakePivot", TelemetryVerbosity.LOW);
 
     CANcoderConfiguration canCoderConfig = new CANcoderConfiguration();
     canCoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
@@ -74,11 +77,13 @@ public class IntakePivot extends SubsystemBase {
     motor.getConfigurator().refresh(mmConfigs);
     mmConfigs.MotionMagicJerk = 10;
     motor.getConfigurator().apply(mmConfigs);
+    
+    m_log = new Logger(getClass());
   }
 
   private Angle getAbsoluteAngle() {
-    // Set this to the value of "Intake/IntakeAbsoluteEncoderOffset" when the intake is all the way down.
-    final double WRAP_OFFSET = 4.8;
+    // Set this to the value of "IntakePivot/intakeAbsoluteEncoderOffset" when the intake is all the way down.
+    final double WRAP_OFFSET = -9.6;
 
     double encoderDeg = m_encoder.getAbsolutePosition().getValue().in(Degrees);
     if (encoderDeg < 0)
@@ -104,8 +109,9 @@ public class IntakePivot extends SubsystemBase {
   @Override
   public void periodic() {
     m_mechanism.updateTelemetry();
-    DogLog.log("Intake/IntakeAbsoluteEncoder", getAbsoluteAngle().in(Degrees));
-    DogLog.log("Intake/IntakeAbsoluteEncoderOffset", getAbsoluteOffsetAt0().in(Degrees));
+    m_log.log("intakeAbsoluteEncoder", getAbsoluteAngle().in(Degrees));
+    m_log.log("intakeAbsoluteEncoderOffset", getAbsoluteOffsetAt0().in(Degrees));
+    m_log.log("rawEncoderValue", m_encoder.getAbsolutePosition().getValue());
   }
 
   @Override
