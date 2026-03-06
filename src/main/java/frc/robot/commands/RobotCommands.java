@@ -13,7 +13,6 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.Logger;
 import frc.robot.RobotState;
@@ -79,7 +78,7 @@ public class RobotCommands {
 
     public Command snowBlow() {
         return Commands.parallel(
-                driveCommand(),
+                autoAimForTeleop(),
                 runFlywheelCommand(),
                 runIntake()).withInterruptBehavior(InterruptionBehavior.kCancelSelf);
     }
