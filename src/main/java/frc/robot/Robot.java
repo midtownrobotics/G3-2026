@@ -124,16 +124,21 @@ public class Robot extends TimedRobot {
         m_shooter,
         m_hood);
 
-    m_robotCommands = new RobotCommands(m_drive, m_intakePivot, m_intakeRoller, m_turret, m_feeder, m_vision,
-        m_transportRoller, m_shooter, m_hood, m_state);
-
     if (Constants.kControlMode == ControlMode.Conventional) {
       var controls = new ConventionalXboxControls(0);
       m_controls = controls;
+
+      m_robotCommands = new RobotCommands(m_drive, m_intakePivot, m_intakeRoller, m_turret, m_feeder, m_vision,
+          m_transportRoller, m_shooter, m_hood, m_state, controls);
+
       configureConventionalBindings(controls);
     } else {
       var controls = new FourWayXboxControls(0);
       m_controls = controls;
+
+      m_robotCommands = new RobotCommands(m_drive, m_intakePivot, m_intakeRoller, m_turret, m_feeder, m_vision,
+          m_transportRoller, m_shooter, m_hood, m_state, controls);
+
       configureFourWayBindings(controls);
     }
 
@@ -155,7 +160,7 @@ public class Robot extends TimedRobot {
 
     m_turret.setDefaultCommand(m_robotCommands.alignTurret());
 
-    m_drive.setDefaultCommand(m_robotCommands.driveCommand(m_controls));
+    m_drive.setDefaultCommand(m_robotCommands.driveCommand());
 
     m_trimControls = new TrimXboxControls(1);
     configureTrimControlBindings(m_trimControls);
@@ -172,7 +177,7 @@ public class Robot extends TimedRobot {
   }
 
   public void configureConventionalBindings(ConventionalControls controls) {
-    controls.shoot().onTrue(m_robotCommands.shoot(m_controls)).onFalse(m_robotCommands.stopShooting());
+    controls.shoot().onTrue(m_robotCommands.prepareShoot()).onFalse(m_robotCommands.stopFlywheel());
     controls.intake().onTrue(m_robotCommands.runIntake()).onFalse(m_robotCommands.stowIntake());
   }
 
@@ -181,9 +186,9 @@ public class Robot extends TimedRobot {
 
     controls.intake().onTrue(m_robotCommands.fill());
 
-    controls.shoot().onTrue(m_robotCommands.empty(m_controls));
+    controls.shoot().onTrue(m_robotCommands.autoAimAndPrepareShootTeleop());
 
-    controls.snowBlow().onTrue(m_robotCommands.snowBlow(m_controls));
+    controls.snowBlow().onTrue(m_robotCommands.snowBlow());
   }
 
   public void configureTrimControlBindings(TrimControls controls) {

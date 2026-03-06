@@ -26,7 +26,7 @@ public class AutoRoutines {
     leftStartToDepot.active().onTrue(m_robotCommands.revShooter());
     leftStartToDepot.active().onTrue(m_robotCommands.runIntake());
     leftStartToDepot.doneDelayed(1).onTrue(depotToShoot.cmd());
-    depotToShoot.doneDelayed(0.5).onTrue(m_robotCommands.shoot());
+    depotToShoot.doneDelayed(0.5).onTrue(m_robotCommands.autoAimAndPrepareShootAutonomous());
 
     routine.active().onTrue(
         Commands.sequence(
