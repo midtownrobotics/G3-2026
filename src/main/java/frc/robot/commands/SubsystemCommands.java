@@ -31,7 +31,7 @@ public class SubsystemCommands {
     }
 
     protected static Command runFeeders(Feeder feeder) {
-        return feeder.setVoltageCommand(Volts.of(5));
+        return feeder.setVoltageCommand(Volts.of(10));
     }
 
     protected static Command runFeedersReverse(Feeder feeder) {

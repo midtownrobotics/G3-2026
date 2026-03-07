@@ -203,6 +203,8 @@ public class Robot extends TimedRobot {
 
     m_state.getModeTrigger(RobotMode.kAutoAim).whileTrue(m_robotCommands.autoAimAndPrepareShootTeleop());
 
+    m_state.getModeTrigger(RobotMode.kSnowBlow).whileTrue(m_robotCommands.snowBlow());
+
     m_state.getModeTrigger(RobotMode.kSetpointShoot).whileTrue(m_robotCommands.setPointShoot());
 
     m_state.getModeTrigger(RobotMode.kUnjam).whileTrue(m_robotCommands.reverseFeedFuel());
