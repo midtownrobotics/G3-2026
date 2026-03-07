@@ -5,10 +5,11 @@ import edu.wpi.first.wpilibj.Timer;
 
 public class Watchdawg {
     final String basePath;
-    double m_startTime;
+    private double m_startTime;
 
     public Watchdawg(Class<?> clazz) {
         basePath = "Watchdog/" + clazz.getSimpleName() + "/";
+        m_startTime = 0;
     }
 
     public void start() {
