@@ -1,8 +1,5 @@
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
@@ -82,6 +79,10 @@ public class RobotState {
   public Pose2d getTurretPose() {
     return getRobotPose().transformBy(Constants.kRobotToTurret);
   }
+
+  public Trigger getModeTrigger(RobotMode mode) {
+    return new Trigger(() -> m_mode == mode);
+}
 
   public ChassisSpeeds getRobotRelativeSpeeds() {
     return m_drive.getChassisSpeeds();

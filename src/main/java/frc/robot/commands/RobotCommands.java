@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.Logger;
 import frc.robot.RobotState;
+import frc.robot.RobotState.RobotMode;
 import frc.robot.ShootingParameters;
 import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
@@ -69,7 +70,9 @@ public class RobotCommands {
         m_state = state;
         m_log = new Logger(getClass());
         m_shootingParameters = new ShootingParameters(m_state, this::getTarget);
-        m_parametersHasShot = new Trigger(() -> !m_shootingParameters.getParameters().noShot());
+        m_parametersHasShot = new Trigger(() -> (!m_shootingParameters.getParameters().noShot())).or(m_state
+                .getModeTrigger(RobotMode.kSetpointShoot)
+                .and(() -> m_shooter.getSpeed().isNear(RPM.of(1800), RPM.of(150))));
     }
 
     public Trigger parametersHasShot() {
@@ -124,7 +127,8 @@ public class RobotCommands {
     public Command idle() {
         return Commands.parallel(
                 m_shooter.setSpeedCommand(RPM.of(0)),
-                stowIntake())
+                stowIntake(),
+                stopFeedingFuel())
                 .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
     }
 
@@ -150,6 +154,10 @@ public class RobotCommands {
         return SubsystemCommands.runFeeders(m_feeder);
     }
 
+    private Command runFeederReverse() {
+        return SubsystemCommands.runFeedersReverse(m_feeder);
+    }
+
     private Command stopFeeder() {
         return SubsystemCommands.stopFeeders(m_feeder);
     }
@@ -162,6 +170,10 @@ public class RobotCommands {
         return SubsystemCommands.stopTransportRollers(m_transportRoller);
     }
 
+    private Command runTransportRollersReverse() {
+        return SubsystemCommands.runTransportRollersReverse(m_transportRoller);
+    }
+
     public Command feedFuel() {
         return Commands.parallel(runFeeder(), runTransportRollers());
     }
@@ -170,8 +182,17 @@ public class RobotCommands {
         return Commands.parallel(stopFeeder(), stopTransportRollers());
     }
 
+    public Command reverseFeedFuel() {
+        return Commands.parallel(runFeederReverse(), runTransportRollersReverse(), driveCommand());
+    }
+
     public Command revShooter() {
         return m_shooter.setSpeedCommand(RPM.of(1800));
+    }
+
+    public Command setPointShoot() {
+        return Commands.parallel(m_shooter.setSpeedCommand(RPM.of(1800)),
+                m_hood.setAngleCommand(Degrees.of(2)));
     }
 
     public Command alignHood() {
@@ -190,7 +211,7 @@ public class RobotCommands {
 
     public Command zeroTurretHood() {
         return Commands.repeatingSequence(
-                m_hood.setVoltage(Volts.of(-1.5)).until(m_hood.isNearTrigger(() -> Degrees.zero(), Degrees.of(1)))
+                m_hood.setVoltage(Volts.of(-3.5)).until(m_hood.isNearTrigger(() -> Degrees.zero(), Degrees.of(1)))
                         .withTimeout(Seconds.of(1)),
                 m_hood.setEncoderAngleCommand(Degrees.of(10))).withTimeout(4).until(m_hood.getCurrentSpikeTrigger())
                 .andThen(m_hood.zeroEncoderAngleCommand());
