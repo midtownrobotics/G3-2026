@@ -8,7 +8,6 @@ import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 

@@ -1,11 +1,7 @@
 package frc.robot.sensors;
 
-import java.sql.ResultSet;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
