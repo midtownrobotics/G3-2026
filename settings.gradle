@@ -23,6 +23,7 @@ pluginManagement {
             name = 'frcHome'
             url = frcHomeMaven
         }
+        maven { url = "https://frcmaven.wpi.edu/release" } 
     }
 }
 
