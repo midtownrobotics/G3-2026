@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.Logger;
+import frc.lib.Watchdawg;
 import frc.robot.RobotState;
 import frc.robot.RobotState.RobotMode;
 import frc.robot.ShootingParameters;
@@ -45,6 +46,7 @@ public class RobotCommands {
     private final RobotState m_state;
     private final Trigger m_parametersHasShot;
     private final DriveControls m_controls;
+    private final Watchdawg m_watchdog;
 
     public RobotCommands(
             CommandSwerveDrivetrain drive,
@@ -73,6 +75,7 @@ public class RobotCommands {
         m_parametersHasShot = new Trigger(() -> (!m_shootingParameters.getParameters().noShot())).or(m_state
                 .getModeTrigger(RobotMode.kSetpointShoot)
                 .and(() -> m_shooter.getSpeed().isNear(RPM.of(1800), RPM.of(150))));
+        m_watchdog = new Watchdawg(getClass());
     }
 
     public Trigger parametersHasShot() {
@@ -222,12 +225,15 @@ public class RobotCommands {
     }
 
     private Translation2d getTarget() {
+        m_watchdog.start();
         Translation2d target = calculateTarget();
         m_log.log("target", new Pose2d(target, new Rotation2d()));
+        m_watchdog.end("calculateAndLogTarget");
         return target;
     }
 
     private Translation2d calculateTarget() {
+        m_watchdog.start();
         if (m_state.inAllianceZone()) {
             return FieldConstants.getHubPosition2d();
         }
@@ -242,7 +248,7 @@ public class RobotCommands {
             }
             return new Translation2d(FieldConstants.getHubPosition2d().getX(), hubY - 1);
         }
-
+        m_watchdog.end("calculateTarget");
         return switch (alliance) {
             case Blue -> new Translation2d(FieldConstants.getHubPosition2d().getX(), robotY);
             case Red -> new Translation2d(FieldConstants.getHubPosition2d().getMeasureX(),

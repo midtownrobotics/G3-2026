@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.Logger;
+import frc.lib.Watchdawg;
 import frc.robot.constants.Ports;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
@@ -44,6 +45,7 @@ public class Feeder extends SubsystemBase {
   private final Alert m_talonConnectionAlert = new Alert("Feeder TalonFX motor is not connected", AlertType.kWarning);
   private final Alert m_stallAlert = new Alert("Feeder stalling", AlertType.kWarning);
   private final TalonFX m_motor;
+  private final Watchdawg m_watchdog;
 
   public Feeder() {
     m_motor = new TalonFX(Ports.kFeederBelt.canId(), Ports.kFeederBelt.canbus());
@@ -73,6 +75,7 @@ public class Feeder extends SubsystemBase {
 
     m_fuelSensorFilter = LinearFilter.movingAverage(5);
     m_log = new Logger(getClass());
+    m_watchdog = new Watchdawg(getClass());
   }
 
   private boolean getFuelSensorTripped() {
@@ -89,11 +92,17 @@ public class Feeder extends SubsystemBase {
     m_log.log("FuelSensor/distance", m_fuelSensor.getDistance().getValue());
     m_log.log("FuelSensor/distanceSTD", m_fuelSensor.getDistanceStdDev().getValue());
     m_log.log("sensorTripped", getFuelSensorTripped());
+
+    m_watchdog.start();
     m_mechanism.updateTelemetry();
+    m_watchdog.end("updateTelemetry");
+
+    m_watchdog.start();
     m_talonConnectionAlert.set(!m_motor.isAlive());
     boolean highCurrent = m_motor.getStatorCurrent().getValueAsDouble() > 30;
     boolean notMoving = Math.abs(m_motor.getVelocity().getValueAsDouble()) < 2;
     m_stallAlert.set(highCurrent && notMoving);
+    m_watchdog.end("updateAlerts");
   }
 
   @Override

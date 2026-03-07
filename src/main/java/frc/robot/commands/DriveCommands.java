@@ -14,6 +14,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.lib.Watchdawg;
 import frc.robot.constants.Constants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -24,8 +25,9 @@ public class DriveCommands {
                         Supplier<Double> driveForward,
                         Supplier<Double> driveLeft) {
                 final PIDController headingController = new PIDController(7, 0, 0);
+                final Watchdawg watchdog = new Watchdawg(DriveCommands.class);
                 return Commands.run(() -> {
-
+                        watchdog.start();
                         headingController.enableContinuousInput(-Math.PI, Math.PI);
 
                         final var speeds = new ChassisSpeeds(
@@ -44,6 +46,7 @@ public class DriveCommands {
                                         .withVelocityX(speeds.vxMetersPerSecond)
                                         .withVelocityY(speeds.vyMetersPerSecond)
                                         .withRotationalRate(speeds.omegaRadiansPerSecond));
+                        watchdog.end("rotateRobot");
                 }, drive);
         }
 
@@ -53,7 +56,9 @@ public class DriveCommands {
 
         private static Command joyStickDrive(CommandSwerveDrivetrain drive, Supplier<Double> driveForward,
                         Supplier<Double> driveLeft, Supplier<Double> driveRotation) {
+                final Watchdawg watchdog = new Watchdawg(DriveCommands.class);
                 return Commands.run(() -> {
+                        watchdog.start();
                         ChassisSpeeds speeds = new ChassisSpeeds(
                                         driveForward.get()
                                                         * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
@@ -73,12 +78,15 @@ public class DriveCommands {
                                         .withVelocityX(speeds.vxMetersPerSecond)
                                         .withVelocityY(speeds.vyMetersPerSecond)
                                         .withRotationalRate(speeds.omegaRadiansPerSecond));
+                        watchdog.end("joystickDrive");
                 }, drive);
         }
 
         private static Command snakeDrive(CommandSwerveDrivetrain drive, Supplier<Double> driveForward,
                         Supplier<Double> driveLeft, Supplier<Double> driveRotation) {
+                final Watchdawg watchdog = new Watchdawg(DriveCommands.class);
                 return Commands.run(() -> {
+                        watchdog.start();
                         final PIDController headingController = new PIDController(100, 0, 0);
                         final boolean snakeDriveActive = !(Math.abs(driveRotation.get()) > 0);
 
@@ -128,6 +136,7 @@ public class DriveCommands {
                                         .withRotationalRate(speeds.omegaRadiansPerSecond));
 
                         headingController.close();
+                        watchdog.end("snakeDrive");
                 }, drive);
         }
 

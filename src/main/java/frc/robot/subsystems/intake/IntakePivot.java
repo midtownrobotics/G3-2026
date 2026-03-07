@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.Logger;
+import frc.lib.Watchdawg;
 import frc.robot.constants.Ports;
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
@@ -47,6 +48,7 @@ public class IntakePivot extends SubsystemBase {
       AlertType.kWarning);
   private final Alert m_stallAlert = new Alert("IntakePivot stalling", AlertType.kWarning);
   private final TalonFX m_motor;
+  private final Watchdawg m_watchdog;
 
   public IntakePivot() {
     m_motor = new TalonFX(Ports.kIntakePivot.canId(), Ports.kIntakePivot.canbus());
@@ -83,12 +85,14 @@ public class IntakePivot extends SubsystemBase {
     m_motor.getConfigurator().refresh(mmConfigs);
     mmConfigs.MotionMagicJerk = 10;
     m_motor.getConfigurator().apply(mmConfigs);
-    
+
     m_log = new Logger(getClass());
+    m_watchdog = new Watchdawg(getClass());
   }
 
   private Angle getAbsoluteAngle() {
-    // Set this to the value of "IntakePivot/intakeAbsoluteEncoderOffset" when the intake is all the way down.
+    // Set this to the value of "IntakePivot/intakeAbsoluteEncoderOffset" when the
+    // intake is all the way down.
     final double WRAP_OFFSET = -9.6;
 
     double encoderDeg = m_encoder.getAbsolutePosition().getValue().in(Degrees);
@@ -114,13 +118,21 @@ public class IntakePivot extends SubsystemBase {
 
   @Override
   public void periodic() {
+    m_watchdog.start();
     m_mechanism.updateTelemetry();
+    m_watchdog.end("updateTelemetry");
+
+    m_watchdog.start();
     m_log.log("intakeAbsoluteEncoder", getAbsoluteAngle().in(Degrees));
     m_log.log("intakeAbsoluteEncoderOffset", getAbsoluteOffsetAt0().in(Degrees));
     m_log.log("rawEncoderValue", m_encoder.getAbsolutePosition().getValue());
+    m_watchdog.end("dogLogging");
+
+    m_watchdog.start();
     m_talonConnectionAlert.set(!m_motor.isAlive());
     boolean highCurrent = m_motor.getStatorCurrent().getValueAsDouble() > 68;
     m_stallAlert.set(highCurrent);
+    m_watchdog.end("updateAlerts");
   }
 
   @Override

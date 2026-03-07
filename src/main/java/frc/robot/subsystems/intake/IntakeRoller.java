@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.Watchdawg;
 import frc.robot.constants.Ports;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
@@ -35,6 +36,7 @@ public class IntakeRoller extends SubsystemBase {
       AlertType.kWarning);
   private final Alert m_stallAlert = new Alert("IntakeRoller stalling", AlertType.kWarning);
   private final TalonFX m_motor;
+  private final Watchdawg m_watchdog;
 
   public IntakeRoller() {
     m_motor = new TalonFX(Ports.kIntakeRoller.canId(), Ports.kIntakeRoller.canbus());
@@ -57,15 +59,21 @@ public class IntakeRoller extends SubsystemBase {
         .withTelemetry("IntakeRoller", TelemetryVerbosity.LOW);
 
     m_mechanism = new FlyWheel(rollerConfig);
+    m_watchdog = new Watchdawg(getClass());
   }
 
   @Override
   public void periodic() {
+    m_watchdog.start();
     m_mechanism.updateTelemetry();
+    m_watchdog.end("updateTelemetry");
+
+    m_watchdog.start();
     m_talonConnectionAlert.set(!m_motor.isAlive());
     boolean highCurrent = m_motor.getStatorCurrent().getValueAsDouble() > 68;
     boolean notMoving = Math.abs(m_motor.getVelocity().getValueAsDouble()) < 2;
     m_stallAlert.set(highCurrent && notMoving);
+    m_watchdog.end("updateAlerts");
   }
 
   @Override

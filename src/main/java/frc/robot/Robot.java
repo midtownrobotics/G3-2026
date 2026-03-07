@@ -9,6 +9,7 @@ import dev.doglog.DogLog;
 import dev.doglog.DogLogOptions;
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -20,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.lib.Logger;
+import frc.lib.Watchdawg;
 import frc.robot.RobotState.RobotMode;
 import frc.robot.commands.RobotCommands;
 import frc.robot.constants.Constants;
@@ -43,7 +45,7 @@ import frc.robot.subsystems.shooter.Hood;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.Turret;
 
-@Logged
+@Logged(strategy = Strategy.OPT_IN)
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   private final DriveControls m_controls;
@@ -68,6 +70,8 @@ public class Robot extends TimedRobot {
 
   private final RobotState m_state;
   private final RobotViz m_viz;
+
+  private final Watchdawg m_watchdog;
 
   // private final PowerDistribution m_pdh;
 
@@ -168,6 +172,8 @@ public class Robot extends TimedRobot {
 
     m_robotCommands.parametersHasShot().onTrue(m_robotCommands.feedFuel())
         .onFalse(m_robotCommands.stopFeedingFuel());
+
+    m_watchdog = new Watchdawg(getClass());
   }
 
   private void generateAutoChooser() {
@@ -225,9 +231,17 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotPeriodic() {
+    m_watchdog.start();
     CommandScheduler.getInstance().run();
+    m_watchdog.end("commandScheduler");
+
+    m_watchdog.start();
     m_viz.periodic();
+    m_watchdog.end("visionPeriodic");
+
+    m_watchdog.start();
     m_robotCommands.periodic();
+    m_watchdog.end("robotCommandsPeriodic");
   }
 
   @Override
