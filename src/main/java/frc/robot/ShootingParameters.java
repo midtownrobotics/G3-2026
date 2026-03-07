@@ -193,7 +193,7 @@ public class ShootingParameters {
   }
 
   public Rotation2d getTargetRotation() {
-    return m_target.get().minus(m_state.getRobotPose().getTranslation()).getAngle()
+    return m_target.get().minus(m_state.getTurretPose().getTranslation()).getAngle()
         .plus(new Rotation2d(Constants.kFixedTurretRotation));
   }
 
