@@ -74,7 +74,9 @@ public class RobotCommands {
         m_shootingParameters = new ShootingParameters(m_state, this::getTarget);
         m_parametersHasShot = new Trigger(() -> (!m_shootingParameters.getParameters().noShot())).or(m_state
                 .getModeTrigger(RobotMode.kSetpointShoot)
-                .and(() -> m_shooter.getSpeed().isNear(RPM.of(1800), RPM.of(150))));
+                .and(() -> m_shooter.getSpeed().isNear(RPM.of(1800), RPM.of(150)))).or(
+                        m_state.getModeTrigger(RobotMode.kFullFieldShoot)
+                                .and(() -> m_shooter.getSpeed().isNear(RPM.of(2600), RPM.of(350))));
         m_watchdog = new Watchdawg(getClass());
     }
 
@@ -196,6 +198,10 @@ public class RobotCommands {
     public Command setPointShoot() {
         return Commands.parallel(m_shooter.setSpeedCommand(RPM.of(1800)),
                 m_hood.setAngleCommand(Degrees.of(2)));
+    }
+
+    public Command fullFieldFeedShoot() {
+        return Commands.parallel(m_shooter.setSpeedCommand(RPM.of(2600)), m_hood.setAngleCommand(Degrees.of(25)));
     }
 
     public Command alignHood() {

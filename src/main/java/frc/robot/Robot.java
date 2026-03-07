@@ -203,6 +203,8 @@ public class Robot extends TimedRobot {
 
     controls.setpointShoot().onTrue(m_state.setRobotModeCommand(RobotMode.kSetpointShoot));
 
+    controls.fullFieldShoot().onTrue(m_state.setRobotModeCommand(RobotMode.kFullFieldShoot));
+
     m_state.getModeTrigger(RobotMode.kIdle).whileTrue(m_robotCommands.idle());
 
     m_state.getModeTrigger(RobotMode.kIntake).whileTrue(m_robotCommands.fill());
@@ -214,6 +216,8 @@ public class Robot extends TimedRobot {
     m_state.getModeTrigger(RobotMode.kSetpointShoot).whileTrue(m_robotCommands.setPointShoot());
 
     m_state.getModeTrigger(RobotMode.kUnjam).whileTrue(m_robotCommands.reverseFeedFuel());
+
+    m_state.getModeTrigger(RobotMode.kFullFieldShoot).whileTrue(m_robotCommands.fullFieldFeedShoot());
   }
 
   public void configureTrimControlBindings(TrimControls controls) {

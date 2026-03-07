@@ -27,7 +27,7 @@ public class SubsystemCommands {
     }
 
     protected static Command stopIntakeRollers(IntakeRoller intakeRoller) {
-        return intakeRoller.setVoltageCommand(Volts.of(0));
+        return intakeRoller.setVoltageCommand(Volts.of(2));
     }
 
     protected static Command runFeeders(Feeder feeder) {

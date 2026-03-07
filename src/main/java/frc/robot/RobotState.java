@@ -54,7 +54,8 @@ public class RobotState {
     kIdle,
     kIntake,
     kSetpointShoot,
-    kUnjam
+    kUnjam,
+    kFullFieldShoot
   }
 
   public RobotState(
