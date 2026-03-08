@@ -46,6 +46,7 @@ import frc.robot.controls.TrimXboxControls;
 import frc.robot.generated.TunerConstants;
 import frc.robot.sensors.Camera;
 import frc.robot.sensors.Vision;
+import frc.robot.sensors.DetectionCam;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.indexer.TransportRoller;
@@ -85,6 +86,8 @@ public class Robot extends TimedRobot {
 
   private final RobotViz m_viz;
 
+  private final DetectionCam m_detectioncam;
+
   private final Logger m_log;
 
   public Robot() {
@@ -101,6 +104,7 @@ public class Robot extends TimedRobot {
     m_hood = new Hood();
     m_shooter = new Shooter();
     m_turret = new Turret();
+    m_detectioncam = new DetectionCam("detectionCamera");
 
     Camera rearFacingRightCamera = new Camera("rearFacingRightCamera", new Transform3d());
     Camera frontFacingRightCamera = new Camera("frontFacingRightCamera", new Transform3d());
@@ -124,7 +128,8 @@ public class Robot extends TimedRobot {
         m_vision,
         m_transportRoller,
         m_shooter,
-        m_hood);
+        m_hood,
+        m_detectioncam);
 
     m_viz = new RobotViz(m_state);
 
@@ -221,6 +226,8 @@ public class Robot extends TimedRobot {
         runIntakeCommand(),
         m_shooter.setSpeedCommand(() -> m_shootingParameters.getParameters().flywheelVelocity()))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
+    
+    controls.trackFuel().toggleOnTrue(m_state.trackFuelCommand());
   }
 
   public void configureTrimControlBindings(TrimControls controls) {

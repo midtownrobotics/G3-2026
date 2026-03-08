@@ -8,8 +8,11 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 import java.sql.Driver;
 import java.util.Optional;
 
+import com.ctre.phoenix6.swerve.SwerveRequest;
+
 import dev.doglog.DogLog;
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rectangle2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -22,9 +25,12 @@ import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.AllianceFlipUtil;
 import frc.robot.sensors.Vision;
+import frc.robot.sensors.DetectionCam;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.indexer.TransportRoller;
@@ -45,6 +51,7 @@ public class RobotState {
   public final TransportRoller m_transportRoller;
   public final Shooter m_shooter;
   public final Hood m_hood;
+  public final DetectionCam m_detectioncam;
 
   public RobotState(
       CommandSwerveDrivetrain drive,
@@ -55,7 +62,8 @@ public class RobotState {
       Vision vision,
       TransportRoller transportRoller,
       Shooter shooter,
-      Hood hood) {
+      Hood hood,
+      DetectionCam detectionCam) {
     m_drive = drive;
     m_intakePivot = intakePivot;
     m_intakeRoller = intakeRoller;
@@ -65,6 +73,7 @@ public class RobotState {
     m_transportRoller = transportRoller;
     m_shooter = shooter;
     m_hood = hood;
+    m_detectioncam = detectionCam;
   }
 
   public Pose2d getRobotPose() {
@@ -127,5 +136,34 @@ public class RobotState {
 
   public Trigger fuelSensorTripped() {
     return m_feeder.fuelSensorTripped();
+  }
+
+  public Command trackFuelCommand() {
+    PIDController rotationController = new PIDController(4.0, 0, 0.4);
+
+    return Commands.run(() -> {
+      var results = m_detectioncam.getLatestDetectionResults();
+
+      if (!results.isEmpty() && results.get(0).targetX().length > 0) {
+        double normalizedX = results.get(0).targetX()[0];
+        double rotationRate = Math.max(-3.0, Math.min(3.0, rotationController.calculate(normalizedX, 0.0)));
+
+        m_drive.setControl(new SwerveRequest.RobotCentric()
+            .withVelocityX(0)
+            .withVelocityY(0)
+            .withRotationalRate(rotationRate));
+      } else {
+        m_drive.setControl(new SwerveRequest.RobotCentric()
+            .withVelocityX(0)
+            .withVelocityY(0)
+            .withRotationalRate(0));
+      }
+    }, m_drive).finallyDo(() -> {
+      rotationController.close();
+      m_drive.setControl(new SwerveRequest.RobotCentric()
+          .withVelocityX(0)
+          .withVelocityY(0)
+          .withRotationalRate(0));
+    });
   }
 }
