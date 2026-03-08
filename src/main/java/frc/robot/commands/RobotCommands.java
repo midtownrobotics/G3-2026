@@ -197,11 +197,12 @@ public class RobotCommands {
 
     public Command setPointShoot() {
         return Commands.parallel(m_shooter.setSpeedCommand(RPM.of(1800)),
-                m_hood.setAngleCommand(Degrees.of(2)));
+                m_hood.setAngleCommand(Degrees.of(2))).withInterruptBehavior(InterruptionBehavior.kCancelSelf);
     }
 
     public Command fullFieldFeedShoot() {
-        return Commands.parallel(m_shooter.setSpeedCommand(RPM.of(2600)), m_hood.setAngleCommand(Degrees.of(25)));
+        return Commands.parallel(m_shooter.setSpeedCommand(RPM.of(2600)), m_hood.setAngleCommand(Degrees.of(25)))
+                .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
     }
 
     public Command alignHood() {
