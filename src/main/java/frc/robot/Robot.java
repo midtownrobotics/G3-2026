@@ -241,7 +241,7 @@ public class Robot extends TimedRobot {
 
     m_watchdog.start();
     m_viz.periodic();
-    m_watchdog.end("visionPeriodic");
+    m_watchdog.end("robotVizPeriodic");
 
     m_watchdog.start();
     m_robotCommands.periodic();
