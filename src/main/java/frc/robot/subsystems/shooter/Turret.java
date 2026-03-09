@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.Watchdawg;
 import frc.robot.constants.Ports;
 import yams.mechanisms.config.PivotConfig;
 import yams.mechanisms.positional.Pivot;
@@ -43,6 +44,7 @@ public class Turret extends SubsystemBase {
   private final TalonFX m_motor;
   private final Alert m_talonConnectionAlert = new Alert("Turret TalonFX motor is not connected", AlertType.kWarning);
   private final Alert m_stallAlert = new Alert("Turret motor stalling", AlertType.kWarning);
+  private final Watchdawg m_watchdog;
 
   public Turret() {
     m_motor = new TalonFX(Ports.kTurretYaw.canId(), Ports.kTurretYaw.canbus());
@@ -52,7 +54,7 @@ public class Turret extends SubsystemBase {
     SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
         // .withClosedLoopController(10, 0, 0,
-            // DegreesPerSecond.of(950), DegreesPerSecondPerSecond.of(30))
+        // DegreesPerSecond.of(950), DegreesPerSecondPerSecond.of(30))
         .withClosedLoopController(0, 0, 0)
         .withGearing(48)
         .withIdleMode(MotorMode.BRAKE)
@@ -85,13 +87,19 @@ public class Turret extends SubsystemBase {
 
     m_easyCRTSolver = new EasyCRT(easyCRTConfig);
     m_easyCRTSolver.getAngleOptional().ifPresent(angle -> motorController.setEncoderPosition(angle));
+    m_watchdog = new Watchdawg(getClass());
   }
 
   @Override
   public void periodic() {
+    m_watchdog.start();
     m_mechanism.updateTelemetry();
+    m_watchdog.end("updateTelemetry");
+
+    m_watchdog.start();
     m_talonConnectionAlert.set(!m_motor.isAlive());
     m_stallAlert.set(m_motor.getStatorCurrent().getValueAsDouble() > 68);
+    m_watchdog.end("updateAlerts");
   }
 
   @Override

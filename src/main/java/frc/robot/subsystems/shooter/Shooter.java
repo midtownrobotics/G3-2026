@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.Watchdawg;
 import frc.robot.constants.Ports;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
@@ -43,6 +44,8 @@ public class Shooter extends SubsystemBase {
 
   private final TalonFX m_motor1;
   private final TalonFX m_motor2;
+
+  private final Watchdawg m_watchdog;
 
   public Shooter() {
     m_motor1 = new TalonFX(Ports.kTurretShooter1.canId(), Ports.kTurretShooter1.canbus());
@@ -73,11 +76,16 @@ public class Shooter extends SubsystemBase {
     outputConfigs.PeakReverseDutyCycle = 0;
     m_motor1.getConfigurator().apply(outputConfigs);
     m_mechanism = new FlyWheel(flywheelConfig);
+    m_watchdog = new Watchdawg(getClass());
   }
 
   @Override
   public void periodic() {
+    m_watchdog.start();
     m_mechanism.updateTelemetry();
+    m_watchdog.end("updateTelemetry");
+
+    m_watchdog.start();
     m_talon1ConnectionAlert.set(!m_motor1.isAlive());
     m_talon2ConnectionAlert.set(!m_motor2.isAlive());
     boolean motor1HighCurrent = m_motor1.getStatorCurrent().getValueAsDouble() > 68;
@@ -86,6 +94,7 @@ public class Shooter extends SubsystemBase {
     boolean motor2NotMoving = Math.abs(m_motor2.getVelocity().getValueAsDouble()) < 2;
     m_stallAlert1.set(motor1HighCurrent && motor1NotMoving);
     m_stallAlert2.set(motor2HighCurrent && motor2NotMoving);
+    m_watchdog.end("updateAlerts");
   }
 
   @Override

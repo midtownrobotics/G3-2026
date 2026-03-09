@@ -171,7 +171,13 @@ public class Robot extends TimedRobot {
   }
 
   private void generateAutoChooser() {
-    m_autoChooser.addRoutine("Left Depot Shoot", m_autoRoutines::pickupDepotAndShoot);
+    m_autoChooser.addRoutine("Left Start Depot Path", m_autoRoutines::leftStartDepotPath);
+    m_autoChooser.addRoutine("Left Start Center Path", m_autoRoutines::leftStartCenterPath);
+    m_autoChooser.addRoutine("Left Start Steal Balls Path", m_autoRoutines::leftStartStealBallsPath);
+    m_autoChooser.addRoutine("Mid Start Depot Path", m_autoRoutines::midStartDepotPath);
+    m_autoChooser.addRoutine("Mid Start Center Path", m_autoRoutines::midStartCenterPath);
+    m_autoChooser.addRoutine("Right Start Center Path", m_autoRoutines::rightStartCenterPath);
+    m_autoChooser.addRoutine("Right Start Steal Balls Path", m_autoRoutines::rightStartStealBallsPath);
 
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
     RobotModeTriggers.autonomous().whileTrue(m_autoChooser.selectedCommandScheduler());

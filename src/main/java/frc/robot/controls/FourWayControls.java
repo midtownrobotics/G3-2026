@@ -18,4 +18,6 @@ public interface FourWayControls {
   public Trigger zeroHood();
 
   public Trigger setpointShoot();
+
+  public Trigger fullFieldShoot();
 }

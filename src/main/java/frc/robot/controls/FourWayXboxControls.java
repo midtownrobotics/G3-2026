@@ -62,4 +62,9 @@ public class FourWayXboxControls implements FourWayControls, DriveControls {
   public Trigger setpointShoot() {
     return m_controller.y();
   }
+
+  @Override
+  public Trigger fullFieldShoot() {
+    return m_controller.x();
+  }
 }

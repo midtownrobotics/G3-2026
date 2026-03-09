@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.Logger;
+import frc.lib.Watchdawg;
 import frc.robot.constants.Ports;
 import yams.mechanisms.config.ArmConfig;
 import yams.mechanisms.positional.Arm;
@@ -48,6 +49,7 @@ public class Hood extends SubsystemBase {
       AlertType.kWarning);
   private final Alert m_stallAlert = new Alert("Hood stalling", AlertType.kWarning);
   private final TalonFX m_motor;
+  private final Watchdawg m_watchdog;
 
   public Hood() {
     m_motor = new TalonFX(Ports.kTurretHood.canId(), Ports.kTurretHood.canbus());
@@ -80,6 +82,7 @@ public class Hood extends SubsystemBase {
     m_log = new Logger(getClass());
     m_currentSpikeFilter = LinearFilter.movingAverage(5);
     m_currentSpikeTrigger = new Trigger(this::getIsCurrentSpiking);
+    m_watchdog = new Watchdawg(getClass());
   }
 
   private boolean getIsCurrentSpiking() {
@@ -88,13 +91,21 @@ public class Hood extends SubsystemBase {
 
   @Override
   public void periodic() {
+    m_watchdog.start();
     m_mechanism.updateTelemetry();
+    m_watchdog.end("updateTelemetry");
+
+    m_watchdog.start();
     m_log.log("encoderPosition", m_encoder.getAbsolutePosition().getValueAsDouble());
     m_log.log("ampsDrawn", m_mechanism.getMotor().getStatorCurrent().in(Amps));
     m_log.log("currentSpike", getIsCurrentSpiking());
+    m_watchdog.end("dogLogging");
+
+    m_watchdog.start();
     m_talonConnectionAlert.set(!m_motor.isAlive());
     boolean highCurrent = m_motor.getStatorCurrent().getValueAsDouble() > 30;
     m_stallAlert.set(highCurrent);
+    m_watchdog.end("updateAlerts");
   }
 
   @Override
