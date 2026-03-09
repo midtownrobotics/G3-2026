@@ -13,6 +13,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
@@ -63,7 +64,8 @@ public class IntakePivot extends SubsystemBase {
         .withKD(0)
         .withKS(0)
         .withKG(0.5)
-        .withKG(0);
+        .withKV(0)
+        .withGravityType(GravityTypeValue.Arm_Cosine);
     config.MotorOutput
         .withInverted(InvertedValue.Clockwise_Positive)
         .withNeutralMode(NeutralModeValue.Brake);
