@@ -54,7 +54,7 @@ public class IntakeRoller extends SubsystemBase {
     m_watchdog.end("updateAlerts");
   }
 
-  public Command setVoltageCommand(Voltage voltage) {
-    return Commands.runOnce(() -> m_motor.setVoltage(voltage.in(Volts)));
+  public Command setVoltageCommand(Voltage volts) {
+    return Commands.runOnce(() -> m_motor.setVoltage(volts.in(Volts)));
   }
 }
