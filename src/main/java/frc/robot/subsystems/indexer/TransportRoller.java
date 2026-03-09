@@ -1,35 +1,23 @@
 package frc.robot.subsystems.indexer;
 
-import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Pounds;
-import static edu.wpi.first.units.Units.RPM;
-
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.Logged.Strategy;
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.PhoenixUtil;
 import frc.lib.Watchdawg;
 import frc.robot.constants.Ports;
-import yams.mechanisms.config.FlyWheelConfig;
-import yams.mechanisms.velocity.FlyWheel;
-import yams.motorcontrollers.SmartMotorController;
-import yams.motorcontrollers.SmartMotorControllerConfig;
-import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
-import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
-import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
-import yams.motorcontrollers.remote.TalonFXWrapper;
 
 @Logged(strategy = Strategy.OPT_IN)
 public class TransportRoller extends SubsystemBase {
-  private final FlyWheel m_mechanism;
   private final Alert m_talonConnectionAlert = new Alert("TransportRoller TalonFX motor is not connected",
       AlertType.kWarning);
   private final Alert m_stallAlert = new Alert("TransportRoller stalling", AlertType.kWarning);
@@ -38,33 +26,24 @@ public class TransportRoller extends SubsystemBase {
 
   public TransportRoller() {
     m_motor = new TalonFX(Ports.kIndexerTransportRoller.canId(), Ports.kIndexerTransportRoller.canbus());
-
-    SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig(this)
-        .withControlMode(ControlMode.OPEN_LOOP)
-        .withIdleMode(MotorMode.COAST)
-        .withTelemetry("TransportRollerMotor", TelemetryVerbosity.HIGH)
-        .withStatorCurrentLimit(Amps.of(90))
-        .withGearing(20d / 14d);
-
-    SmartMotorController motorController = new TalonFXWrapper(m_motor, DCMotor.getKrakenX60(1), motorControllerConfig);
-
-    FlyWheelConfig rollerConfig = new FlyWheelConfig(motorController)
-        .withMass(Pounds.of(0.5))
-        .withUpperSoftLimit(RPM.of(5000))
-        .withLowerSoftLimit(RPM.of(-5000))
-        .withDiameter(Inches.of(1.5))
-        .withTelemetry("TransportRoller", TelemetryVerbosity.LOW);
-
-    m_mechanism = new FlyWheel(rollerConfig);
     m_watchdog = new Watchdawg(getClass());
+    conifgureMotor();
+  }
+
+  private void conifgureMotor() {
+    TalonFXConfiguration config = new TalonFXConfiguration();
+
+    config.MotorOutput
+      .withNeutralMode(NeutralModeValue.Coast);
+    config.CurrentLimits
+      .withStatorCurrentLimitEnable(true)
+      .withStatorCurrentLimit(90);
+
+    PhoenixUtil.tryUntilOk(5, () -> m_motor.getConfigurator().apply(config));
   }
 
   @Override
   public void periodic() {
-    m_watchdog.start();
-    m_mechanism.updateTelemetry();
-    m_watchdog.end("updateTelemetry");
-
     m_watchdog.start();
     m_talonConnectionAlert.set(!m_motor.isAlive());
     boolean highCurrent = m_motor.getStatorCurrent().getValueAsDouble() > 68;
@@ -73,20 +52,11 @@ public class TransportRoller extends SubsystemBase {
     m_watchdog.end("updateAlerts");
   }
 
-  @Override
-  public void simulationPeriodic() {
-    m_mechanism.simIterate();
-  }
-
-  public Command setSpeedCommand(AngularVelocity speed) {
-    return m_mechanism.setSpeed(speed);
-  }
-
   public Command setVoltageCommand(Voltage volts) {
-    return m_mechanism.setVoltage(volts);
+    return Commands.runOnce(() -> m_motor.setVoltage(volts.baseUnitMagnitude()));
   }
 
   public Command stopCommand() {
-    return m_mechanism.set(0.0);
+    return Commands.runOnce(() -> m_motor.setVoltage(0));
   }
 }
