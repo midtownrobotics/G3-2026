@@ -5,6 +5,8 @@ import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
 
+import java.util.function.Supplier;
+
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
@@ -57,6 +59,7 @@ public class Shooter extends SubsystemBase {
         .withStatorCurrentLimitEnable(true)
         .withStatorCurrentLimit(Amps.of(90));
     PhoenixUtil.tryUntilOk(5, () -> m_motor1.getConfigurator().apply(config));
+    m_motor2.setControl(new Follower(m_motor1.getDeviceID(), MotorAlignmentValue.Opposed));
   }
 
   public AngularVelocity getSpeed() {
@@ -65,9 +68,13 @@ public class Shooter extends SubsystemBase {
 
   public Command setSpeedCommand(AngularVelocity speed) {
     return Commands.run(() -> {
-      m_motor1.setControl(m_velocityRequest.withVelocity(speed));
-      m_motor2.setControl(new Follower(m_motor1.getDeviceID(), MotorAlignmentValue.Opposed));
+      m_motor1.setControl(m_velocityRequest.withVelocity(speed.div(kMechanismMotorGearing)));
     });
+  }
 
+  public Command setSpeedCommand(Supplier<AngularVelocity> speedSupplier) {
+    return Commands.run(() -> {
+      m_motor1.setControl(m_velocityRequest.withVelocity(speedSupplier.get().div(kMechanismMotorGearing)));
+    });
   }
 }
