@@ -1,9 +1,11 @@
 package frc.robot.controls;
 
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.IOProtectionXboxController;
 
+@Logged
 public class FourWayXboxControls implements FourWayControls, DriveControls {
   private final IOProtectionXboxController m_controller;
 
@@ -44,5 +46,25 @@ public class FourWayXboxControls implements FourWayControls, DriveControls {
   @Override
   public Trigger snowBlow() {
     return m_controller.rightTrigger();
+  }
+
+  @Override
+  public Trigger unjam() {
+    return m_controller.povLeft();
+  }
+
+  @Override
+  public Trigger zeroHood() {
+    return m_controller.a();
+  }
+
+  @Override
+  public Trigger setpointShoot() {
+    return m_controller.y();
+  }
+
+  @Override
+  public Trigger fullFieldShoot() {
+    return m_controller.x();
   }
 }

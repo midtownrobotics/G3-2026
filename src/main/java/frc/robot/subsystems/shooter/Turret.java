@@ -2,8 +2,6 @@ package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Seconds;
@@ -20,9 +18,12 @@ import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Ports;
+import frc.lib.Watchdawg;
+import frc.robot.constants.Ports;
 import yams.mechanisms.config.PivotConfig;
 import yams.mechanisms.positional.Pivot;
 import yams.motorcontrollers.SmartMotorController;
@@ -40,29 +41,34 @@ public class Turret extends SubsystemBase {
   private final CANcoder m_encoder1;
   private final CANcoder m_encoder2;
   private final EasyCRT m_easyCRTSolver;
+  private final TalonFX m_motor;
+  private final Alert m_talonConnectionAlert = new Alert("Turret TalonFX motor is not connected", AlertType.kWarning);
+  private final Alert m_stallAlert = new Alert("Turret motor stalling", AlertType.kWarning);
+  private final Watchdawg m_watchdog;
 
   public Turret() {
-    TalonFX motor = new TalonFX(Ports.kTurretYaw.canId(), Ports.kTurretYaw.canbus());
+    m_motor = new TalonFX(Ports.kTurretYaw.canId(), Ports.kTurretYaw.canbus());
     m_encoder1 = new CANcoder(Ports.kTurretYawEncoder1.canId(), Ports.kTurretYawEncoder1.canbus());
     m_encoder2 = new CANcoder(Ports.kTurretYawEncoder2.canId(), Ports.kTurretYawEncoder2.canbus());
 
     SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
-        .withClosedLoopController(10, 0, 0,
-            DegreesPerSecond.of(950), DegreesPerSecondPerSecond.of(30))
+        // .withClosedLoopController(10, 0, 0,
+        // DegreesPerSecond.of(950), DegreesPerSecondPerSecond.of(30))
+        .withClosedLoopController(0, 0, 0)
         .withGearing(48)
         .withIdleMode(MotorMode.BRAKE)
-        .withTelemetry("TurretMotor", TelemetryVerbosity.HIGH)
-        .withStatorCurrentLimit(Amps.of(30))
+        .withTelemetry("TurretMotor", TelemetryVerbosity.LOW)
+        .withStatorCurrentLimit(Amps.of(90))
         .withClosedLoopRampRate(Seconds.of(0.25))
         .withOpenLoopRampRate(Seconds.of(0.25));
 
-    SmartMotorController motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
+    SmartMotorController motorController = new TalonFXWrapper(m_motor, DCMotor.getKrakenX60(1), motorConfig);
 
     PivotConfig pivotConfig = new PivotConfig(motorController)
         .withStartingPosition(Degrees.of(0))
         .withHardLimit(Degrees.of(-255), Degrees.of(255))
-        .withTelemetry("Turret", TelemetryVerbosity.HIGH)
+        .withTelemetry("Turret", TelemetryVerbosity.LOW)
         .withMOI(KilogramSquareMeters.of(0.1457345474));
 
     m_mechanism = new Pivot(pivotConfig);
@@ -81,11 +87,19 @@ public class Turret extends SubsystemBase {
 
     m_easyCRTSolver = new EasyCRT(easyCRTConfig);
     m_easyCRTSolver.getAngleOptional().ifPresent(angle -> motorController.setEncoderPosition(angle));
+    m_watchdog = new Watchdawg(getClass());
   }
 
   @Override
   public void periodic() {
+    m_watchdog.start();
     m_mechanism.updateTelemetry();
+    m_watchdog.end("updateTelemetry");
+
+    m_watchdog.start();
+    m_talonConnectionAlert.set(!m_motor.isAlive());
+    m_stallAlert.set(m_motor.getStatorCurrent().getValueAsDouble() > 68);
+    m_watchdog.end("updateAlerts");
   }
 
   @Override
@@ -111,18 +125,15 @@ public class Turret extends SubsystemBase {
     double targetDegrees = angle.in(Degrees);
     double currentDegrees = getAngle().in(Degrees);
 
-    // Normalize target relative to current angle, then clamp to limits
     double delta = ((targetDegrees - currentDegrees) % 360 + 540) % 360 - 180;
     double bestAngle = currentDegrees + delta;
 
-    // Clamp to turret limits
     if (bestAngle > 255.0) {
       bestAngle = bestAngle - 360.0;
     } else if (bestAngle < -255.0) {
       bestAngle = bestAngle + 360.0;
     }
 
-    // In case we're waaaaay wrong
     bestAngle = MathUtil.clamp(bestAngle, -255, 255);
 
     return Degrees.of(bestAngle);

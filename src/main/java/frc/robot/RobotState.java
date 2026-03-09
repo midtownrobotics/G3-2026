@@ -1,29 +1,27 @@
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
-import java.sql.Driver;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import dev.doglog.DogLog;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rectangle2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.lib.AllianceFlipUtil;
+import frc.robot.constants.Constants;
+import frc.robot.constants.FieldConstants;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
@@ -46,6 +44,20 @@ public class RobotState {
   public final Shooter m_shooter;
   public final Hood m_hood;
 
+  private RobotMode m_mode = RobotMode.kIdle;
+
+  private final Map<RobotMode, Trigger> m_robotModesToTrigger;
+
+  public enum RobotMode {
+    kAutoAim,
+    kSnowBlow,
+    kIdle,
+    kIntake,
+    kSetpointShoot,
+    kUnjam,
+    kFullFieldShoot
+  }
+
   public RobotState(
       CommandSwerveDrivetrain drive,
       IntakePivot intakePivot,
@@ -65,6 +77,9 @@ public class RobotState {
     m_transportRoller = transportRoller;
     m_shooter = shooter;
     m_hood = hood;
+
+    m_robotModesToTrigger = Stream.of(RobotMode.values())
+        .collect(Collectors.toMap(Function.identity(), mode -> new Trigger(() -> m_mode == mode)));
   }
 
   public Pose2d getRobotPose() {
@@ -100,6 +115,9 @@ public class RobotState {
   }
 
   public Angle getTurretAngle() {
+    if (Constants.kUseFixedTurretMode) {
+      return Constants.kFixedTurretRotation;
+    }
     return m_turret.getAngle();
   }
 
@@ -122,10 +140,19 @@ public class RobotState {
   }
 
   public boolean inAllianceZone() {
-    return FieldConstants.getAllianceZone(DriverStation.getAlliance().orElseGet(() -> Alliance.Blue)).contains(getRobotPose().getTranslation());
+    return FieldConstants.getAllianceZone(DriverStation.getAlliance().orElseGet(() -> Alliance.Blue))
+        .contains(getRobotPose().getTranslation());
   }
 
   public Trigger fuelSensorTripped() {
     return m_feeder.fuelSensorTripped();
+  }
+
+  public Command setRobotModeCommand(RobotMode mode) {
+    return Commands.runOnce(() -> m_mode = mode);
+  }
+
+  public Trigger getModeTrigger(RobotMode mode) {
+    return m_robotModesToTrigger.get(mode);
   }
 }
