@@ -93,8 +93,10 @@ public class IntakePivot extends SubsystemBase {
   private Angle getAbsoluteMechanismAngle(boolean excludeOffset) {
     // Set this to the value of "IntakePivot/intakeAbsoluteEncoderOffset" when the
     // intake is all the way down.
-    final double WRAP_OFFSET = -9.6;
-    final double DEGS_ALLOCATED_BELOW_0 = 25;
+    final double kWrapOffset = -9.6;
+    // The number of degress that should be allocated to represnent mechanism position below 0.
+    // This needs to be less than 360 divided by the kMechanismToEncoderGearing;
+    final double kDegsAllocatedBelow0 = 25;
 
     double encoderDeg = m_encoder.getAbsolutePosition().getValue().in(Degrees);
     if (encoderDeg < 0)
@@ -102,8 +104,8 @@ public class IntakePivot extends SubsystemBase {
     double armDeg = encoderDeg / kMechanismToEncoderGearing;
     double armDegsPerEncoderRot = 360d / kMechanismToEncoderGearing;
 
-    armDeg = (armDeg - (excludeOffset ? 0 : WRAP_OFFSET) + armDegsPerEncoderRot) % armDegsPerEncoderRot;
-    armDeg = armDeg > (armDegsPerEncoderRot - DEGS_ALLOCATED_BELOW_0) ? -(armDegsPerEncoderRot - armDeg) : armDeg;
+    armDeg = (armDeg - (excludeOffset ? 0 : kWrapOffset) + armDegsPerEncoderRot) % armDegsPerEncoderRot;
+    armDeg = armDeg > (armDegsPerEncoderRot - kDegsAllocatedBelow0) ? -(armDegsPerEncoderRot - armDeg) : armDeg;
     return Degrees.of(armDeg);
   }
 
