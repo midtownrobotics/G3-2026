@@ -111,7 +111,6 @@ public class IntakePivot extends SubsystemBase {
 
   @Override
   public void periodic() {
-
     m_watchdog.start();
     m_log.log("intakeAbsoluteEncoder", getAbsoluteMechanismAngle(false).in(Degrees));
     m_log.log("intakeAbsoluteEncoderOffset", getAbsoluteMechanismAngle(true).in(Degrees));
