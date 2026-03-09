@@ -1,4 +1,4 @@
-package frc.robot;
+package frc.lib;
 
 import static edu.wpi.first.units.Units.Degrees;
 
@@ -13,6 +13,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import frc.robot.constants.FieldConstants;
 
 public class GeometryUtil {
   public static Rotation3d rotation3dFromYaw(Angle angle) {

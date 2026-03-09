@@ -29,6 +29,7 @@ public class DetectionCam {
   public static final Distance kFuelDiameter = Meters.of(0.150114);
   public static final double kFocalLengthPixels = 500.0;
   private final Alert m_fuelDetectedOutsideOfBounds = new Alert("Fuel Detected Outside Of Bounds", AlertType.kWarning);
+  private final Alert m_connectionAlert = new Alert("Detection camera is not connected", AlertType.kWarning);
 
   public record DetectionResult(double[] targetX, double[] targetY) {
   }
@@ -36,6 +37,10 @@ public class DetectionCam {
   public DetectionCam(String name) {
     m_camera = new PhotonCamera(name);
     m_log = new Logger(getClass());
+  }
+
+  public void periodic() {
+    m_connectionAlert.set(!m_camera.isConnected());
   }
 
   public PhotonCamera getCamera() {
