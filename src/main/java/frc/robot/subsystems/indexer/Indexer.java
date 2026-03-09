@@ -17,14 +17,14 @@ import frc.lib.Watchdawg;
 import frc.robot.constants.Ports;
 
 @Logged(strategy = Strategy.OPT_IN)
-public class TransportRoller extends SubsystemBase {
+public class Indexer extends SubsystemBase {
   private final Alert m_talonConnectionAlert = new Alert("TransportRoller TalonFX motor is not connected",
       AlertType.kWarning);
   private final Alert m_stallAlert = new Alert("TransportRoller stalling", AlertType.kWarning);
   private final TalonFX m_motor;
   private final Watchdawg m_watchdog;
 
-  public TransportRoller() {
+  public Indexer() {
     m_motor = new TalonFX(Ports.kIndexerTransportRoller.canId(), Ports.kIndexerTransportRoller.canbus());
     m_watchdog = new Watchdawg(getClass());
     conifgureMotor();
