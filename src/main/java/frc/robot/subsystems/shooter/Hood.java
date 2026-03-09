@@ -81,7 +81,7 @@ public class Hood extends SubsystemBase{
     }
 
     private void seedEncoderPosition() {
-        Angle mechanismAngle = m_encoder.getAbsolutePosition().getValue().div(kMechanismToMotorGearing);
+        Angle mechanismAngle = m_encoder.getAbsolutePosition().getValue().div(kMechanismToEncoderGearing);
         Angle motorAngle = mechanismAngle.times(kMechanismToMotorGearing);
         m_motor.setPosition(motorAngle);
     }
