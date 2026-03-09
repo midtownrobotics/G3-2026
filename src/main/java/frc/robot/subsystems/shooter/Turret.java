@@ -61,7 +61,9 @@ public class Turret extends SubsystemBase {
       .withMotionMagicAcceleration(DegreesPerSecond.of(30).per(Seconds).times(kMechanismToMotorGearing));
 
     
-    config.CurrentLimits.withStatorCurrentLimit(Amps.of(90));
+    config.CurrentLimits
+      .withStatorCurrentLimitEnable(true)
+      .withStatorCurrentLimit(Amps.of(90));
     config.ClosedLoopRamps.withVoltageClosedLoopRampPeriod(Seconds.of(0.25));
     config.OpenLoopRamps.withVoltageOpenLoopRampPeriod(Seconds.of(0.25));
 
