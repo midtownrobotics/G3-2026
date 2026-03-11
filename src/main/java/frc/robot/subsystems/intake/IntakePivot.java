@@ -93,7 +93,7 @@ public class IntakePivot extends SubsystemBase {
   private Angle getAbsoluteAngle() {
     // Set this to the value of "IntakePivot/intakeAbsoluteEncoderOffset" when the
     // intake is all the way down.
-    final double WRAP_OFFSET = -9.6;
+    final double WRAP_OFFSET = -8.9;
 
     double encoderDeg = m_encoder.getAbsolutePosition().getValue().in(Degrees);
     if (encoderDeg < 0)

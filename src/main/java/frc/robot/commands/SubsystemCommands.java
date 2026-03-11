@@ -19,7 +19,7 @@ public class SubsystemCommands {
     }
 
     protected static Command intakeRunPosition(IntakePivot intakePivot) {
-        return intakePivot.setAngleCommand(Degrees.of(5));
+        return intakePivot.setAngleCommand(Degrees.of(0));
     }
 
     protected static Command runIntakeRollers(IntakeRoller intakeRoller) {
