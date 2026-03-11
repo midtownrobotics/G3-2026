@@ -38,7 +38,7 @@ import frc.robot.sensors.Camera;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
-import frc.robot.subsystems.indexer.TransportRoller;
+import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
 import frc.robot.subsystems.shooter.Hood;
@@ -66,7 +66,7 @@ public class Robot extends TimedRobot {
   private final AutoChooser m_autoChooser;
 
   private final Feeder m_feeder;
-  private final TransportRoller m_transportRoller;
+  private final Indexer m_transportRoller;
 
   private final RobotState m_state;
   private final RobotViz m_viz;
@@ -92,7 +92,7 @@ public class Robot extends TimedRobot {
     m_intakePivot = new IntakePivot();
     m_intakeRoller = new IntakeRoller();
     m_feeder = new Feeder();
-    m_transportRoller = new TransportRoller();
+    m_transportRoller = new Indexer();
     m_hood = new Hood();
     m_shooter = new Shooter();
     m_turret = new Turret();
