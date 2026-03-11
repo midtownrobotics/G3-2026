@@ -8,12 +8,16 @@ import static edu.wpi.first.units.Units.Volts;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.networktables.DoubleEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.lib.LoggedTunableNumber;
 import frc.lib.Logger;
 import frc.lib.Watchdawg;
 import frc.robot.RobotState;
@@ -47,6 +51,8 @@ public class RobotCommands {
     private final Trigger m_parametersHasShot;
     private final DriveControls m_controls;
     private final Watchdawg m_watchdog;
+    private final DoubleEntry m_hoodAngle = NetworkTableInstance.getDefault().getDoubleTopic("Tuning/HoodAngleDegrees").getEntry(0);
+    private final DoubleEntry m_shooterRPM = NetworkTableInstance.getDefault().getDoubleTopic("Tuning/ShooterRPM").getEntry(0);
 
     public RobotCommands(
             CommandSwerveDrivetrain drive,
@@ -78,10 +84,27 @@ public class RobotCommands {
                         m_state.getModeTrigger(RobotMode.kFullFieldShoot)
                                 .and(() -> m_shooter.getSpeed().isNear(RPM.of(2600), RPM.of(350))));
         m_watchdog = new Watchdawg(getClass());
+
+        SmartDashboard.putData("HoodAngleTUNING", tunableHoodAngle());
+        SmartDashboard.putData("FlywheelVelocityTUNING", tunableFlywheelVelocity());
+        SmartDashboard.putData("FeedFuel", feedFuel());
+        SmartDashboard.putData("StopFeedingFuel", stopFeedingFuel());
+
+        m_shooterRPM.accept(0);
+        m_hoodAngle.accept(0);
     }
 
     public Trigger parametersHasShot() {
         return m_parametersHasShot;
+    }
+
+    public Command tunableHoodAngle() {
+        return m_hood.setAngleCommand(() -> Degrees.of(m_hoodAngle.getAsDouble()));
+    }
+
+    public Command tunableFlywheelVelocity() {
+        
+        return m_shooter.setSpeedCommand(() -> RPM.of(m_shooterRPM.getAsDouble()));
     }
 
     public Command snowBlow() {

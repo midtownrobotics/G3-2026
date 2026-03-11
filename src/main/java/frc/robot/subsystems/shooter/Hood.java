@@ -33,7 +33,7 @@ import frc.robot.constants.Ports;
 public class Hood extends SubsystemBase{
     private static final double kMechanismToMotorGearing = 266d;
     private static final double kMechanismToEncoderGearing = 19d;
-    private static final Angle kLowSoftLimit = Degrees.of(2);
+    private static final Angle kLowSoftLimit = Degrees.of(0);
     private static final Angle kHighSoftLimit = Degrees.of(55);
 
 

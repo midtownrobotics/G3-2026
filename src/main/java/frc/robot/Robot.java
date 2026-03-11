@@ -79,7 +79,7 @@ public class Robot extends TimedRobot {
 
   private final Logger m_log = new Logger(getClass());
 
-  public Robot() {
+  public Robot(){
     DriverStation.silenceJoystickConnectionWarning(true);
     // m_pdh = new PowerDistribution();
     // m_pdh.setSwitchableChannel(true);

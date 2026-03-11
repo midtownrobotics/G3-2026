@@ -41,7 +41,7 @@ public class ShootingParameters {
 
   // Takes in a distance in meters and outputs an angle in radians
   public final InterpolatingDoubleTreeMap m_hoodAngleMap = InterpolatingDoubleTreeMap.ofEntries(
-      Map.entry(Feet.of(4.25).in(Meters), Degrees.of(2).in(Radians)),
+      Map.entry(Feet.of(4.25).in(Meters), Degrees.of(0).in(Radians)),
       Map.entry(Feet.of(4.75).in(Meters), Degrees.of(4).in(Radians)),
       Map.entry(Feet.of(5).in(Meters), Degrees.of(3).in(Radians)),
       Map.entry(Feet.of(5.5).in(Meters), Degrees.of(3).in(Radians)),
@@ -56,7 +56,7 @@ public class ShootingParameters {
   // Takes in a distance in meters and outputs an angular velocity in radians per
   // second
   public final InterpolatingDoubleTreeMap m_flywheelVelocityMap = InterpolatingDoubleTreeMap.ofEntries(
-      Map.entry(Feet.of(4.25).in(Meters), RPM.of(1800).in(RadiansPerSecond)),
+      Map.entry(Feet.of(4.25).in(Meters), RPM.of(1700).in(RadiansPerSecond)),
       Map.entry(Feet.of(4.75).in(Meters), RPM.of(1750).in(RadiansPerSecond)),
       Map.entry(Feet.of(5).in(Meters), RPM.of(1700).in(RadiansPerSecond)),
       Map.entry(Feet.of(5.5).in(Meters), RPM.of(1700).in(RadiansPerSecond)),
@@ -69,8 +69,8 @@ public class ShootingParameters {
       Map.entry(Feet.of(15).in(Meters), RPM.of(2300).in(RadiansPerSecond)),
       Map.entry(Feet.of(26.875).in(Meters), RPM.of(3200).in(RadiansPerSecond)));
 
-  private double m_flywheelVelocityModifier = 1;
-  private Angle m_hoodAngleModifier = Degrees.of(0);
+  private double m_flywheelVelocityModifier = 0.9;
+  private Angle m_hoodAngleModifier = Degrees.of(-4);
   private double m_ToFModifier = 1;
   private Angle m_turretAngleModifier = Degrees.of(0);
 
