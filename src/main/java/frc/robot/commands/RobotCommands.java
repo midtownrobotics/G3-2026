@@ -188,7 +188,7 @@ public class RobotCommands {
     }
 
     public Command reverseFeedFuel() {
-        return Commands.parallel(runFeederReverse(), runTransportRollersReverse(), driveCommand());
+        return Commands.parallel(runFeederReverse(), runTransportRollersReverse(), driveCommand()).withInterruptBehavior(InterruptionBehavior.kCancelSelf);
     }
 
     public Command revShooter() {

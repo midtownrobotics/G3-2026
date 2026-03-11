@@ -7,6 +7,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
+import frc.robot.RobotState.RobotMode;
 import frc.robot.sensors.Camera.PoseObservation;
 import frc.robot.sensors.DetectionCam.DetectionResult;
 
@@ -46,6 +47,10 @@ public class Logger {
   }
 
   public void log(String name, Pose3d value) {
+    DogLog.log(m_basePath + name, value);
+  }
+
+  public void log(String name, RobotMode value) {
     DogLog.log(m_basePath + name, value);
   }
 

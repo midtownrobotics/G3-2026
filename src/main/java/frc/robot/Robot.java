@@ -246,6 +246,8 @@ public class Robot extends TimedRobot {
     m_watchdog.start();
     m_robotCommands.periodic();
     m_watchdog.end("robotCommandsPeriodic");
+
+    m_log.log("mode", m_state.getRobotMode());
   }
 
   @Override

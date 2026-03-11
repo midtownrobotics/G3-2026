@@ -82,6 +82,10 @@ public class RobotState {
         .collect(Collectors.toMap(Function.identity(), mode -> new Trigger(() -> m_mode == mode)));
   }
 
+  public RobotMode getRobotMode() {
+    return m_mode;
+  }
+
   public Pose2d getRobotPose() {
     return m_drive.getPose();
   }
