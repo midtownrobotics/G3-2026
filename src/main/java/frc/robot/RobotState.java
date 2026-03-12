@@ -40,7 +40,7 @@ public class RobotState {
   public final Turret m_turret;
   public final Feeder m_feeder;
   public final Vision m_vision;
-  public final Indexer m_transportRoller;
+  public final Indexer m_indexer;
   public final Shooter m_shooter;
   public final Hood m_hood;
 
@@ -65,7 +65,7 @@ public class RobotState {
       Turret turret,
       Feeder feeder,
       Vision vision,
-      Indexer transportRoller,
+      Indexer indexer,
       Shooter shooter,
       Hood hood) {
     m_drive = drive;
@@ -74,7 +74,7 @@ public class RobotState {
     m_turret = turret;
     m_feeder = feeder;
     m_vision = vision;
-    m_transportRoller = transportRoller;
+    m_indexer = indexer;
     m_shooter = shooter;
     m_hood = hood;
 

@@ -41,7 +41,7 @@ public class RobotCommands {
     private final IntakeRoller m_intakeRoller;
     private final Turret m_turret;
     private final Feeder m_feeder;
-    private final Indexer m_transportRoller;
+    private final Indexer m_indexer;
     private final Shooter m_shooter;
     private final Hood m_hood;
     private final ShootingParameters m_shootingParameters;
@@ -60,7 +60,7 @@ public class RobotCommands {
             Turret turret,
             Feeder feeder,
             Vision vision,
-            Indexer transportRoller,
+            Indexer indexer,
             Shooter shooter,
             Hood hood,
             RobotState state,
@@ -71,7 +71,7 @@ public class RobotCommands {
         m_turret = turret;
         m_feeder = feeder;
         m_controls = controls;
-        m_transportRoller = transportRoller;
+        m_indexer = indexer;
         m_shooter = shooter;
         m_hood = hood;
         m_state = state;
@@ -190,15 +190,15 @@ public class RobotCommands {
     }
 
     private Command runTransportRollers() {
-        return SubsystemCommands.runTransportRollers(m_transportRoller);
+        return SubsystemCommands.runTransportRollers(m_indexer);
     }
 
     private Command stopTransportRollers() {
-        return SubsystemCommands.stopTransportRollers(m_transportRoller);
+        return SubsystemCommands.stopTransportRollers(m_indexer);
     }
 
     private Command runTransportRollersReverse() {
-        return SubsystemCommands.runTransportRollersReverse(m_transportRoller);
+        return SubsystemCommands.runTransportRollersReverse(m_indexer);
     }
 
     public Command feedFuel() {

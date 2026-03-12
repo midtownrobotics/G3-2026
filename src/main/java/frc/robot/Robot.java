@@ -66,7 +66,7 @@ public class Robot extends TimedRobot {
   private final AutoChooser m_autoChooser;
 
   private final Feeder m_feeder;
-  private final Indexer m_transportRoller;
+  private final Indexer m_indexer;
 
   private final RobotState m_state;
   private final RobotViz m_viz;
@@ -92,7 +92,7 @@ public class Robot extends TimedRobot {
     m_intakePivot = new IntakePivot();
     m_intakeRoller = new IntakeRoller();
     m_feeder = new Feeder();
-    m_transportRoller = new Indexer();
+    m_indexer = new Indexer();
     m_hood = new Hood();
     m_shooter = new Shooter();
     m_turret = new Turret();
@@ -125,7 +125,7 @@ public class Robot extends TimedRobot {
         m_turret,
         m_feeder,
         m_vision,
-        m_transportRoller,
+        m_indexer,
         m_shooter,
         m_hood);
 
@@ -134,7 +134,7 @@ public class Robot extends TimedRobot {
       m_controls = controls;
 
       m_robotCommands = new RobotCommands(m_drive, m_intakePivot, m_intakeRoller, m_turret, m_feeder, m_vision,
-          m_transportRoller, m_shooter, m_hood, m_state, controls);
+          m_indexer, m_shooter, m_hood, m_state, controls);
 
       configureConventionalBindings(controls);
     } else {
@@ -142,7 +142,7 @@ public class Robot extends TimedRobot {
       m_controls = controls;
 
       m_robotCommands = new RobotCommands(m_drive, m_intakePivot, m_intakeRoller, m_turret, m_feeder, m_vision,
-          m_transportRoller, m_shooter, m_hood, m_state, controls);
+          m_indexer, m_shooter, m_hood, m_state, controls);
 
       configureFourWayBindings(controls);
     }
