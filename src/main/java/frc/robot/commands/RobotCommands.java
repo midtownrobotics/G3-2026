@@ -17,7 +17,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.lib.LoggedTunableNumber;
 import frc.lib.Logger;
 import frc.lib.Watchdawg;
 import frc.robot.RobotState;

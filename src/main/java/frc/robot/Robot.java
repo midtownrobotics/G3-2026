@@ -178,6 +178,7 @@ public class Robot extends TimedRobot {
 
   private void generateAutoChooser() {
     m_autoChooser.addRoutine("Left Depot Shoot", m_autoRoutines::pickupDepotAndShoot);
+    m_autoChooser.addRoutine("Depot And Middle Shoot", m_autoRoutines::depotAndMiddleShoot);
 
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
     RobotModeTriggers.autonomous().whileTrue(m_autoChooser.selectedCommandScheduler());
