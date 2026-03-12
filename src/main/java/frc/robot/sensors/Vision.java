@@ -4,16 +4,20 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.photonvision.simulation.PhotonCameraSim;
+import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.Logger;
 import frc.lib.Watchdawg;
 import frc.robot.Robot;
+import frc.robot.constants.FieldConstants;
 import frc.robot.sensors.Camera.PoseObservation;
 
 public class Vision extends SubsystemBase {
@@ -33,8 +37,16 @@ public class Vision extends SubsystemBase {
     m_poseSupplier = poseSupplier;
 
     if (Robot.isSimulation()) {
+      SimCameraProperties cameraProperties = new SimCameraProperties();
+      cameraProperties.setCalibration(640, 480, Rotation2d.fromDegrees(100));
+      cameraProperties.setCalibError(0.25, 0.08);
+      cameraProperties.setFPS(20);
+      cameraProperties.setAvgLatencyMs(35);
+      cameraProperties.setLatencyStdDevMs(5);
+
       m_visionSim = new VisionSystemSim("main");
-      m_cameras.forEach(c -> m_visionSim.addCamera(c.getSimCamera(), c.getRobotToCamera()));
+      m_cameras.forEach(c -> m_visionSim.addCamera(new PhotonCameraSim(c.getCamera(), cameraProperties), c.getRobotToCamera()));
+      m_visionSim.addAprilTags(FieldConstants.kTagLayout);
     }
 
     m_log = new Logger(getClass());

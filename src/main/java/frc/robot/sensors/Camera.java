@@ -16,6 +16,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import frc.robot.constants.FieldConstants;
 
 public class Camera {
   private PhotonCamera m_camera;
@@ -30,7 +31,7 @@ public class Camera {
   public Camera(String name, Transform3d robotToCamera) {
     m_name = name;
     m_camera = new PhotonCamera(name);
-    m_estimator = new PhotonPoseEstimator(AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded),
+    m_estimator = new PhotonPoseEstimator(FieldConstants.kTagLayout,
         robotToCamera);
 
     m_robotToCamera = robotToCamera;
@@ -65,6 +66,9 @@ public class Camera {
       DogLog.log("Cameras/" + m_camera.getName() + "/timeStamp", result.getTimestampSeconds());
       if (result.multitagResult.isPresent()) {
         DogLog.log("Cameras/" + m_camera.getName() + "/singleTag", false);
+        DogLog.log("Cameras/" + m_camera.getName() + "/tagPoses", result.targets.stream().map(t -> t.getFiducialId())
+                                                                                         .map(d -> FieldConstants.kTagLayout.getTagPose(d).get())
+                                                                                         .toArray(Pose3d[]::new));
         var multitagResult = result.multitagResult.get();
 
         Transform3d fieldToCamera = multitagResult.estimatedPose.best;
