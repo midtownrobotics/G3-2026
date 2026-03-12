@@ -113,7 +113,7 @@ public class Robot extends TimedRobot {
     m_vision = new Vision(
         (observation) -> m_drive.addVisionMeasurement(observation.pose().toPose2d(), observation.timestamp()),
         m_drive::getPose,
-        rearRight,
+        // rearRight,
         rearLeft,
         rear,
         frontLeft);

@@ -46,9 +46,12 @@ public class AutoRoutines {
     leftStartToDepot.active().onTrue(m_robotCommands.runIntake());
     leftStartToDepot.active().onTrue(m_robotCommands.zeroTurretHood());
     leftStartToDepot.doneDelayed(1).onTrue(depotToShoot.cmd());
-    depotToShoot.doneDelayed(0.5).onTrue(m_robotCommands.autoAimAndPrepareShootAutonomous());
+    depotToShoot.done().onTrue(m_robotCommands.autoAimAndPrepareShootAutonomous());
     depotToShoot.doneDelayed(5).onTrue(m_robotCommands.idle());
     depotToShoot.doneDelayed(5).onTrue(shootToCenter.cmd());
+    shootToCenter.atTime(2.5).onTrue(m_robotCommands.runIntake());
+    shootToCenter.atTime(6.9).onTrue(m_robotCommands.stowIntake());
+    shootToCenter.done().onTrue(m_robotCommands.autoAimAndPrepareShootAutonomous());
 
     routine.active().onTrue(
         Commands.sequence(
