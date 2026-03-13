@@ -2,125 +2,112 @@ package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.KilogramSquareMeters;
-import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
-import edu.wpi.first.epilogue.Logged;
-import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.PhoenixUtil;
 import frc.lib.Watchdawg;
 import frc.robot.constants.Ports;
-import yams.mechanisms.config.PivotConfig;
-import yams.mechanisms.positional.Pivot;
-import yams.motorcontrollers.SmartMotorController;
-import yams.motorcontrollers.SmartMotorControllerConfig;
-import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
-import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
-import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
-import yams.motorcontrollers.remote.TalonFXWrapper;
 import yams.units.EasyCRT;
 import yams.units.EasyCRTConfig;
 
-@Logged(strategy = Strategy.OPT_IN)
 public class Turret extends SubsystemBase {
-  private final Pivot m_mechanism;
+  private static final double kMechanismToMotorGearing = (82d/10d)*(60d/12d);
+  private static final Angle kLowSoftLimit = Degrees.of(-255);
+  private static final Angle kHighSoftLimit = Degrees.of(255);
+  
+  private final TalonFX m_motor;
   private final CANcoder m_encoder1;
   private final CANcoder m_encoder2;
-  private final EasyCRT m_easyCRTSolver;
-  private final TalonFX m_motor;
-  private final Alert m_talonConnectionAlert = new Alert("Turret TalonFX motor is not connected", AlertType.kWarning);
-  private final Alert m_stallAlert = new Alert("Turret motor stalling", AlertType.kWarning);
   private final Watchdawg m_watchdog;
+
+  private final MotionMagicVoltage m_positionRequest = new MotionMagicVoltage(0);
 
   public Turret() {
     m_motor = new TalonFX(Ports.kTurretYaw.canId(), Ports.kTurretYaw.canbus());
     m_encoder1 = new CANcoder(Ports.kTurretYawEncoder1.canId(), Ports.kTurretYawEncoder1.canbus());
     m_encoder2 = new CANcoder(Ports.kTurretYawEncoder2.canId(), Ports.kTurretYawEncoder2.canbus());
-
-    SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-        .withControlMode(ControlMode.CLOSED_LOOP)
-        // .withClosedLoopController(10, 0, 0,
-        // DegreesPerSecond.of(950), DegreesPerSecondPerSecond.of(30))
-        .withClosedLoopController(0, 0, 0)
-        .withGearing(48)
-        .withIdleMode(MotorMode.BRAKE)
-        .withTelemetry("TurretMotor", TelemetryVerbosity.LOW)
-        .withStatorCurrentLimit(Amps.of(90))
-        .withClosedLoopRampRate(Seconds.of(0.25))
-        .withOpenLoopRampRate(Seconds.of(0.25));
-
-    SmartMotorController motorController = new TalonFXWrapper(m_motor, DCMotor.getKrakenX60(1), motorConfig);
-
-    PivotConfig pivotConfig = new PivotConfig(motorController)
-        .withStartingPosition(Degrees.of(0))
-        .withHardLimit(Degrees.of(-255), Degrees.of(255))
-        .withTelemetry("Turret", TelemetryVerbosity.LOW)
-        .withMOI(KilogramSquareMeters.of(0.1457345474));
-
-    m_mechanism = new Pivot(pivotConfig);
-
-    CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
-    m_encoder1.getConfigurator().apply(encoderConfig);
-    m_encoder2.getConfigurator().apply(encoderConfig);
-
-    Supplier<Angle> encoder1PositionSupplier = () -> m_encoder1.getAbsolutePosition().getValue();
-    Supplier<Angle> encoder2PositionSupplier = () -> m_encoder2.getAbsolutePosition().getValue();
-
-    EasyCRTConfig easyCRTConfig = new EasyCRTConfig(encoder1PositionSupplier, encoder2PositionSupplier)
-        .withEncoderRatios(0.0, 0.0)
-        .withAbsoluteEncoderInversions(false, false)
-        .withAbsoluteEncoderOffsets(Rotations.of(0.0), Rotations.of(0.0));
-
-    m_easyCRTSolver = new EasyCRT(easyCRTConfig);
-    m_easyCRTSolver.getAngleOptional().ifPresent(angle -> motorController.setEncoderPosition(angle));
     m_watchdog = new Watchdawg(getClass());
+
+    configureMotor();
+    seedPosition();
   }
 
-  @Override
-  public void periodic() {
-    // m_watchdog.start();
-    // m_mechanism.updateTelemetry();
-    // m_watchdog.end("updateTelemetry");
+  private void configureMotor() {
+    TalonFXConfiguration config = new TalonFXConfiguration();
+    config.Slot0
+      .withKP(10)
+      .withKD(0);  
 
-    // m_watchdog.start();
-    // m_talonConnectionAlert.set(!m_motor.isAlive());
-    // m_stallAlert.set(m_motor.getStatorCurrent().getValueAsDouble() > 68);
-    // m_watchdog.end("updateAlerts");
+
+    config.MotorOutput.withNeutralMode(NeutralModeValue.Brake);
+
+    config.MotionMagic
+      .withMotionMagicCruiseVelocity(DegreesPerSecond.of(950).times(kMechanismToMotorGearing))
+      .withMotionMagicAcceleration(DegreesPerSecond.of(30).per(Seconds).times(kMechanismToMotorGearing));
+
+    
+    config.CurrentLimits
+      .withStatorCurrentLimitEnable(true)
+      .withStatorCurrentLimit(Amps.of(90));
+    config.ClosedLoopRamps.withVoltageClosedLoopRampPeriod(Seconds.of(0.25));
+    config.OpenLoopRamps.withVoltageOpenLoopRampPeriod(Seconds.of(0.25));
+
+    config.SoftwareLimitSwitch.withForwardSoftLimitEnable(true)
+      .withForwardSoftLimitThreshold(kHighSoftLimit.times(kMechanismToMotorGearing))
+      .withReverseSoftLimitEnable(true)
+      .withReverseSoftLimitThreshold(kLowSoftLimit.times(kMechanismToMotorGearing));
+
+    PhoenixUtil.tryUntilOk(5, () -> m_motor.getConfigurator().apply(config));
   }
 
-  @Override
-  public void simulationPeriodic() {
-    m_mechanism.simIterate();
+  private void seedPosition() {
+    Supplier<Angle> encoder1PositionSupplier = () -> m_encoder1.getAbsolutePosition().getValue();
+    Supplier<Angle> encoder2PositionSupplier = () -> m_encoder2.getAbsolutePosition().getValue(); 
+    EasyCRTConfig CRTConfig = new EasyCRTConfig(encoder1PositionSupplier, encoder2PositionSupplier)
+      .withEncoderRatios(0, 0)
+      .withAbsoluteEncoderInversions(false, false);
+
+    EasyCRT solver = new EasyCRT(CRTConfig);
+    solver.getAngleOptional().ifPresent(angle -> m_motor.setPosition(angle.times(kMechanismToMotorGearing)));
   }
 
-  @Logged
   public Angle getAngle() {
-    return m_mechanism.getAngle();
+    return m_motor.getPosition().getValue().div(kMechanismToMotorGearing);
   }
 
   public Command setAngleCommand(Angle angle) {
-    return m_mechanism.setAngle(angle);
+    angle = findNearestAngle(angle);
+    Angle clampedAngle = Degrees.of(MathUtil.clamp(angle.in(Degrees), kLowSoftLimit.in(Degrees), kHighSoftLimit.in(Degrees)));
+    Angle motorAngle = clampedAngle.times(kMechanismToMotorGearing);
+    return Commands.run(() -> {
+      m_motor.setControl(m_positionRequest.withPosition(motorAngle));
+    });
   }
 
   public Command setAngleCommand(Supplier<Angle> angle) {
-    Supplier<Angle> newAngle = mapSupplier(angle, this::findNearestAngle);
-    return m_mechanism.setAngle(newAngle);
+    final Supplier<Angle> nearestAngle = mapSupplier(angle, this::findNearestAngle);
+    return Commands.run(() -> {
+      Angle clampedAngle = Degrees.of(MathUtil.clamp(nearestAngle.get().in(Degrees), kLowSoftLimit.in(Degrees), kHighSoftLimit.in(Degrees)));
+      Angle motorAngle = clampedAngle.times(kMechanismToMotorGearing);
+      m_motor.setControl(m_positionRequest.withPosition(motorAngle));
+    });
   }
-
+  
   private Angle findNearestAngle(Angle angle) {
     double targetDegrees = angle.in(Degrees);
     double currentDegrees = getAngle().in(Degrees);
