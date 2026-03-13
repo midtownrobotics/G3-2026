@@ -223,7 +223,7 @@ public class RobotCommands {
     Translation2d hubPosition = FieldConstants.getHubPosition2d();
     double hubY = hubPosition.getY();
 
-    double targetY = hubY;
+    double targetY = robotY;
 
     if (robotY > (hubY - 0.762) && robotY < (hubY + 0.762)) {
       if (robotY > hubY) {
