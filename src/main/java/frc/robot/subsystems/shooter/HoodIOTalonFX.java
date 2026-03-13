@@ -84,7 +84,7 @@ public class HoodIOTalonFX implements HoodIO {
         .withForwardSoftLimitEnable(true)
         .withForwardSoftLimitThreshold(Degrees.of(55))
         .withReverseSoftLimitEnable(true)
-        .withReverseSoftLimitThreshold(Degrees.of(2));
+        .withReverseSoftLimitThreshold(Degrees.of(0));
 
     config.OpenLoopRamps = new OpenLoopRampsConfigs().withVoltageOpenLoopRampPeriod(Seconds.of(0.25));
 
