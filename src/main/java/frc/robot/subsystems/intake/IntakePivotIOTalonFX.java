@@ -5,13 +5,13 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
+import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -32,8 +32,9 @@ import frc.robot.constants.Ports;
 
 public class IntakePivotIOTalonFX implements IntakePivotIO {
   // (50/12) * (60/20) * (48/16) = 37.5
-  private static final double kGearRatio = (50.0 / 12.0) * (60.0 / 20.0) * (48.0 / 16.0);
-  private static final double WRAP_OFFSET = -9.6;
+  private static final double kRotorToSensorRatio = (50.0 / 12.0) * (60.0 / 20.0);
+  private static final double kSensorToMechanismRatio = 48.0 / 16.0;
+  private static final Angle kMagnetOffset = Degrees.of(-9.6).times(kSensorToMechanismRatio);
 
   private final TalonFX m_motor;
   private final CANcoder m_encoder;
@@ -56,7 +57,12 @@ public class IntakePivotIOTalonFX implements IntakePivotIO {
 
     // Configure CANcoder
     CANcoderConfiguration canCoderConfig = new CANcoderConfiguration();
-    canCoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
+
+    canCoderConfig.MagnetSensor = new MagnetSensorConfigs()
+        .withAbsoluteSensorDiscontinuityPoint(Rotations.of(1))
+        .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)
+        .withMagnetOffset(kMagnetOffset);
+
     m_encoder.getConfigurator().apply(canCoderConfig);
 
     // Configure TalonFX
@@ -69,7 +75,10 @@ public class IntakePivotIOTalonFX implements IntakePivotIO {
         .withKG(0.5)
         .withGravityType(GravityTypeValue.Arm_Cosine);
 
-    config.Feedback = new FeedbackConfigs().withSensorToMechanismRatio(kGearRatio).withFusedCANcoder(m_encoder);
+    config.Feedback = new FeedbackConfigs()
+        .withRotorToSensorRatio(kRotorToSensorRatio)
+        .withSensorToMechanismRatio(kSensorToMechanismRatio)
+        .withFusedCANcoder(m_encoder);
 
     config.MotorOutput = new MotorOutputConfigs()
         .withNeutralMode(NeutralModeValue.Brake)
@@ -93,10 +102,6 @@ public class IntakePivotIOTalonFX implements IntakePivotIO {
 
     m_motor.getConfigurator().apply(config);
 
-    // Seed motor position from CANcoder absolute position
-    Angle startAngle = getAbsoluteAngle();
-    m_motor.setPosition(startAngle.in(Rotations) * kGearRatio);
-
     // Cache status signals
     m_positionSignal = m_motor.getPosition();
     m_velocitySignal = m_motor.getVelocity();
@@ -115,17 +120,6 @@ public class IntakePivotIOTalonFX implements IntakePivotIO {
         m_encoderPositionSignal);
   }
 
-  private Angle getAbsoluteAngle() {
-    double encoderDeg = m_encoder.getAbsolutePosition().getValue().in(Degrees);
-    if (encoderDeg < 0)
-      encoderDeg += 360.0;
-    double armDeg = encoderDeg / 3.0;
-
-    armDeg = (armDeg - WRAP_OFFSET + 120.0) % 120.0;
-    armDeg = armDeg > 105 ? -(120 - armDeg) : armDeg;
-    return Degrees.of(armDeg);
-  }
-
   @Override
   public void updateInputs(IntakePivotIOInputs inputs) {
     BaseStatusSignal.refreshAll(
@@ -141,7 +135,7 @@ public class IntakePivotIOTalonFX implements IntakePivotIO {
     inputs.appliedVoltage = m_appliedVoltsSignal.getValue();
     inputs.statorCurrent = m_statorCurrentSignal.getValue();
     inputs.supplyCurrent = m_supplyCurrentSignal.getValue();
-    inputs.encoderAbsolutePosition = getAbsoluteAngle();
+    inputs.encoderAbsolutePosition = m_encoderPositionSignal.getValue();
     inputs.setpoint = m_setpoint;
     inputs.motorConnected = m_motor.isAlive();
   }
@@ -149,12 +143,12 @@ public class IntakePivotIOTalonFX implements IntakePivotIO {
   @Override
   public void setPosition(Angle angle) {
     m_setpoint = angle;
-    m_motor.setControl(m_motionMagicRequest.withPosition(angle.in(Rotations)));
+    m_motor.setControl(m_motionMagicRequest.withPosition(angle));
   }
 
   @Override
   public void setVoltage(Voltage voltage) {
-    m_motor.setControl(m_voltageRequest.withOutput(voltage.in(Volts)));
+    m_motor.setControl(m_voltageRequest.withOutput(voltage));
   }
 
   @Override
@@ -164,7 +158,7 @@ public class IntakePivotIOTalonFX implements IntakePivotIO {
 
   @Override
   public void setEncoderPosition(Angle angle) {
-    m_motor.setPosition(angle.in(Rotations) * kGearRatio);
+    m_motor.setPosition(angle);
   }
 
   @Override

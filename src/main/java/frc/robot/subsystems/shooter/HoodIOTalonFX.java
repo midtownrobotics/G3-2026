@@ -31,8 +31,9 @@ import edu.wpi.first.units.measure.Voltage;
 import frc.robot.constants.Ports;
 
 public class HoodIOTalonFX implements HoodIO {
-  private static final double kGearRatio = 266.0;
   private static final double kSensorToMechanismRatio = 19.0;
+  private static final double kRotorToSensorRatio = 14.0;
+  private static final Angle kMagnetOffset = Degrees.of(0).times(kSensorToMechanismRatio);
 
   private final TalonFX m_motor;
   private final CANcoder m_encoder;
@@ -65,7 +66,7 @@ public class HoodIOTalonFX implements HoodIO {
 
     config.Feedback = new FeedbackConfigs()
         .withSensorToMechanismRatio(kSensorToMechanismRatio)
-        .withRotorToSensorRatio(kGearRatio / kSensorToMechanismRatio)
+        .withRotorToSensorRatio(kRotorToSensorRatio)
         .withFusedCANcoder(m_encoder);
 
     config.MotorOutput = new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake);

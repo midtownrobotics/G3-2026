@@ -5,9 +5,13 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -49,6 +53,11 @@ public class RobotState {
 
   private RobotMode m_mode = RobotMode.kIdle;
   private boolean m_isFixedTurretModeEnabled = false;
+  private boolean m_isShootOnTheMoveEnabled = true;
+
+  private final LoggedNetworkBoolean m_fixedTurretModeToggle = new LoggedNetworkBoolean("Toggles/FixedTurretMode",
+      false);
+  private final LoggedNetworkBoolean m_shootOnTheMoveToggle = new LoggedNetworkBoolean("Toggles/ShootOnTheMove", true);
 
   private final Map<RobotMode, Trigger> m_robotModesToTrigger;
 
@@ -86,10 +95,18 @@ public class RobotState {
     m_robotModesToTrigger = Stream.of(RobotMode.values())
         .collect(
             Collectors.toMap(Function.identity(), mode -> new Trigger(() -> m_mode == mode)));
+
+    new Trigger(m_fixedTurretModeToggle)
+        .onChange(Commands.defer(() -> setFixedTurretModeEnabledCommand(m_fixedTurretModeToggle.get()), Set.of()));
+    new Trigger(m_shootOnTheMoveToggle)
+        .onChange(Commands.defer(() -> setShootOnTheMoveEnabledCommand(m_shootOnTheMoveToggle.get()), Set.of()));
   }
 
   public void periodic() {
     m_shootingParameters.periodic();
+    Logger.recordOutput("RobotState/robotMode", getRobotMode());
+    Logger.recordOutput("RobotState/fixedTurretModeEnabled", isFixedTurretModeEnabled());
+    Logger.recordOutput("RobotState/shootOnTheMoveEnabled", isShootOnTheMoveEnabled());
   }
 
   public Pose2d getRobotPose() {
@@ -188,12 +205,20 @@ public class RobotState {
     return m_isFixedTurretModeEnabled;
   }
 
+  public boolean isShootOnTheMoveEnabled() {
+    return m_isShootOnTheMoveEnabled;
+  }
+
   public ShootingParameters getShootingParameters() {
     return m_shootingParameters;
   }
 
   public Command setFixedTurretModeEnabledCommand(boolean enabled) {
     return Commands.runOnce(() -> m_isFixedTurretModeEnabled = enabled);
+  }
+
+  public Command setShootOnTheMoveEnabledCommand(boolean enabled) {
+    return Commands.runOnce(() -> m_isShootOnTheMoveEnabled = enabled);
   }
 
   public Command setRobotModeCommand(RobotMode mode) {

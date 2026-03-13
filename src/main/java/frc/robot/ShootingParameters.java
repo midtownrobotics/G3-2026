@@ -181,7 +181,7 @@ public class ShootingParameters {
     final Distance rawDistanceToTarget = Meters.of(turretPose.getTranslation().getDistance(m_target));
     final Time rawTimeOfFlightToTarget = getTimeOfFlight(rawDistanceToTarget);
 
-    final Optional<Translation2d> adjustedTarget = Constants.kUseOnTheFlyShooting
+    final Optional<Translation2d> adjustedTarget = m_state.isShootOnTheMoveEnabled()
         ? getVelocityCompensatedTarget(
             turretPose.getTranslation(),
             m_target,

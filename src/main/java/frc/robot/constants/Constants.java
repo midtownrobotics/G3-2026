@@ -32,8 +32,6 @@ public class Constants {
                       TunerConstants.kFrontLeftYPos.in(Meters))))
           .in(MetersPerSecond.per(Meters)));
 
-  public static final boolean kUseOnTheFlyShooting = true;
-
   public enum ControlMode {
     FourWay,
     Conventional

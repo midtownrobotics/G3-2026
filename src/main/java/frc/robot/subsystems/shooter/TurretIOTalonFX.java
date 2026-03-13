@@ -3,9 +3,7 @@ package frc.robot.subsystems.shooter;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Seconds;
-import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -151,12 +149,12 @@ public class TurretIOTalonFX implements TurretIO {
   @Override
   public void setPosition(Angle angle) {
     m_setpoint = angle;
-    m_motor.setControl(m_positionRequest.withPosition(angle.in(Rotations)));
+    m_motor.setControl(m_positionRequest.withPosition(angle));
   }
 
   @Override
   public void setVoltage(Voltage voltage) {
-    m_motor.setControl(m_voltageRequest.withOutput(voltage.in(Volts)));
+    m_motor.setControl(m_voltageRequest.withOutput(voltage));
   }
 
   @Override
@@ -166,7 +164,7 @@ public class TurretIOTalonFX implements TurretIO {
 
   @Override
   public void setEncoderPosition(Angle angle) {
-    m_motor.setPosition(angle.in(Rotations) * kGearRatio);
+    m_motor.setPosition(angle);
   }
 
   @Override
