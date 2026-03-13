@@ -25,7 +25,7 @@ import edu.wpi.first.units.measure.Time;
 import frc.robot.constants.Constants;
 
 public class ShootingParameters {
-  private static final Time kTimeOfFlightTolerance = Seconds.of(0.1);
+  private static final Time kTimeOfFlightTolerance = Seconds.of(0.01);
   private static final int kMaximumIterations = 100;
   private static final Angle kHoodAngleTolerance = Degrees.of(5);
   private static final Angle kTurretAngleTolerance = Degrees.of(5);
@@ -134,10 +134,12 @@ public class ShootingParameters {
     final Time newToF = getTimeOfFlight(target, transformedRobotPose);
 
     if (iterations > kMaximumIterations) {
+      DogLog.log("numberOfSolverIterations", iterations);
       return Optional.empty();
     }
 
     if (ToF.isNear(oldToF, kTimeOfFlightTolerance)) {
+      DogLog.log("numberOfSolverIterations", iterations);
       return Optional.of(transformedRobotPose);
     }
 
