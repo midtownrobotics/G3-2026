@@ -14,7 +14,6 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.LoggedTunableNumber;
@@ -76,12 +75,12 @@ public class Turret extends SubsystemBase {
   }
 
   public Command setAngleCommand(Angle angle) {
-    return Commands.run(() -> m_io.setPosition(angle), this);
+    return run(() -> m_io.setPosition(angle));
   }
 
   public Command setAngleCommand(Supplier<Angle> angle) {
     Supplier<Angle> newAngle = mapSupplier(angle, this::findNearestAngle);
-    return Commands.run(() -> m_io.setPosition(newAngle.get()), this);
+    return run(() -> m_io.setPosition(newAngle.get()));
   }
 
   public Command tuningMode() {

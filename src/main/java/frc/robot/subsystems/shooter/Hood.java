@@ -92,7 +92,7 @@ public class Hood extends SubsystemBase {
   }
 
   public Command setVoltage(Voltage volts) {
-    return Commands.run(() -> m_io.setVoltage(volts), this);
+    return run(() -> m_io.setVoltage(volts));
   }
 
   public Trigger getCurrentSpikeTrigger() {
@@ -112,11 +112,11 @@ public class Hood extends SubsystemBase {
   }
 
   public Command setAngleCommand(Angle angle) {
-    return Commands.run(() -> m_io.setPosition(angle), this);
+    return run(() -> m_io.setPosition(angle));
   }
 
   public Command setAngleCommand(Supplier<Angle> angle) {
-    return Commands.run(() -> m_io.setPosition(angle.get()), this);
+    return run(() -> m_io.setPosition(angle.get()));
   }
 
   public Command tuningMode() {

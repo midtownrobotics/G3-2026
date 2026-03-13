@@ -11,7 +11,6 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.Watchdawg;
 
@@ -44,10 +43,10 @@ public class IntakeRoller extends SubsystemBase {
   }
 
   public Command setVoltageCommand(Voltage voltage) {
-    return Commands.run(() -> m_io.setVoltage(voltage), this);
+    return run(() -> m_io.setVoltage(voltage));
   }
 
   public Command setVoltageCommand(Supplier<Voltage> voltage) {
-    return Commands.run(() -> m_io.setVoltage(voltage.get()), this);
+    return run(() -> m_io.setVoltage(voltage.get()));
   }
 }

@@ -10,7 +10,6 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.PhoenixUtil;
 import frc.lib.Watchdawg;
@@ -34,10 +33,10 @@ public class Indexer extends SubsystemBase {
     TalonFXConfiguration config = new TalonFXConfiguration();
 
     config.MotorOutput
-      .withNeutralMode(NeutralModeValue.Coast);
+        .withNeutralMode(NeutralModeValue.Coast);
     config.CurrentLimits
-      .withStatorCurrentLimitEnable(true)
-      .withStatorCurrentLimit(90);
+        .withStatorCurrentLimitEnable(true)
+        .withStatorCurrentLimit(90);
 
     PhoenixUtil.tryUntilOk(5, () -> m_motor.getConfigurator().apply(config));
   }
@@ -53,10 +52,10 @@ public class Indexer extends SubsystemBase {
   }
 
   public Command setVoltageCommand(Voltage volts) {
-    return Commands.runOnce(() -> m_motor.setVoltage(volts.baseUnitMagnitude()));
+    return run(() -> m_motor.setVoltage(volts.baseUnitMagnitude()));
   }
 
   public Command stopCommand() {
-    return Commands.runOnce(() -> m_motor.setVoltage(0));
+    return run(() -> m_motor.setVoltage(0));
   }
 }
