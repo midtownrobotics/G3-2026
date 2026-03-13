@@ -2,112 +2,92 @@ package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
-import com.ctre.phoenix6.hardware.CANcoder;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.NeutralModeValue;
+import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.lib.PhoenixUtil;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.lib.LoggedTunableNumber;
 import frc.lib.Watchdawg;
-import frc.robot.constants.Ports;
-import yams.units.EasyCRT;
-import yams.units.EasyCRTConfig;
 
 public class Turret extends SubsystemBase {
-  private static final double kMechanismToMotorGearing = (82d/10d)*(60d/12d);
-  private static final Angle kLowSoftLimit = Degrees.of(-255);
-  private static final Angle kHighSoftLimit = Degrees.of(255);
-  
-  private final TalonFX m_motor;
-  private final CANcoder m_encoder1;
-  private final CANcoder m_encoder2;
+  private final TurretIO m_io;
+  private final TurretIOInputsAutoLogged m_inputs = new TurretIOInputsAutoLogged();
+  private final Alert m_talonConnectionAlert = new Alert("Turret TalonFX motor is not connected", AlertType.kWarning);
+  private final Alert m_stallAlert = new Alert("Turret motor stalling", AlertType.kWarning);
   private final Watchdawg m_watchdog;
+  private final Trigger m_isNearSetpointTrigger;
 
-  private final MotionMagicVoltage m_positionRequest = new MotionMagicVoltage(0);
+  private final LoggedTunableNumber m_kP = new LoggedTunableNumber("Turret/kP", 20);
+  private final LoggedTunableNumber m_kI = new LoggedTunableNumber("Turret/kI", 0);
+  private final LoggedTunableNumber m_kD = new LoggedTunableNumber("Turret/kD", 0);
+  private final LoggedTunableNumber m_turretSetpointAngleDegrees = new LoggedTunableNumber(
+      "Turret/SetpointDegrees", 0);
 
-  public Turret() {
-    m_motor = new TalonFX(Ports.kTurretYaw.canId(), Ports.kTurretYaw.canbus());
-    m_encoder1 = new CANcoder(Ports.kTurretYawEncoder1.canId(), Ports.kTurretYawEncoder1.canbus());
-    m_encoder2 = new CANcoder(Ports.kTurretYawEncoder2.canId(), Ports.kTurretYawEncoder2.canbus());
+  public Turret(TurretIO io) {
+    m_io = io;
     m_watchdog = new Watchdawg(getClass());
-
-    configureMotor();
-    seedPosition();
+    SmartDashboard.putData("TuningModes/Turret", tuningMode());
+    m_isNearSetpointTrigger = new Trigger(() -> isNearSetpoint(Degrees.of(1)));
   }
 
-  private void configureMotor() {
-    TalonFXConfiguration config = new TalonFXConfiguration();
-    config.Slot0
-      .withKP(10)
-      .withKD(0);  
+  @Override
+  public void periodic() {
+    m_watchdog.start();
 
+    m_io.updateInputs(m_inputs);
+    Logger.processInputs("Turret", m_inputs);
 
-    config.MotorOutput.withNeutralMode(NeutralModeValue.Brake);
+    m_talonConnectionAlert.set(!m_inputs.motorConnected);
+    m_stallAlert.set(m_inputs.statorCurrent.gt(Amps.of(68)));
 
-    config.MotionMagic
-      .withMotionMagicCruiseVelocity(DegreesPerSecond.of(950).times(kMechanismToMotorGearing))
-      .withMotionMagicAcceleration(DegreesPerSecond.of(30).per(Seconds).times(kMechanismToMotorGearing));
+    LoggedTunableNumber.ifChanged(
+        hashCode(), values -> m_io.setPID(values[0], values[1], values[2]), m_kP, m_kI, m_kD);
 
-    
-    config.CurrentLimits
-      .withStatorCurrentLimitEnable(true)
-      .withStatorCurrentLimit(Amps.of(90));
-    config.ClosedLoopRamps.withVoltageClosedLoopRampPeriod(Seconds.of(0.25));
-    config.OpenLoopRamps.withVoltageOpenLoopRampPeriod(Seconds.of(0.25));
+    Logger.recordOutput("Turret/angle", getAngle());
 
-    config.SoftwareLimitSwitch.withForwardSoftLimitEnable(true)
-      .withForwardSoftLimitThreshold(kHighSoftLimit.times(kMechanismToMotorGearing))
-      .withReverseSoftLimitEnable(true)
-      .withReverseSoftLimitThreshold(kLowSoftLimit.times(kMechanismToMotorGearing));
-
-    PhoenixUtil.tryUntilOk(5, () -> m_motor.getConfigurator().apply(config));
-  }
-
-  private void seedPosition() {
-    Supplier<Angle> encoder1PositionSupplier = () -> m_encoder1.getAbsolutePosition().getValue();
-    Supplier<Angle> encoder2PositionSupplier = () -> m_encoder2.getAbsolutePosition().getValue(); 
-    EasyCRTConfig CRTConfig = new EasyCRTConfig(encoder1PositionSupplier, encoder2PositionSupplier)
-      .withEncoderRatios(0, 0)
-      .withAbsoluteEncoderInversions(false, false);
-
-    EasyCRT solver = new EasyCRT(CRTConfig);
-    solver.getAngleOptional().ifPresent(angle -> m_motor.setPosition(angle.times(kMechanismToMotorGearing)));
+    m_watchdog.end("periodic");
   }
 
   public Angle getAngle() {
-    return m_motor.getPosition().getValue().div(kMechanismToMotorGearing);
+    return m_inputs.position;
+  }
+
+  public Angle getSetpointAngle() {
+    return m_inputs.setpoint;
+  }
+
+  public boolean isNearSetpoint(Angle tolerance) {
+    return getAngle().isNear(getSetpointAngle(), tolerance);
+  }
+
+  public Trigger isNearSetpointTrigger() {
+    return m_isNearSetpointTrigger;
   }
 
   public Command setAngleCommand(Angle angle) {
-    angle = findNearestAngle(angle);
-    Angle clampedAngle = Degrees.of(MathUtil.clamp(angle.in(Degrees), kLowSoftLimit.in(Degrees), kHighSoftLimit.in(Degrees)));
-    Angle motorAngle = clampedAngle.times(kMechanismToMotorGearing);
-    return Commands.run(() -> {
-      m_motor.setControl(m_positionRequest.withPosition(motorAngle));
-    });
+    return Commands.run(() -> m_io.setPosition(angle), this);
   }
 
   public Command setAngleCommand(Supplier<Angle> angle) {
-    final Supplier<Angle> nearestAngle = mapSupplier(angle, this::findNearestAngle);
-    return Commands.run(() -> {
-      Angle clampedAngle = Degrees.of(MathUtil.clamp(nearestAngle.get().in(Degrees), kLowSoftLimit.in(Degrees), kHighSoftLimit.in(Degrees)));
-      Angle motorAngle = clampedAngle.times(kMechanismToMotorGearing);
-      m_motor.setControl(m_positionRequest.withPosition(motorAngle));
-    });
+    Supplier<Angle> newAngle = mapSupplier(angle, this::findNearestAngle);
+    return Commands.run(() -> m_io.setPosition(newAngle.get()), this);
   }
-  
+
+  public Command tuningMode() {
+    return setAngleCommand(() -> Degrees.of(m_turretSetpointAngleDegrees.getAsDouble()));
+  }
+
   private Angle findNearestAngle(Angle angle) {
     double targetDegrees = angle.in(Degrees);
     double currentDegrees = getAngle().in(Degrees);

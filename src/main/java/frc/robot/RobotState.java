@@ -9,8 +9,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -20,31 +22,33 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.lib.GeometryUtil;
 import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
-import frc.robot.subsystems.indexer.Indexer;
+import frc.robot.subsystems.indexer.TransportRoller;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
 import frc.robot.subsystems.shooter.Hood;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.Turret;
 
-@Logged
 public class RobotState {
-  public final CommandSwerveDrivetrain m_drive;
-  public final IntakePivot m_intakePivot;
-  public final IntakeRoller m_intakeRoller;
-  public final Turret m_turret;
-  public final Feeder m_feeder;
-  public final Vision m_vision;
-  public final Indexer m_indexer;
-  public final Shooter m_shooter;
-  public final Hood m_hood;
+  private final CommandSwerveDrivetrain m_drive;
+  private final IntakePivot m_intakePivot;
+  private final IntakeRoller m_intakeRoller;
+  private final Turret m_turret;
+  private final Feeder m_feeder;
+  private final Vision m_vision;
+  private final TransportRoller m_transportRoller;
+  private final Shooter m_shooter;
+  private final Hood m_hood;
+  private final ShootingParameters m_shootingParameters;
 
   private RobotMode m_mode = RobotMode.kIdle;
+  private boolean m_isFixedTurretModeEnabled = false;
 
   private final Map<RobotMode, Trigger> m_robotModesToTrigger;
 
@@ -65,7 +69,7 @@ public class RobotState {
       Turret turret,
       Feeder feeder,
       Vision vision,
-      Indexer indexer,
+      TransportRoller transportRoller,
       Shooter shooter,
       Hood hood) {
     m_drive = drive;
@@ -74,24 +78,42 @@ public class RobotState {
     m_turret = turret;
     m_feeder = feeder;
     m_vision = vision;
-    m_indexer = indexer;
+    m_transportRoller = transportRoller;
     m_shooter = shooter;
     m_hood = hood;
+    m_shootingParameters = new ShootingParameters(this);
 
     m_robotModesToTrigger = Stream.of(RobotMode.values())
-        .collect(Collectors.toMap(Function.identity(), mode -> new Trigger(() -> m_mode == mode)));
+        .collect(
+            Collectors.toMap(Function.identity(), mode -> new Trigger(() -> m_mode == mode)));
   }
 
-  public RobotMode getRobotMode() {
-    return m_mode;
+  public void periodic() {
+    m_shootingParameters.periodic();
   }
 
   public Pose2d getRobotPose() {
     return m_drive.getPose();
   }
 
+  public Pose2d getExpRobotPose(double seconds) {
+    return getRobotPose().exp(getRobotRelativeSpeeds().toTwist2d(seconds));
+  }
+
+  private Transform2d getRobotToTurretTransform() {
+    return Constants.kRobotToTurret.plus(GeometryUtil.transform2dFromRotation(new Rotation2d(getTurretAngle())));
+  }
+
+  public Pose2d getTurretPose(Pose2d robotPose) {
+    return robotPose.plus(getRobotToTurretTransform());
+  }
+
   public Pose2d getTurretPose() {
-    return getRobotPose().transformBy(Constants.kRobotToTurret);
+    return getTurretPose(getRobotPose());
+  }
+
+  public Pose2d getExpTurretPose(double seconds) {
+    return getTurretPose(getExpRobotPose(seconds));
   }
 
   public ChassisSpeeds getRobotRelativeSpeeds() {
@@ -99,7 +121,8 @@ public class RobotState {
   }
 
   public ChassisSpeeds getFieldRelativeSpeeds() {
-    return ChassisSpeeds.fromRobotRelativeSpeeds(getRobotRelativeSpeeds(), getRobotPose().getRotation());
+    return ChassisSpeeds.fromRobotRelativeSpeeds(
+        getRobotRelativeSpeeds(), getRobotPose().getRotation());
   }
 
   public ChassisSpeeds getFieldRelativeTurretSpeeds() {
@@ -114,14 +137,18 @@ public class RobotState {
     return robotSpeeds.plus(robotRelativeTurretSpeeds);
   }
 
+  public Trigger isPreparedToShootTrigger() {
+    return m_shooter.isNearSetpointTrigger()
+        .and(m_hood.isNearSetpointTrigger())
+        .and(m_turret.isNearSetpointTrigger())
+        .debounce(0.1, DebounceType.kFalling);
+  }
+
   public Angle getIntakeAngle() {
     return m_intakePivot.getAngle();
   }
 
   public Angle getTurretAngle() {
-    if (Constants.kUseFixedTurretMode) {
-      return Constants.kFixedTurretRotation;
-    }
     return m_turret.getAngle();
   }
 
@@ -144,12 +171,29 @@ public class RobotState {
   }
 
   public boolean inAllianceZone() {
-    return FieldConstants.getAllianceZone(DriverStation.getAlliance().orElseGet(() -> Alliance.Blue))
+    return FieldConstants.getAllianceZone(
+        DriverStation.getAlliance().orElseGet(() -> Alliance.Blue))
         .contains(getRobotPose().getTranslation());
   }
 
   public Trigger fuelSensorTripped() {
     return m_feeder.fuelSensorTripped();
+  }
+
+  public RobotMode getRobotMode() {
+    return m_mode;
+  }
+
+  public boolean isFixedTurretModeEnabled() {
+    return m_isFixedTurretModeEnabled;
+  }
+
+  public ShootingParameters getShootingParameters() {
+    return m_shootingParameters;
+  }
+
+  public Command setFixedTurretModeEnabledCommand(boolean enabled) {
+    return Commands.runOnce(() -> m_isFixedTurretModeEnabled = enabled);
   }
 
   public Command setRobotModeCommand(RobotMode mode) {

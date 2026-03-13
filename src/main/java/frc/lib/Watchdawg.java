@@ -1,23 +1,23 @@
 package frc.lib;
 
-import dev.doglog.DogLog;
 import edu.wpi.first.wpilibj.Timer;
+import org.littletonrobotics.junction.Logger;
 
 public class Watchdawg {
-    final String basePath;
-    private double m_startTime;
+  final String basePath;
+  private double m_startTime;
 
-    public Watchdawg(Class<?> clazz) {
-        basePath = "Watchdog/" + clazz.getSimpleName() + "/";
-        m_startTime = 0;
-    }
+  public Watchdawg(Class<?> clazz) {
+    basePath = "Watchdog/" + clazz.getSimpleName() + "/";
+    m_startTime = 0;
+  }
 
-    public void start() {
-        m_startTime = Timer.getFPGATimestamp();
-    }
+  public void start() {
+    m_startTime = Timer.getFPGATimestamp();
+  }
 
-    public void end(String epoch) {
-        double totalTime = Timer.getFPGATimestamp() - m_startTime;
-        DogLog.log(basePath + epoch, totalTime);
-    }
+  public void end(String epoch) {
+    double totalTime = Timer.getFPGATimestamp() - m_startTime;
+    Logger.recordOutput(basePath + epoch, totalTime);
+  }
 }

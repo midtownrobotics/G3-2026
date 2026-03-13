@@ -4,17 +4,14 @@ import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.lib.Logger;
 import frc.robot.commands.RobotCommands;
 
 public class AutoRoutines {
   private final AutoFactory m_autoFactory;
-  private final Logger m_log;
   private final RobotCommands m_robotCommands;
 
   public AutoRoutines(AutoFactory autoFactory, Robot robot, RobotCommands robotCommands) {
     m_autoFactory = autoFactory;
-    m_log = new Logger(getClass());
     m_robotCommands = robotCommands;
   }
 
@@ -29,34 +26,9 @@ public class AutoRoutines {
     leftStartToDepot.doneDelayed(1).onTrue(depotToShoot.cmd());
     depotToShoot.doneDelayed(0.5).onTrue(m_robotCommands.autoAimAndPrepareShootAutonomous());
 
-    routine.active().onTrue(
-        Commands.sequence(
-            leftStartToDepot.resetOdometry(),
-            leftStartToDepot.cmd()));
-    return routine;
-  }
-
-  public AutoRoutine depotAndMiddleShoot() {
-    AutoRoutine routine = m_autoFactory.newRoutine("DepotToShoot");
-    AutoTrajectory leftStartToDepot = routine.trajectory("LeftStartToDepot");
-    AutoTrajectory depotToShoot = routine.trajectory("DepotToShoot");
-    AutoTrajectory shootToCenter = routine.trajectory("ShootToCenter");
-
-    leftStartToDepot.active().onTrue(m_robotCommands.revShooter());
-    leftStartToDepot.active().onTrue(m_robotCommands.runIntake());
-    leftStartToDepot.active().onTrue(m_robotCommands.zeroTurretHood());
-    leftStartToDepot.doneDelayed(1).onTrue(depotToShoot.cmd());
-    depotToShoot.done().onTrue(m_robotCommands.autoAimAndPrepareShootAutonomous());
-    depotToShoot.doneDelayed(5).onTrue(m_robotCommands.idle());
-    depotToShoot.doneDelayed(5).onTrue(shootToCenter.cmd());
-    shootToCenter.atTime(2.5).onTrue(m_robotCommands.runIntake());
-    shootToCenter.atTime(6.9).onTrue(m_robotCommands.stowIntake());
-    shootToCenter.done().onTrue(m_robotCommands.autoAimAndPrepareShootAutonomous());
-
-    routine.active().onTrue(
-        Commands.sequence(
-            leftStartToDepot.resetOdometry(),
-            leftStartToDepot.cmd()));
+    routine
+        .active()
+        .onTrue(Commands.sequence(leftStartToDepot.resetOdometry(), leftStartToDepot.cmd()));
     return routine;
   }
 }

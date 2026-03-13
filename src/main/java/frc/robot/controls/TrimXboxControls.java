@@ -1,10 +1,8 @@
 package frc.robot.controls;
 
-import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.IOProtectionXboxController;
 
-@Logged
 public class TrimXboxControls implements TrimControls {
   private final IOProtectionXboxController m_controller;
 
@@ -51,5 +49,4 @@ public class TrimXboxControls implements TrimControls {
   public Trigger decreaseTurretAngle() {
     return m_controller.povLeft();
   }
-
 }
