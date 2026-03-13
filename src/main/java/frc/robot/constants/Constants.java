@@ -22,7 +22,7 @@ public class Constants {
           Meters.of(Math.hypot(TunerConstants.kFrontLeftXPos.in(Meters), TunerConstants.kFrontLeftYPos.in(Meters))))
           .in(MetersPerSecond.per(Meters)));
 
-  public static final boolean kUseOnTheFlyShooting = false;
+  public static final boolean kUseOnTheFlyShooting = true;
 
   public enum ControlMode {
     FourWay,

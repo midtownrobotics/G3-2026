@@ -37,7 +37,12 @@ public class ShootingParameters {
 
   // Takes in a distance in meters and outputs a time in seconds
   private final InterpolatingDoubleTreeMap m_timeOfFlightMap = InterpolatingDoubleTreeMap.ofEntries(
-      Map.entry(5d, 3d));
+      Map.entry(Feet.of(12.5).in(Meters), Seconds.of(1).in(Seconds)),
+      Map.entry(Feet.of(11.1).in(Meters), Seconds.of(1).in(Seconds)),
+      Map.entry(Feet.of(15.5).in(Meters), Seconds.of(1.1).in(Seconds)),
+      Map.entry(Feet.of(5.3).in(Meters), Seconds.of(0.95).in(Seconds)),
+      Map.entry(Feet.of(19.2).in(Meters), Seconds.of(1.2).in(Seconds))
+  );
 
   // Takes in a distance in meters and outputs an angle in radians
   public final InterpolatingDoubleTreeMap m_hoodAngleMap = InterpolatingDoubleTreeMap.ofEntries(
@@ -50,8 +55,8 @@ public class ShootingParameters {
       Map.entry(Feet.of(8).in(Meters), Degrees.of(13).in(Radians)),
       Map.entry(Feet.of(9).in(Meters), Degrees.of(18).in(Radians)),
       Map.entry(Feet.of(10).in(Meters), Degrees.of(20).in(Radians)),
-      Map.entry(Feet.of(11).in(Meters), Degrees.of(23).in(Radians)),
-      Map.entry(Feet.of(15).in(Meters), Degrees.of(25).in(Radians)),
+      Map.entry(Feet.of(11).in(Meters), Degrees.of(21.5).in(Radians)),
+      Map.entry(Feet.of(15).in(Meters), Degrees.of(24).in(Radians)),
       Map.entry(Feet.of(26.875).in(Meters), Degrees.of(25).in(Radians)));
   // Takes in a distance in meters and outputs an angular velocity in radians per
   // second
@@ -65,8 +70,8 @@ public class ShootingParameters {
       Map.entry(Feet.of(8).in(Meters), RPM.of(1800).in(RadiansPerSecond)),
       Map.entry(Feet.of(9).in(Meters), RPM.of(1950).in(RadiansPerSecond)),
       Map.entry(Feet.of(10).in(Meters), RPM.of(2000).in(RadiansPerSecond)),
-      Map.entry(Feet.of(11).in(Meters), RPM.of(2100).in(RadiansPerSecond)),
-      Map.entry(Feet.of(15).in(Meters), RPM.of(2300).in(RadiansPerSecond)),
+      Map.entry(Feet.of(11).in(Meters), RPM.of(2200).in(RadiansPerSecond)),
+      Map.entry(Feet.of(15).in(Meters), RPM.of(2350).in(RadiansPerSecond)),
       Map.entry(Feet.of(26.875).in(Meters), RPM.of(3200).in(RadiansPerSecond)));
 
   private double m_flywheelVelocityModifier = 0.95;
@@ -79,6 +84,7 @@ public class ShootingParameters {
   private Parameters m_currentCycleParameters = new Parameters(Degrees.of(0), Degrees.of(0), RPM.of(0));
 
   private final Supplier<Translation2d> m_target;
+  private Pose2d m_virtualPose = new Pose2d();
 
   public record Parameters(Angle turretAngle, Angle hoodAngle, AngularVelocity flywheelVelocity, boolean noShot) {
     public Parameters(Angle turretAngle, Angle hoodAngle, AngularVelocity flywheelVelocity) {
@@ -118,12 +124,13 @@ public class ShootingParameters {
     final ChassisSpeeds speeds = m_state.getFieldRelativeTurretSpeeds();
     final Pose2d pose = m_state.getTurretPose();
 
-    final var tranform = new Transform2d(
-        new Translation2d(speeds.vxMetersPerSecond * ToF.in(Seconds),
-            speeds.vyMetersPerSecond * ToF.in(Seconds)),
-        new Rotation2d());
+    final Pose2d transformedRobotPose = new Pose2d(pose.getX() + speeds.vxMetersPerSecond * ToF.in(Seconds), 
+                                                   pose.getY() + speeds.vyMetersPerSecond * ToF.in(Seconds), 
+                                                   pose.getRotation());
+                                                   
 
-    final Pose2d transformedRobotPose = pose.transformBy(tranform);
+    DogLog.log("VirtualRobot", transformedRobotPose);
+
     final Time newToF = getTimeOfFlight(target, transformedRobotPose);
 
     if (iterations > kMaximumIterations) {
@@ -165,6 +172,7 @@ public class ShootingParameters {
         ? getVelocityCompensatedRobotPose(target, getTimeOfFlight(target, m_state.getTurretPose()),
             Seconds.of(Double.MAX_VALUE), 0)
         : Optional.of(m_state.getTurretPose());
+    
 
     if (pose.isEmpty()) {
       final Pose2d uncompensatedPose = m_state.getTurretPose();
@@ -174,6 +182,8 @@ public class ShootingParameters {
           true);
       return;
     }
+
+    m_virtualPose = pose.get();
 
     if (!shootingParametersAreWithinTolerance(m_currentCycleParameters)) {
       final Pose2d uncompensatedPose = m_state.getTurretPose();
@@ -195,7 +205,7 @@ public class ShootingParameters {
   }
 
   public Rotation2d getTargetRotation() {
-    return m_target.get().minus(m_state.getTurretPose().getTranslation()).getAngle()
+    return m_target.get().minus(m_virtualPose.getTranslation()).getAngle()
         .plus(new Rotation2d(Constants.kFixedTurretRotation));
   }
 
