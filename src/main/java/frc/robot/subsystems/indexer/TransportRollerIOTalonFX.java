@@ -15,6 +15,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -45,7 +46,8 @@ public class TransportRollerIOTalonFX implements TransportRollerIO {
 
     config.Feedback = new FeedbackConfigs().withSensorToMechanismRatio(kGearRatio);
 
-    config.MotorOutput = new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Coast);
+    config.MotorOutput = new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Coast)
+        .withInverted(InvertedValue.Clockwise_Positive);
 
     config.CurrentLimits = new CurrentLimitsConfigs()
         .withStatorCurrentLimitEnable(true)

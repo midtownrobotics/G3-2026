@@ -9,7 +9,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.lib.Watchdawg;
 import frc.robot.RobotState;
 import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
@@ -35,7 +34,6 @@ public class RobotCommands {
   private final Hood m_hood;
   private final RobotState m_state;
   private final DriveControls m_controls;
-  private final Watchdawg m_watchdog;
 
   public RobotCommands(
       CommandSwerveDrivetrain drive,
@@ -59,7 +57,6 @@ public class RobotCommands {
     m_shooter = shooter;
     m_hood = hood;
     m_state = state;
-    m_watchdog = new Watchdawg(getClass());
   }
 
   public Command snowBlow() {
@@ -91,16 +88,30 @@ public class RobotCommands {
     return DriveCommands.rotateRobot(m_drive, m_state.getShootingParameters()::getTargetRobotRotation);
   }
 
+  private Command intakeStowPosition() {
+    return m_intakePivot.setAngleCommand(Degrees.of(30));
+  }
+
+  private Command intakeRunPosition() {
+    return m_intakePivot.setAngleCommand(Degrees.of(5));
+  }
+
+  private Command runIntakeRollers() {
+    return m_intakeRoller.setVoltageCommand(Volts.of(7));
+  }
+
+  private Command stopIntakeRollers() {
+    return m_intakeRoller.setVoltageCommand(Volts.of(2));
+  }
+
   public Command runIntake() {
     return Commands.parallel(
-        SubsystemCommands.intakeRunPosition(m_intakePivot),
-        SubsystemCommands.runIntakeRollers(m_intakeRoller));
+        intakeRunPosition(),
+        runIntakeRollers());
   }
 
   public Command stowIntake() {
-    return Commands.parallel(
-        SubsystemCommands.intakeStowPosition(m_intakePivot),
-        SubsystemCommands.stopIntakeRollers(m_intakeRoller))
+    return Commands.parallel(intakeStowPosition(), stopIntakeRollers())
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
   }
 
@@ -125,27 +136,27 @@ public class RobotCommands {
   }
 
   private Command runFeeder() {
-    return SubsystemCommands.runFeeders(m_feeder);
+    return m_feeder.setVoltageCommand(Volts.of(10));
   }
 
   private Command runFeederReverse() {
-    return SubsystemCommands.runFeedersReverse(m_feeder);
+    return m_feeder.setVoltageCommand(Volts.of(-10));
   }
 
   private Command stopFeeder() {
-    return SubsystemCommands.stopFeeders(m_feeder);
+    return m_feeder.setVoltageCommand(Volts.of(0));
   }
 
   private Command runTransportRollers() {
-    return SubsystemCommands.runTransportRollers(m_transportRoller);
+    return m_transportRoller.setVoltageCommand(Volts.of(10));
   }
 
   private Command stopTransportRollers() {
-    return SubsystemCommands.stopTransportRollers(m_transportRoller);
+    return m_transportRoller.setVoltageCommand(Volts.of(0));
   }
 
   private Command runTransportRollersReverse() {
-    return SubsystemCommands.runTransportRollersReverse(m_transportRoller);
+    return m_transportRoller.setVoltageCommand(Volts.of(-3));
   }
 
   public Command feedFuel() {
