@@ -33,12 +33,8 @@ import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
 
 public class ShootingParameters {
-  private static final Time kTimeOfFlightTolerance = Seconds.of(0.1);
+  private static final Time kTimeOfFlightTolerance = Seconds.of(0.05);
   private static final int kMaximumIterations = 100;
-  private static final Angle kHoodAngleTolerance = Degrees.of(5);
-  private static final Angle kTurretAngleTolerance = Degrees.of(5);
-  private static final Angle kRobotRotationAngleTolerance = Degrees.of(10);
-  private static final AngularVelocity kFlywhweelVelocityTolerance = RPM.of(150);
   private static final double kToFTrimStep = 0.05;
   private static final double kFlywheelVelocityTrimStep = 0.05;
   private static final Angle kHoodAngleTrimStep = Degrees.of(1);
@@ -146,30 +142,6 @@ public class ShootingParameters {
     }
 
     return getVelocityCompensatedTarget(turret, target, newToF, ToF, iterations + 1);
-  }
-
-  public boolean shootingParametersAreWithinTolerance(Parameters parameters) {
-    if (!parameters.turretAngle.isNear(m_state.getTurretAngle(), kTurretAngleTolerance)
-        && !m_state.isFixedTurretModeEnabled()) {
-      return false;
-    }
-
-    if (!getTargetRobotRotation()
-        .getMeasure()
-        .isNear(m_state.getTurretPose().getRotation().getMeasure(), kRobotRotationAngleTolerance)) {
-      return false;
-    }
-
-    if (!parameters.hoodAngle.isNear(m_state.getHoodAngle(), kHoodAngleTolerance)) {
-      return false;
-    }
-
-    if (!parameters.flywheelVelocity.isNear(
-        m_state.getFlyWheelVelocity(), kFlywhweelVelocityTolerance)) {
-      return false;
-    }
-
-    return true;
   }
 
   public void periodic() {
