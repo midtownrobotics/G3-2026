@@ -4,7 +4,6 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -22,7 +21,6 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -104,9 +102,11 @@ public class RobotState {
 
   public void periodic() {
     m_shootingParameters.periodic();
+
     Logger.recordOutput("RobotState/robotMode", getRobotMode());
     Logger.recordOutput("RobotState/fixedTurretModeEnabled", isFixedTurretModeEnabled());
     Logger.recordOutput("RobotState/shootOnTheMoveEnabled", isShootOnTheMoveEnabled());
+    Logger.recordOutput("RobotState/inAllianceZone", inAllianceZone());
   }
 
   public Pose2d getRobotPose() {
@@ -178,19 +178,15 @@ public class RobotState {
   }
 
   public Trigger inAllianceZoneTrigger() {
-    return new Trigger(
-        () -> DriverStation.getAlliance()
-            .or(() -> Optional.of(Alliance.Blue))
-            .map(FieldConstants::getAllianceZone)
-            .map(r -> r.contains(m_drive.getPose().getTranslation()))
-            .orElse(false))
+    return new Trigger(this::inAllianceZone)
         .debounce(0.2);
   }
 
   public boolean inAllianceZone() {
-    return FieldConstants.getAllianceZone(
-        DriverStation.getAlliance().orElseGet(() -> Alliance.Blue))
-        .contains(getRobotPose().getTranslation());
+    return DriverStation.getAlliance()
+        .map(FieldConstants::getAllianceZone)
+        .map(r -> r.contains(m_drive.getPose().getTranslation()))
+        .orElse(false);
   }
 
   public Trigger fuelSensorTripped() {
