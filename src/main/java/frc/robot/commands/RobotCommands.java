@@ -263,7 +263,7 @@ public class RobotCommands {
 
     private Translation2d calculateTarget() {
         m_watchdog.start();
-        if (true || m_state.inAllianceZone()) {
+        if (m_state.inAllianceZone()) {
             return FieldConstants.getHubPosition2d();
         }
 
