@@ -42,15 +42,15 @@ public class SubsystemCommands {
         return feeder.setVoltageCommand(Volts.of(0));
     }
 
-    protected static Command runTransportRollers(Indexer transportRoller) {
-        return transportRoller.setVoltageCommand(Volts.of(-10));
+    protected static Command runIndexer(Indexer indexer) {
+        return indexer.setVoltageCommand(Volts.of(-10));
     }
 
-    protected static Command runTransportRollersReverse(Indexer transportRoller) {
-        return transportRoller.setVoltageCommand(Volts.of(3));
+    protected static Command runIndexerReverse(Indexer indexer) {
+        return indexer.setVoltageCommand(Volts.of(3));
     }
 
-    protected static Command stopTransportRollers(Indexer transportRoller) {
-        return transportRoller.setVoltageCommand(Volts.of(0));
+    protected static Command stopIndexer(Indexer indxer) {
+        return indxer.setVoltageCommand(Volts.of(0));
     }
 }

@@ -189,28 +189,28 @@ public class RobotCommands {
         return SubsystemCommands.stopFeeders(m_feeder);
     }
 
-    private Command runTransportRollers() {
-        return SubsystemCommands.runTransportRollers(m_indexer);
+    private Command runIndexer() {
+        return SubsystemCommands.runIndexer(m_indexer);
     }
 
-    private Command stopTransportRollers() {
-        return SubsystemCommands.stopTransportRollers(m_indexer);
+    private Command stopIndexer() {
+        return SubsystemCommands.stopIndexer(m_indexer);
     }
 
-    private Command runTransportRollersReverse() {
-        return SubsystemCommands.runTransportRollersReverse(m_indexer);
+    private Command runIndexerReverse() {
+        return SubsystemCommands.runIndexerReverse(m_indexer);
     }
 
     public Command feedFuel() {
-        return Commands.parallel(runFeeder(), runTransportRollers());
+        return Commands.parallel(runFeeder(), runIndexer());
     }
 
     public Command stopFeedingFuel() {
-        return Commands.parallel(stopFeeder(), stopTransportRollers());
+        return Commands.parallel(stopFeeder(), stopIndexer());
     }
 
     public Command reverseFeedFuel() {
-        return Commands.parallel(runFeederReverse(), runTransportRollersReverse(), driveCommand()).withInterruptBehavior(InterruptionBehavior.kCancelSelf);
+        return Commands.parallel(runFeederReverse(), runIndexerReverse(), driveCommand()).withInterruptBehavior(InterruptionBehavior.kCancelSelf);
     }
 
     public Command revShooter() {

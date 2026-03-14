@@ -18,14 +18,14 @@ import frc.robot.constants.Ports;
 
 @Logged(strategy = Strategy.OPT_IN)
 public class Indexer extends SubsystemBase {
-  private final Alert m_talonConnectionAlert = new Alert("TransportRoller TalonFX motor is not connected",
+  private final Alert m_talonConnectionAlert = new Alert("Indexer TalonFX motor is not connected",
       AlertType.kWarning);
-  private final Alert m_stallAlert = new Alert("TransportRoller stalling", AlertType.kWarning);
+  private final Alert m_stallAlert = new Alert("Indexer stalling", AlertType.kWarning);
   private final TalonFX m_motor;
   private final Watchdawg m_watchdog;
 
   public Indexer() {
-    m_motor = new TalonFX(Ports.kIndexerTransportRoller.canId(), Ports.kIndexerTransportRoller.canbus());
+    m_motor = new TalonFX(Ports.kIndexer.canId(), Ports.kIndexer.canbus());
     m_watchdog = new Watchdawg(getClass());
     conifgureMotor();
   }
