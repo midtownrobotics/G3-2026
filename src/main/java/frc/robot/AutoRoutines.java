@@ -35,4 +35,28 @@ public class AutoRoutines {
             leftStartToDepot.cmd()));
     return routine;
   }
+
+  public AutoRoutine depotAndMiddleShoot() {
+    AutoRoutine routine = m_autoFactory.newRoutine("DepotToShoot");
+    AutoTrajectory leftStartToDepot = routine.trajectory("LeftStartToDepot");
+    AutoTrajectory depotToShoot = routine.trajectory("DepotToShoot");
+    AutoTrajectory shootToCenter = routine.trajectory("ShootToCenter");
+
+    leftStartToDepot.active().onTrue(m_robotCommands.revShooter());
+    leftStartToDepot.active().onTrue(m_robotCommands.runIntake());
+    leftStartToDepot.active().onTrue(m_robotCommands.zeroTurretHood());
+    leftStartToDepot.doneDelayed(1).onTrue(depotToShoot.cmd());
+    depotToShoot.done().onTrue(m_robotCommands.autoAimAndPrepareShootAutonomous());
+    depotToShoot.doneDelayed(5).onTrue(m_robotCommands.idle());
+    depotToShoot.doneDelayed(5).onTrue(shootToCenter.cmd());
+    shootToCenter.atTime(2.5).onTrue(m_robotCommands.runIntake());
+    shootToCenter.atTime(6.9).onTrue(m_robotCommands.stowIntake());
+    shootToCenter.done().onTrue(m_robotCommands.autoAimAndPrepareShootAutonomous());
+
+    routine.active().onTrue(
+        Commands.sequence(
+            leftStartToDepot.resetOdometry(),
+            leftStartToDepot.cmd()));
+    return routine;
+  }
 }

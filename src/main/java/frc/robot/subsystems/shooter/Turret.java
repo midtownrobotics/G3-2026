@@ -92,14 +92,14 @@ public class Turret extends SubsystemBase {
 
   @Override
   public void periodic() {
-    m_watchdog.start();
-    m_mechanism.updateTelemetry();
-    m_watchdog.end("updateTelemetry");
+    // m_watchdog.start();
+    // m_mechanism.updateTelemetry();
+    // m_watchdog.end("updateTelemetry");
 
-    m_watchdog.start();
-    m_talonConnectionAlert.set(!m_motor.isAlive());
-    m_stallAlert.set(m_motor.getStatorCurrent().getValueAsDouble() > 68);
-    m_watchdog.end("updateAlerts");
+    // m_watchdog.start();
+    // m_talonConnectionAlert.set(!m_motor.isAlive());
+    // m_stallAlert.set(m_motor.getStatorCurrent().getValueAsDouble() > 68);
+    // m_watchdog.end("updateAlerts");
   }
 
   @Override

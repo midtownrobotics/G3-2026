@@ -8,8 +8,11 @@ import static edu.wpi.first.units.Units.Volts;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.networktables.DoubleEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -25,7 +28,7 @@ import frc.robot.controls.DriveControls;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
-import frc.robot.subsystems.indexer.TransportRoller;
+import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
 import frc.robot.subsystems.shooter.Hood;
@@ -38,7 +41,7 @@ public class RobotCommands {
     private final IntakeRoller m_intakeRoller;
     private final Turret m_turret;
     private final Feeder m_feeder;
-    private final TransportRoller m_transportRoller;
+    private final Indexer m_indexer;
     private final Shooter m_shooter;
     private final Hood m_hood;
     private final ShootingParameters m_shootingParameters;
@@ -47,6 +50,8 @@ public class RobotCommands {
     private final Trigger m_parametersHasShot;
     private final DriveControls m_controls;
     private final Watchdawg m_watchdog;
+    private final DoubleEntry m_hoodAngle = NetworkTableInstance.getDefault().getDoubleTopic("Tuning/HoodAngleDegrees").getEntry(0);
+    private final DoubleEntry m_shooterRPM = NetworkTableInstance.getDefault().getDoubleTopic("Tuning/ShooterRPM").getEntry(0);
 
     public RobotCommands(
             CommandSwerveDrivetrain drive,
@@ -55,7 +60,7 @@ public class RobotCommands {
             Turret turret,
             Feeder feeder,
             Vision vision,
-            TransportRoller transportRoller,
+            Indexer indexer,
             Shooter shooter,
             Hood hood,
             RobotState state,
@@ -66,7 +71,7 @@ public class RobotCommands {
         m_turret = turret;
         m_feeder = feeder;
         m_controls = controls;
-        m_transportRoller = transportRoller;
+        m_indexer = indexer;
         m_shooter = shooter;
         m_hood = hood;
         m_state = state;
@@ -78,10 +83,27 @@ public class RobotCommands {
                         m_state.getModeTrigger(RobotMode.kFullFieldShoot)
                                 .and(() -> m_shooter.getSpeed().isNear(RPM.of(2600), RPM.of(350))));
         m_watchdog = new Watchdawg(getClass());
+
+        SmartDashboard.putData("HoodAngleTUNING", tunableHoodAngle());
+        SmartDashboard.putData("FlywheelVelocityTUNING", tunableFlywheelVelocity());
+        SmartDashboard.putData("FeedFuel", feedFuel());
+        SmartDashboard.putData("StopFeedingFuel", stopFeedingFuel());
+
+        m_shooterRPM.accept(0);
+        m_hoodAngle.accept(0);
     }
 
     public Trigger parametersHasShot() {
         return m_parametersHasShot;
+    }
+
+    public Command tunableHoodAngle() {
+        return m_hood.setAngleCommand(() -> Degrees.of(m_hoodAngle.getAsDouble()));
+    }
+
+    public Command tunableFlywheelVelocity() {
+        
+        return m_shooter.setSpeedCommand(() -> RPM.of(m_shooterRPM.getAsDouble()));
     }
 
     public Command snowBlow() {
@@ -167,28 +189,28 @@ public class RobotCommands {
         return SubsystemCommands.stopFeeders(m_feeder);
     }
 
-    private Command runTransportRollers() {
-        return SubsystemCommands.runTransportRollers(m_transportRoller);
+    private Command runIndexer() {
+        return SubsystemCommands.runIndexer(m_indexer);
     }
 
-    private Command stopTransportRollers() {
-        return SubsystemCommands.stopTransportRollers(m_transportRoller);
+    private Command stopIndexer() {
+        return SubsystemCommands.stopIndexer(m_indexer);
     }
 
-    private Command runTransportRollersReverse() {
-        return SubsystemCommands.runTransportRollersReverse(m_transportRoller);
+    private Command runIndexerReverse() {
+        return SubsystemCommands.runIndexerReverse(m_indexer);
     }
 
     public Command feedFuel() {
-        return Commands.parallel(runFeeder(), runTransportRollers());
+        return Commands.parallel(runFeeder(), runIndexer());
     }
 
     public Command stopFeedingFuel() {
-        return Commands.parallel(stopFeeder(), stopTransportRollers());
+        return Commands.parallel(stopFeeder(), stopIndexer());
     }
 
     public Command reverseFeedFuel() {
-        return Commands.parallel(runFeederReverse(), runTransportRollersReverse(), driveCommand());
+        return Commands.parallel(runFeederReverse(), runIndexerReverse(), driveCommand()).withInterruptBehavior(InterruptionBehavior.kCancelSelf);
     }
 
     public Command revShooter() {

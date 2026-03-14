@@ -5,7 +5,7 @@ import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.feeder.Feeder;
-import frc.robot.subsystems.indexer.TransportRoller;
+import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
 
@@ -19,7 +19,7 @@ public class SubsystemCommands {
     }
 
     protected static Command intakeRunPosition(IntakePivot intakePivot) {
-        return intakePivot.setAngleCommand(Degrees.of(5));
+        return intakePivot.setAngleCommand(Degrees.of(0));
     }
 
     protected static Command runIntakeRollers(IntakeRoller intakeRoller) {
@@ -42,15 +42,15 @@ public class SubsystemCommands {
         return feeder.setVoltageCommand(Volts.of(0));
     }
 
-    protected static Command runTransportRollers(TransportRoller transportRoller) {
-        return transportRoller.setVoltageCommand(Volts.of(-10));
+    protected static Command runIndexer(Indexer indexer) {
+        return indexer.setVoltageCommand(Volts.of(-10));
     }
 
-    protected static Command runTransportRollersReverse(TransportRoller transportRoller) {
-        return transportRoller.setVoltageCommand(Volts.of(3));
+    protected static Command runIndexerReverse(Indexer indexer) {
+        return indexer.setVoltageCommand(Volts.of(3));
     }
 
-    protected static Command stopTransportRollers(TransportRoller transportRoller) {
-        return transportRoller.setVoltageCommand(Volts.of(0));
+    protected static Command stopIndexer(Indexer indxer) {
+        return indxer.setVoltageCommand(Volts.of(0));
     }
 }

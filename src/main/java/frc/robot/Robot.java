@@ -38,7 +38,7 @@ import frc.robot.sensors.Camera;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
-import frc.robot.subsystems.indexer.TransportRoller;
+import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
 import frc.robot.subsystems.shooter.Hood;
@@ -66,7 +66,7 @@ public class Robot extends TimedRobot {
   private final AutoChooser m_autoChooser;
 
   private final Feeder m_feeder;
-  private final TransportRoller m_transportRoller;
+  private final Indexer m_indexer;
 
   private final RobotState m_state;
   private final RobotViz m_viz;
@@ -79,7 +79,7 @@ public class Robot extends TimedRobot {
 
   private final Logger m_log = new Logger(getClass());
 
-  public Robot() {
+  public Robot(){
     DriverStation.silenceJoystickConnectionWarning(true);
     // m_pdh = new PowerDistribution();
     // m_pdh.setSwitchableChannel(true);
@@ -92,7 +92,7 @@ public class Robot extends TimedRobot {
     m_intakePivot = new IntakePivot();
     m_intakeRoller = new IntakeRoller();
     m_feeder = new Feeder();
-    m_transportRoller = new TransportRoller();
+    m_indexer = new Indexer();
     m_hood = new Hood();
     m_shooter = new Shooter();
     m_turret = new Turret();
@@ -125,7 +125,7 @@ public class Robot extends TimedRobot {
         m_turret,
         m_feeder,
         m_vision,
-        m_transportRoller,
+        m_indexer,
         m_shooter,
         m_hood);
 
@@ -134,7 +134,7 @@ public class Robot extends TimedRobot {
       m_controls = controls;
 
       m_robotCommands = new RobotCommands(m_drive, m_intakePivot, m_intakeRoller, m_turret, m_feeder, m_vision,
-          m_transportRoller, m_shooter, m_hood, m_state, controls);
+          m_indexer, m_shooter, m_hood, m_state, controls);
 
       configureConventionalBindings(controls);
     } else {
@@ -142,7 +142,7 @@ public class Robot extends TimedRobot {
       m_controls = controls;
 
       m_robotCommands = new RobotCommands(m_drive, m_intakePivot, m_intakeRoller, m_turret, m_feeder, m_vision,
-          m_transportRoller, m_shooter, m_hood, m_state, controls);
+          m_indexer, m_shooter, m_hood, m_state, controls);
 
       configureFourWayBindings(controls);
     }
@@ -178,6 +178,7 @@ public class Robot extends TimedRobot {
 
   private void generateAutoChooser() {
     m_autoChooser.addRoutine("Left Depot Shoot", m_autoRoutines::pickupDepotAndShoot);
+    m_autoChooser.addRoutine("Depot And Middle Shoot", m_autoRoutines::depotAndMiddleShoot);
 
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
     RobotModeTriggers.autonomous().whileTrue(m_autoChooser.selectedCommandScheduler());
@@ -246,6 +247,8 @@ public class Robot extends TimedRobot {
     m_watchdog.start();
     m_robotCommands.periodic();
     m_watchdog.end("robotCommandsPeriodic");
+
+    m_log.log("mode", m_state.getRobotMode());
   }
 
   @Override
