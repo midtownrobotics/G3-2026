@@ -23,7 +23,7 @@ public class Ports {
   public static final CANPort kTurretYawEncoder1 = new CANPort(31, staticCanBus);
   public static final CANPort kTurretYawEncoder2 = new CANPort(32, staticCanBus);
 
-  public static final CANPort kIndexerTransportRoller = new CANPort(33, staticCanBus);
+  public static final CANPort kIndexer = new CANPort(33, staticCanBus);
 
   public static final CANPort kFeederBelt = new CANPort(34, staticCanBus);
   public static final CANPort kFeederFuelSensor = new CANPort(35, staticCanBus);

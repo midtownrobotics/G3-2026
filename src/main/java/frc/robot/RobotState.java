@@ -30,7 +30,7 @@ import frc.robot.constants.FieldConstants;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
-import frc.robot.subsystems.indexer.TransportRoller;
+import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
 import frc.robot.subsystems.shooter.Hood;
@@ -44,7 +44,7 @@ public class RobotState {
   private final Turret m_turret;
   private final Feeder m_feeder;
   private final Vision m_vision;
-  private final TransportRoller m_transportRoller;
+  private final Indexer m_indexer;
   private final Shooter m_shooter;
   private final Hood m_hood;
   private final ShootingParameters m_shootingParameters;
@@ -76,7 +76,7 @@ public class RobotState {
       Turret turret,
       Feeder feeder,
       Vision vision,
-      TransportRoller transportRoller,
+      Indexer indexer,
       Shooter shooter,
       Hood hood) {
     m_drive = drive;
@@ -85,7 +85,7 @@ public class RobotState {
     m_turret = turret;
     m_feeder = feeder;
     m_vision = vision;
-    m_transportRoller = transportRoller;
+    m_indexer = indexer;
     m_shooter = shooter;
     m_hood = hood;
     m_shootingParameters = new ShootingParameters(this);

@@ -40,9 +40,9 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.feeder.FeederIOSim;
 import frc.robot.subsystems.feeder.FeederIOTalonFX;
-import frc.robot.subsystems.indexer.TransportRoller;
-import frc.robot.subsystems.indexer.TransportRollerIOSim;
-import frc.robot.subsystems.indexer.TransportRollerIOTalonFX;
+import frc.robot.subsystems.indexer.Indexer;
+import frc.robot.subsystems.indexer.IndexerIOSim;
+import frc.robot.subsystems.indexer.IndexerIOTalonFX;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakePivotIOSim;
 import frc.robot.subsystems.intake.IntakePivotIOTalonFX;
@@ -79,7 +79,7 @@ public class Robot extends LoggedRobot {
   private final AutoChooser m_autoChooser;
 
   private final Feeder m_feeder;
-  private final TransportRoller m_transportRoller;
+  private final Indexer m_indexer;
 
   private final RobotState m_state;
   private final RobotViz m_viz;
@@ -133,7 +133,7 @@ public class Robot extends LoggedRobot {
       m_intakePivot = new IntakePivot(new IntakePivotIOTalonFX());
       m_intakeRoller = new IntakeRoller(new IntakeRollerIOTalonFX());
       m_feeder = new Feeder(new FeederIOTalonFX());
-      m_transportRoller = new TransportRoller(new TransportRollerIOTalonFX());
+      m_indexer = new Indexer(new IndexerIOTalonFX());
       m_hood = new Hood(new HoodIOTalonFX());
       m_shooter = new Shooter(new ShooterIOTalonFX());
       m_turret = new Turret(new TurretIOTalonFX());
@@ -141,7 +141,7 @@ public class Robot extends LoggedRobot {
       m_intakePivot = new IntakePivot(new IntakePivotIOSim());
       m_intakeRoller = new IntakeRoller(new IntakeRollerIOSim());
       m_feeder = new Feeder(new FeederIOSim());
-      m_transportRoller = new TransportRoller(new TransportRollerIOSim());
+      m_indexer = new Indexer(new IndexerIOSim());
       m_hood = new Hood(new HoodIOSim());
       m_shooter = new Shooter(new ShooterIOSim());
       m_turret = new Turret(new TurretIOSim());
@@ -184,7 +184,7 @@ public class Robot extends LoggedRobot {
         m_turret,
         m_feeder,
         m_vision,
-        m_transportRoller,
+        m_indexer,
         m_shooter,
         m_hood);
 
@@ -199,7 +199,7 @@ public class Robot extends LoggedRobot {
           m_turret,
           m_feeder,
           m_vision,
-          m_transportRoller,
+          m_indexer,
           m_shooter,
           m_hood,
           m_state,
@@ -217,7 +217,7 @@ public class Robot extends LoggedRobot {
           m_turret,
           m_feeder,
           m_vision,
-          m_transportRoller,
+          m_indexer,
           m_shooter,
           m_hood,
           m_state,

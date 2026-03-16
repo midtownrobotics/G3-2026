@@ -12,7 +12,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
-public class TransportRollerIOSim implements TransportRollerIO {
+public class IndexerIOSim implements InexerIO {
   private static final double kGearRatio = 20.0 / 14.0;
   private static final DCMotor MOTOR = DCMotor.getKrakenX60(1);
   private static final double MOI = 0.001;
@@ -24,12 +24,12 @@ public class TransportRollerIOSim implements TransportRollerIO {
   private boolean m_closedLoop = false;
   private AngularVelocity m_setpoint = RPM.zero();
 
-  public TransportRollerIOSim() {
+  public IndexerIOSim() {
     m_sim = new DCMotorSim(LinearSystemId.createDCMotorSystem(MOTOR, MOI, kGearRatio), MOTOR);
   }
 
   @Override
-  public void updateInputs(TransportRollerIOInputs inputs) {
+  public void updateInputs(IndexerIOInputs inputs) {
     if (m_closedLoop) {
       m_appliedVolts = MathUtil.clamp(
           m_controller.calculate(

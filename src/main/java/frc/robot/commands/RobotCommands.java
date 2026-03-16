@@ -16,7 +16,7 @@ import frc.robot.controls.DriveControls;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
-import frc.robot.subsystems.indexer.TransportRoller;
+import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
 import frc.robot.subsystems.shooter.Hood;
@@ -29,7 +29,7 @@ public class RobotCommands {
   private final IntakeRoller m_intakeRoller;
   private final Turret m_turret;
   private final Feeder m_feeder;
-  private final TransportRoller m_transportRoller;
+  private final Indexer m_indexer;
   private final Shooter m_shooter;
   private final Hood m_hood;
   private final RobotState m_state;
@@ -42,7 +42,7 @@ public class RobotCommands {
       Turret turret,
       Feeder feeder,
       Vision vision,
-      TransportRoller transportRoller,
+      Indexer indexer,
       Shooter shooter,
       Hood hood,
       RobotState state,
@@ -53,7 +53,7 @@ public class RobotCommands {
     m_turret = turret;
     m_feeder = feeder;
     m_controls = controls;
-    m_transportRoller = transportRoller;
+    m_indexer = indexer;
     m_shooter = shooter;
     m_hood = hood;
     m_state = state;
@@ -147,28 +147,28 @@ public class RobotCommands {
     return m_feeder.setVoltageCommand(Volts.of(0));
   }
 
-  private Command runTransportRollers() {
-    return m_transportRoller.setVoltageCommand(Volts.of(10));
+  private Command runIndexer() {
+    return m_indexer.setVoltageCommand(Volts.of(10));
   }
 
-  private Command stopTransportRollers() {
-    return m_transportRoller.setVoltageCommand(Volts.of(0));
+  private Command stopIndexer() {
+    return m_indexer.setVoltageCommand(Volts.of(0));
   }
 
-  private Command runTransportRollersReverse() {
-    return m_transportRoller.setVoltageCommand(Volts.of(-3));
+  private Command runIndexerReverse() {
+    return m_indexer.setVoltageCommand(Volts.of(-3));
   }
 
   public Command feedFuel() {
-    return Commands.parallel(runFeeder(), runTransportRollers());
+    return Commands.parallel(runFeeder(), runIndexer());
   }
 
   public Command stopFeedingFuel() {
-    return Commands.parallel(stopFeeder(), stopTransportRollers());
+    return Commands.parallel(stopFeeder(), stopIndexer());
   }
 
   public Command reverseFeedFuel() {
-    return Commands.parallel(runFeederReverse(), runTransportRollersReverse(), driveCommand());
+    return Commands.parallel(runFeederReverse(), runIndexerReverse(), driveCommand());
   }
 
   public Command revShooter() {
