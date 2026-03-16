@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.RobotState;
 import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
-import frc.robot.controls.DriveControls;
+import frc.robot.controls.Controls;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
@@ -33,7 +33,7 @@ public class RobotCommands {
   private final Shooter m_shooter;
   private final Hood m_hood;
   private final RobotState m_state;
-  private final DriveControls m_controls;
+  private final Controls m_controls;
 
   public RobotCommands(
       CommandSwerveDrivetrain drive,
@@ -46,7 +46,7 @@ public class RobotCommands {
       Shooter shooter,
       Hood hood,
       RobotState state,
-      DriveControls controls) {
+      Controls controls) {
     m_drive = drive;
     m_intakePivot = intakePivot;
     m_intakeRoller = intakeRoller;

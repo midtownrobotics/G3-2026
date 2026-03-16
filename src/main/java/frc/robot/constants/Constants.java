@@ -37,8 +37,6 @@ public class Constants {
     Conventional
   }
 
-  public static final ControlMode kControlMode = ControlMode.FourWay;
-
   public static final boolean kUseWeirdSnakeDrive = false;
 
   public static final Angle kFixedTurretRotation = Degrees.of(-90);

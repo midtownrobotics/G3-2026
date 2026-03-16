@@ -23,16 +23,11 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.lib.Watchdawg;
 import frc.robot.RobotState.RobotMode;
 import frc.robot.commands.RobotCommands;
-import frc.robot.constants.Constants;
-import frc.robot.constants.Constants.ControlMode;
 import frc.robot.constants.FieldConstants;
-import frc.robot.controls.ConventionalControls;
-import frc.robot.controls.ConventionalXboxControls;
-import frc.robot.controls.DriveControls;
-import frc.robot.controls.FourWayControls;
-import frc.robot.controls.FourWayXboxControls;
+import frc.robot.controls.Controls;
 import frc.robot.controls.TrimControls;
 import frc.robot.controls.TrimXboxControls;
+import frc.robot.controls.XBoxControls;
 import frc.robot.generated.TunerConstants;
 import frc.robot.sensors.Camera;
 import frc.robot.sensors.Vision;
@@ -61,7 +56,7 @@ import frc.robot.subsystems.shooter.TurretIOTalonFX;
 
 public class Robot extends LoggedRobot {
   private Command m_autonomousCommand;
-  private final DriveControls m_controls;
+  private final Controls m_controls;
   private final TrimControls m_trimControls;
 
   private final CommandSwerveDrivetrain m_drive;
@@ -177,6 +172,8 @@ public class Robot extends LoggedRobot {
         rear,
         frontLeft);
 
+    m_controls = new XBoxControls(0);
+
     m_state = new RobotState(
         m_drive,
         m_intakePivot,
@@ -188,43 +185,18 @@ public class Robot extends LoggedRobot {
         m_shooter,
         m_hood);
 
-    if (Constants.kControlMode == ControlMode.Conventional) {
-      var controls = new ConventionalXboxControls(0);
-      m_controls = controls;
-
-      m_robotCommands = new RobotCommands(
-          m_drive,
-          m_intakePivot,
-          m_intakeRoller,
-          m_turret,
-          m_feeder,
-          m_vision,
-          m_indexer,
-          m_shooter,
-          m_hood,
-          m_state,
-          controls);
-
-      configureConventionalBindings(controls);
-    } else {
-      var controls = new FourWayXboxControls(0);
-      m_controls = controls;
-
-      m_robotCommands = new RobotCommands(
-          m_drive,
-          m_intakePivot,
-          m_intakeRoller,
-          m_turret,
-          m_feeder,
-          m_vision,
-          m_indexer,
-          m_shooter,
-          m_hood,
-          m_state,
-          controls);
-
-      configureFourWayBindings(controls);
-    }
+    m_robotCommands = new RobotCommands(
+        m_drive,
+        m_intakePivot,
+        m_intakeRoller,
+        m_turret,
+        m_feeder,
+        m_vision,
+        m_indexer,
+        m_shooter,
+        m_hood,
+        m_state,
+        m_controls);
 
     m_viz = new RobotViz(m_state);
 
@@ -242,6 +214,7 @@ public class Robot extends LoggedRobot {
     m_drive.setDefaultCommand(m_robotCommands.driveCommand());
 
     m_trimControls = new TrimXboxControls(1);
+
     configureTrimControlBindings(m_trimControls);
 
     m_state.isPreparedToShootTrigger()
@@ -249,6 +222,8 @@ public class Robot extends LoggedRobot {
         .onFalse(m_robotCommands.stopFeedingFuel());
 
     m_watchdog = new Watchdawg(getClass());
+
+    configureBindings();
   }
 
   private void generateAutoChooser() {
@@ -258,27 +233,22 @@ public class Robot extends LoggedRobot {
     RobotModeTriggers.autonomous().whileTrue(m_autoChooser.selectedCommandScheduler());
   }
 
-  public void configureConventionalBindings(ConventionalControls controls) {
-    controls.shoot().onTrue(m_robotCommands.prepareShoot()).onFalse(m_robotCommands.stopFlywheel());
-    controls.intake().onTrue(m_robotCommands.runIntake()).onFalse(m_robotCommands.stowIntake());
-  }
+  public void configureBindings() {
+    m_controls.idle().onTrue(m_state.setRobotModeCommand(RobotMode.kIdle));
 
-  public void configureFourWayBindings(FourWayControls controls) {
-    controls.idle().onTrue(m_state.setRobotModeCommand(RobotMode.kIdle));
+    m_controls.intake().onTrue(m_state.setRobotModeCommand(RobotMode.kIntake));
 
-    controls.intake().onTrue(m_state.setRobotModeCommand(RobotMode.kIntake));
+    m_controls.shoot().onTrue(m_state.setRobotModeCommand(RobotMode.kAutoAim));
 
-    controls.shoot().onTrue(m_state.setRobotModeCommand(RobotMode.kAutoAim));
+    m_controls.snowBlow().onTrue(m_state.setRobotModeCommand(RobotMode.kSnowBlow));
 
-    controls.snowBlow().onTrue(m_state.setRobotModeCommand(RobotMode.kSnowBlow));
+    m_controls.unjam().onTrue(m_state.setRobotModeCommand(RobotMode.kUnjam));
 
-    controls.unjam().onTrue(m_state.setRobotModeCommand(RobotMode.kUnjam));
+    m_controls.zeroHood().onTrue(m_robotCommands.zeroTurretHood());
 
-    controls.zeroHood().onTrue(m_robotCommands.zeroTurretHood());
+    m_controls.setpointShoot().onTrue(m_state.setRobotModeCommand(RobotMode.kSetpointShoot));
 
-    controls.setpointShoot().onTrue(m_state.setRobotModeCommand(RobotMode.kSetpointShoot));
-
-    controls.fullFieldShoot().onTrue(m_state.setRobotModeCommand(RobotMode.kFullFieldShoot));
+    m_controls.fullFieldShoot().onTrue(m_state.setRobotModeCommand(RobotMode.kFullFieldShoot));
 
     m_state.getModeTrigger(RobotMode.kIdle).whileTrue(m_robotCommands.idle());
 
