@@ -34,6 +34,7 @@ public class RobotCommands {
   private final Hood m_hood;
   private final RobotState m_state;
   private final Controls m_controls;
+  private final DriveCommands m_driveCommands;
 
   public RobotCommands(
       CommandSwerveDrivetrain drive,
@@ -57,10 +58,12 @@ public class RobotCommands {
     m_shooter = shooter;
     m_hood = hood;
     m_state = state;
+    m_driveCommands = new DriveCommands(drive, controls::getDriveLeft, controls::getDriveForward,
+        controls::getDriveRotation);
   }
 
   public Command snowBlow() {
-    return Commands.parallel(autoAimForTeleop(), runFlywheelCommand(), runIntake())
+    return Commands.parallel(autoAimForTeleop(), shooterTrackShootingParamters(), runIntake())
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
   }
 
@@ -72,20 +75,16 @@ public class RobotCommands {
     return Commands.parallel(prepareShoot(), autoAimForAutonomous());
   }
 
-  private Command runFlywheelCommand() {
+  private Command shooterTrackShootingParamters() {
     return m_shooter.setSpeedCommand(() -> m_state.getShootingParameters().getParameters().flywheelVelocity());
   }
 
   public Command autoAimForTeleop() {
-    return DriveCommands.rotateRobot(
-        m_drive,
-        () -> m_state.getShootingParameters().getTargetRobotRotation(),
-        m_controls::getDriveForward,
-        m_controls::getDriveLeft);
+    return m_driveCommands.rotateRobot(() -> m_state.getShootingParameters().getTargetRobotRotation());
   }
 
   public Command autoAimForAutonomous() {
-    return DriveCommands.rotateRobot(m_drive, m_state.getShootingParameters()::getTargetRobotRotation);
+    return m_driveCommands.rotateRobotForAutonomous(() -> m_state.getShootingParameters().getTargetRobotRotation());
   }
 
   public Command runIntake() {
@@ -110,7 +109,7 @@ public class RobotCommands {
   }
 
   public Command prepareShoot() {
-    return Commands.parallel(runFlywheelCommand(), stowIntake())
+    return Commands.parallel(shooterTrackShootingParamters(), stowIntake())
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
   }
 
@@ -154,11 +153,7 @@ public class RobotCommands {
   }
 
   public Command driveCommand() {
-    return DriveCommands.driveCommand(
-        m_drive,
-        m_controls::getDriveForward,
-        m_controls::getDriveLeft,
-        m_controls::getDriveRotation);
+    return m_driveCommands.driveCommand();
   }
 
   public Command zeroTurretHood() {
