@@ -56,8 +56,6 @@ public class IntakePivot extends SubsystemBase {
         m_kD,
         m_kG);
 
-    Logger.recordOutput("IntakePivot/angle", getAngle());
-
     m_watchdog.end("periodic");
   }
 

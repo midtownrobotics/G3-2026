@@ -16,6 +16,7 @@ import choreo.auto.AutoFactory;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -91,7 +92,7 @@ public class Robot extends LoggedRobot {
   private final RobotCommands m_robotCommands;
 
   public Robot() {
-    // DriverStation.silenceJoystickConnectionWarning(true);
+    DriverStation.silenceJoystickConnectionWarning(Robot.isSimulation());
     // m_pdh = new PowerDistribution();
     // m_pdh.setSwitchableChannel(true);
 
@@ -285,7 +286,7 @@ public class Robot extends LoggedRobot {
     m_state.getModeTrigger(RobotMode.kIntake).whileTrue(m_robotCommands.fill());
 
     m_state.inAllianceZoneTrigger()
-        .whileTrue(m_state.getShootingParameters().setTargetCommand(FieldConstants.getHubPosition2d()))
+        .whileTrue(m_state.getShootingParameters().setTargetCommand(FieldConstants::getHubPosition2d))
         .whileFalse(m_state.getShootingParameters().setTargetCommand(m_robotCommands::calculateFeedTarget));
 
     m_state

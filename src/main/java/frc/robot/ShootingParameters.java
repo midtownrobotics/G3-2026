@@ -29,7 +29,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.GeometryUtil;
 import frc.lib.Watchdawg;
-import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
 
 public class ShootingParameters {
@@ -123,40 +122,45 @@ public class ShootingParameters {
   }
 
   private Optional<Translation2d> getVelocityCompensatedTarget(
-      Translation2d turret, Translation2d target, Time ToF, Time oldToF, int iterations) {
+      Translation2d turret, Translation2d target, ChassisSpeeds turretSpeeds, Time ToF, Time oldToF, int iterations) {
     if (iterations > kMaximumIterations) {
       return Optional.empty();
     }
 
-    final Distance distanceToTarget = Meters.of(turret.getDistance(target));
-    final Time newToF = getTimeOfFlight(distanceToTarget);
+    // The ball inherits the turret's velocity at launch. To cancel this drift,
+    // aim at a virtual target shifted opposite to the velocity vector.
+    final Translation2d adjustedTarget = target.minus(
+        new Translation2d(
+            turretSpeeds.vxMetersPerSecond * ToF.in(Seconds),
+            turretSpeeds.vyMetersPerSecond * ToF.in(Seconds)));
 
     if (ToF.isNear(oldToF, kTimeOfFlightTolerance)) {
-      // Converged — compute the final adjusted target with this ToF
-      final ChassisSpeeds speeds = m_state.getFieldRelativeTurretSpeeds();
-      final Translation2d adjustedTarget = target.minus(
-          new Translation2d(
-              speeds.vxMetersPerSecond * ToF.in(Seconds),
-              speeds.vyMetersPerSecond * ToF.in(Seconds)));
+      // Converged — return the adjusted target using the converged ToF
       return Optional.of(adjustedTarget);
     }
 
-    return getVelocityCompensatedTarget(turret, target, newToF, ToF, iterations + 1);
+    // Refine ToF based on the distance to the adjusted target
+    final Distance distanceToTarget = Meters.of(turret.getDistance(adjustedTarget));
+    final Time newToF = getTimeOfFlight(distanceToTarget);
+
+    return getVelocityCompensatedTarget(turret, target, turretSpeeds, newToF, ToF, iterations + 1);
   }
 
   public void periodic() {
     m_watchdog.start();
-    final Pose2d robotPose = m_state.getExpRobotPose(kLatencyCompensationSeconds);
-    final Pose2d turretPose = m_state.getTurretPose(robotPose);
-    final Translation2d turretTranslation = turretPose.getTranslation();
+    final Pose2d expRobotPose = m_state.getExpRobotPose(kLatencyCompensationSeconds);
+    final Pose2d expTurretPose = m_state.getTurretPose(expRobotPose);
+    final Translation2d expTurretTranslation = expTurretPose.getTranslation();
+    final ChassisSpeeds expTurretSpeeds = m_state.getFieldRelativeTurretSpeeds(expRobotPose);
 
-    final Distance rawDistanceToTarget = Meters.of(turretPose.getTranslation().getDistance(m_target));
+    final Distance rawDistanceToTarget = Meters.of(expTurretTranslation.getDistance(m_target));
     final Time rawTimeOfFlightToTarget = getTimeOfFlight(rawDistanceToTarget);
 
     final Optional<Translation2d> adjustedTarget = m_state.isShootOnTheMoveEnabled()
         ? getVelocityCompensatedTarget(
-            turretPose.getTranslation(),
+            expTurretTranslation,
             m_target,
+            expTurretSpeeds,
             rawTimeOfFlightToTarget,
             Seconds.of(Double.MAX_VALUE),
             0)
@@ -164,10 +168,10 @@ public class ShootingParameters {
 
     final Translation2d target = adjustedTarget.orElse(m_target);
 
-    final Distance distanceToTarget = Meters.of(turretTranslation.getDistance(target));
+    final Distance distanceToTarget = Meters.of(expTurretTranslation.getDistance(target));
 
     m_currentCycleParameters = new Parameters(
-        getTurretAngle(turretTranslation, target, robotPose.getRotation()),
+        getTurretAngle(expTurretTranslation, target, expRobotPose.getRotation()),
         getHoodAngle(distanceToTarget),
         getFlyWheelVelocity(distanceToTarget));
 
@@ -188,7 +192,7 @@ public class ShootingParameters {
     return m_target
         .minus(m_state.getTurretPose().getTranslation())
         .getAngle()
-        .plus(new Rotation2d(Constants.kFixedTurretRotation));
+        .minus(new Rotation2d(m_state.getTurretAngle()));
   }
 
   public void increaseFlywheelVelocity() {

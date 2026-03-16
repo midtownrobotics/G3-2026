@@ -70,7 +70,6 @@ public class Hood extends SubsystemBase {
         m_kG);
 
     Logger.recordOutput("Hood/currentSpike", getIsCurrentSpiking());
-    Logger.recordOutput("Hood/angle", getAngle());
 
     m_watchdog.end("periodic");
   }

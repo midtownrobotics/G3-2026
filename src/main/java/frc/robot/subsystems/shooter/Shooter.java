@@ -72,8 +72,6 @@ public class Shooter extends SubsystemBase {
         m_kS,
         m_kV);
 
-    Logger.recordOutput("Shooter/speed", getSpeed());
-
     m_watchdog.end("periodic");
   }
 

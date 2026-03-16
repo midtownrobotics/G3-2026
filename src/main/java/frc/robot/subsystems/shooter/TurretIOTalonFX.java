@@ -2,7 +2,8 @@ package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -33,8 +34,8 @@ import yams.units.EasyCRTConfig;
 public class TurretIOTalonFX implements TurretIO {
   private static final double kGearRatio = 48.0;
 
-  private static final Angle kLowSoftLimit = Degrees.of(-120);
-  private static final Angle kHighSoftLimit = Degrees.of(120);
+  private static final Angle kLowSoftLimit = Degrees.of(-45);
+  private static final Angle kHighSoftLimit = Degrees.of(315);
 
   private final TalonFX m_motor;
   private final CANcoder m_encoder1;
@@ -60,7 +61,11 @@ public class TurretIOTalonFX implements TurretIO {
 
     TalonFXConfiguration config = new TalonFXConfiguration();
 
-    config.Slot0 = new Slot0Configs().withKP(10).withKD(0);
+    config.Slot0 = new Slot0Configs()
+        .withKP(56)
+        .withKD(3)
+        .withKS(1.5)
+        .withKV(3);
 
     config.Feedback = new FeedbackConfigs().withSensorToMechanismRatio(kGearRatio);
 
@@ -69,8 +74,8 @@ public class TurretIOTalonFX implements TurretIO {
         .withInverted(InvertedValue.CounterClockwise_Positive);
 
     config.MotionMagic
-        .withMotionMagicCruiseVelocity(DegreesPerSecond.of(950))
-        .withMotionMagicAcceleration(DegreesPerSecond.of(30).per(Seconds));
+        .withMotionMagicCruiseVelocity(RotationsPerSecond.of(4.5))
+        .withMotionMagicAcceleration(RotationsPerSecondPerSecond.of(5));
 
     config.CurrentLimits = new CurrentLimitsConfigs()
         .withStatorCurrentLimitEnable(true)

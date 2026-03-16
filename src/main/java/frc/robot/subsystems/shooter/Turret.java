@@ -3,12 +3,10 @@ package frc.robot.subsystems.shooter;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
@@ -27,9 +25,6 @@ public class Turret extends SubsystemBase {
   private final Watchdawg m_watchdog;
   private final Trigger m_isNearSetpointTrigger;
 
-  private final LoggedTunableNumber m_kP = new LoggedTunableNumber("Turret/kP", 20);
-  private final LoggedTunableNumber m_kI = new LoggedTunableNumber("Turret/kI", 0);
-  private final LoggedTunableNumber m_kD = new LoggedTunableNumber("Turret/kD", 0);
   private final LoggedTunableNumber m_turretSetpointAngleDegrees = new LoggedTunableNumber(
       "Turret/SetpointDegrees", 0);
 
@@ -49,9 +44,6 @@ public class Turret extends SubsystemBase {
 
     m_talonConnectionAlert.set(!m_inputs.motorConnected);
     m_stallAlert.set(m_inputs.statorCurrent.gt(Amps.of(68)));
-
-    LoggedTunableNumber.ifChanged(
-        hashCode(), values -> m_io.setPID(values[0], values[1], values[2]), m_kP, m_kI, m_kD);
 
     Logger.recordOutput("Turret/angle", getAngle());
 
@@ -79,33 +71,10 @@ public class Turret extends SubsystemBase {
   }
 
   public Command setAngleCommand(Supplier<Angle> angle) {
-    Supplier<Angle> newAngle = mapSupplier(angle, this::findNearestAngle);
-    return run(() -> m_io.setPosition(newAngle.get()));
+    return run(() -> m_io.setPosition(angle.get()));
   }
 
   public Command tuningMode() {
     return setAngleCommand(() -> Degrees.of(m_turretSetpointAngleDegrees.getAsDouble()));
-  }
-
-  private Angle findNearestAngle(Angle angle) {
-    double targetDegrees = angle.in(Degrees);
-    double currentDegrees = getAngle().in(Degrees);
-
-    double delta = ((targetDegrees - currentDegrees) % 360 + 540) % 360 - 180;
-    double bestAngle = currentDegrees + delta;
-
-    if (bestAngle > 255.0) {
-      bestAngle = bestAngle - 360.0;
-    } else if (bestAngle < -255.0) {
-      bestAngle = bestAngle + 360.0;
-    }
-
-    bestAngle = MathUtil.clamp(bestAngle, -255, 255);
-
-    return Degrees.of(bestAngle);
-  }
-
-  private static <T> Supplier<T> mapSupplier(Supplier<T> supplier, Function<T, T> mapper) {
-    return () -> mapper.apply(supplier.get());
   }
 }
