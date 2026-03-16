@@ -2,11 +2,10 @@ package frc.robot.subsystems.indexer;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Volts;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -50,15 +49,15 @@ public class Indexer extends SubsystemBase {
     m_watchdog.end("periodic");
   }
 
-  public Command setSpeedCommand(AngularVelocity speed) {
-    return run(() -> m_io.setSpeed(speed));
+  public Command runForward() {
+    return run(() -> m_io.setVoltage(Volts.of(10)));
   }
 
-  public Command setVoltageCommand(Voltage volts) {
-    return run(() -> m_io.setVoltage(volts));
+  public Command stop() {
+    return run(() -> m_io.setVoltage(Volts.of(0)));
   }
 
-  public Command stopCommand() {
-    return run(() -> m_io.stop());
+  public Command runReverse() {
+    return run(() -> m_io.setVoltage(Volts.of(-3)));
   }
 }

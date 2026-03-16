@@ -101,6 +101,10 @@ public class Shooter extends SubsystemBase {
     return run(() -> m_io.setSpeed(speedSupplier.get()));
   }
 
+  public Command stop() {
+    return run(() -> m_io.setSpeed(RPM.of(0)));
+  }
+
   public Command tuningMode() {
     return setSpeedCommand(() -> RPM.of(m_shooterSetpointSpeed.getAsDouble()));
   }

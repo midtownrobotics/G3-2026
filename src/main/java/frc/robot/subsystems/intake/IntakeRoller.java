@@ -2,12 +2,10 @@ package frc.robot.subsystems.intake;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.RPM;
-
-import java.util.function.Supplier;
+import static edu.wpi.first.units.Units.Volts;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -42,11 +40,11 @@ public class IntakeRoller extends SubsystemBase {
     m_watchdog.end("periodic");
   }
 
-  public Command setVoltageCommand(Voltage voltage) {
-    return run(() -> m_io.setVoltage(voltage));
+  public Command intake() {
+    return run(() -> m_io.setVoltage(Volts.of(7)));
   }
 
-  public Command setVoltageCommand(Supplier<Voltage> voltage) {
-    return run(() -> m_io.setVoltage(voltage.get()));
+  public Command stow() {
+    return run(() -> m_io.setVoltage(Volts.of(2)));
   }
 }

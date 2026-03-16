@@ -88,45 +88,24 @@ public class RobotCommands {
     return DriveCommands.rotateRobot(m_drive, m_state.getShootingParameters()::getTargetRobotRotation);
   }
 
-  private Command intakeStowPosition() {
-    return m_intakePivot.setAngleCommand(Degrees.of(30));
-  }
-
-  private Command intakeRunPosition() {
-    return m_intakePivot.setAngleCommand(Degrees.of(5));
-  }
-
-  private Command runIntakeRollers() {
-    return m_intakeRoller.setVoltageCommand(Volts.of(7));
-  }
-
-  private Command stopIntakeRollers() {
-    return m_intakeRoller.setVoltageCommand(Volts.of(2));
-  }
-
   public Command runIntake() {
     return Commands.parallel(
-        intakeRunPosition(),
-        runIntakeRollers());
+        m_intakePivot.intake(),
+        m_intakeRoller.intake());
   }
 
   public Command stowIntake() {
-    return Commands.parallel(intakeStowPosition(), stopIntakeRollers())
+    return Commands.parallel(m_intakePivot.stow(), m_intakeRoller.stow())
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
   }
 
   public Command idle() {
-    return Commands.parallel(m_shooter.setSpeedCommand(RPM.of(0)), stowIntake(), stopFeedingFuel())
-        .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
-  }
-
-  public Command stopFlywheel() {
-    return Commands.parallel(m_shooter.setSpeedCommand(RPM.of(0)))
+    return Commands.parallel(m_shooter.stop(), stowIntake(), stopFeedingFuel())
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
   }
 
   public Command fill() {
-    return Commands.parallel(stopFlywheel(), runIntake())
+    return Commands.parallel(m_shooter.stop(), runIntake())
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
   }
 
@@ -135,40 +114,16 @@ public class RobotCommands {
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
   }
 
-  private Command runFeeder() {
-    return m_feeder.setVoltageCommand(Volts.of(10));
-  }
-
-  private Command runFeederReverse() {
-    return m_feeder.setVoltageCommand(Volts.of(-10));
-  }
-
-  private Command stopFeeder() {
-    return m_feeder.setVoltageCommand(Volts.of(0));
-  }
-
-  private Command runIndexer() {
-    return m_indexer.setVoltageCommand(Volts.of(10));
-  }
-
-  private Command stopIndexer() {
-    return m_indexer.setVoltageCommand(Volts.of(0));
-  }
-
-  private Command runIndexerReverse() {
-    return m_indexer.setVoltageCommand(Volts.of(-3));
-  }
-
   public Command feedFuel() {
-    return Commands.parallel(runFeeder(), runIndexer());
+    return Commands.parallel(m_feeder.runForward(), m_indexer.runForward());
   }
 
   public Command stopFeedingFuel() {
-    return Commands.parallel(stopFeeder(), stopIndexer());
+    return Commands.parallel(m_feeder.stop(), m_indexer.stop());
   }
 
   public Command reverseFeedFuel() {
-    return Commands.parallel(runFeederReverse(), runIndexerReverse(), driveCommand());
+    return Commands.parallel(m_feeder.runReverse(), m_indexer.runReverse(), driveCommand());
   }
 
   public Command revShooter() {

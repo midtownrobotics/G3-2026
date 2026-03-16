@@ -3,8 +3,6 @@ package frc.robot.subsystems.intake;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 
-import java.util.function.Supplier;
-
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.units.measure.Angle;
@@ -61,16 +59,16 @@ public class IntakePivot extends SubsystemBase {
     m_watchdog.end("periodic");
   }
 
-  public Command setAngleCommand(Angle angle) {
-    return run(() -> m_io.setPosition(angle));
+  public Command stow() {
+    return run(() -> m_io.setPosition(Degrees.of(30)));
   }
 
-  public Command setAngleCommand(Supplier<Angle> angleSupplier) {
-    return run(() -> m_io.setPosition(angleSupplier.get()));
+  public Command intake() {
+    return run(() -> m_io.setPosition(Degrees.of(5)));
   }
 
   public Command tuningMode() {
-    return setAngleCommand(() -> Degrees.of(m_setpointAngle.getAsDouble()));
+    return run(() -> m_io.setPosition(Degrees.of(m_setpointAngle.getAsDouble())));
   }
 
   public Angle getAngle() {
