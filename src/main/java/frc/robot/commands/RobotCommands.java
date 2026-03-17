@@ -5,13 +5,11 @@ import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.RobotState;
 import frc.robot.constants.Constants;
-import frc.robot.constants.FieldConstants;
 import frc.robot.controls.Controls;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -63,16 +61,24 @@ public class RobotCommands {
   }
 
   public Command snowBlow() {
-    return Commands.parallel(autoAimForTeleop(), shooterTrackShootingParamters(), runIntake())
+    return Commands
+        .parallel(Commands.either(autoAimWithDrivetrainForTeleop(), driveCommand(), m_state::isFixedTurretModeEnabled),
+            shooterTrackShootingParamters(), runIntake())
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("snowBlow");
   }
 
   public Command autoAimAndPrepareShootTeleop() {
-    return Commands.parallel(prepareShoot(), autoAimForTeleop()).withName("autoAimAndPrepareShootTeleop");
+    return Commands
+        .parallel(prepareShoot(),
+            Commands.either(autoAimWithDrivetrainForTeleop(), driveCommand(), m_state::isFixedTurretModeEnabled))
+        .withName("autoAimAndPrepareShootTeleop");
   }
 
   public Command autoAimAndPrepareShootAutonomous() {
-    return Commands.parallel(prepareShoot(), autoAimForAutonomous()).withName("autoAimAndPrepareShootAutonomous");
+    return Commands
+        .parallel(prepareShoot(),
+            Commands.either(autoAimWithDrivetrainForAutonomous(), driveCommand(), m_state::isFixedTurretModeEnabled))
+        .withName("autoAimAndPrepareShootAutonomous");
   }
 
   private Command shooterTrackShootingParamters() {
@@ -80,12 +86,12 @@ public class RobotCommands {
         .withName("shooterTrackShootingParamters");
   }
 
-  public Command autoAimForTeleop() {
+  public Command autoAimWithDrivetrainForTeleop() {
     return m_driveCommands.rotateRobot(() -> m_state.getShootingParameters().getTargetRobotRotation())
         .withName("autoAimForTeleop");
   }
 
-  public Command autoAimForAutonomous() {
+  public Command autoAimWithDrivetrainForAutonomous() {
     return m_driveCommands.rotateRobotForAutonomous(() -> m_state.getShootingParameters().getTargetRobotRotation())
         .withName("autoAimForAutonomous");
   }
@@ -171,24 +177,6 @@ public class RobotCommands {
         .withTimeout(4)
         .until(m_hood.getCurrentSpikeTrigger())
         .andThen(m_hood.zeroEncoderAngleCommand()).withName("zeroTurretHood");
-  }
-
-  public Translation2d calculateFeedTarget() {
-    double robotY = m_state.getRobotPose().getY();
-    Translation2d hubPosition = FieldConstants.getHubPosition2d();
-    double hubY = hubPosition.getY();
-
-    double targetY = robotY;
-
-    if (robotY > (hubY - 0.762) && robotY < (hubY + 0.762)) {
-      if (robotY > hubY) {
-        targetY = hubY + 1;
-      } else {
-        targetY = hubY - 1;
-      }
-    }
-
-    return new Translation2d(hubPosition.getX(), targetY);
   }
 
   public Command increaseFlywheelVelocity() {

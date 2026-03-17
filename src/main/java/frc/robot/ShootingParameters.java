@@ -188,7 +188,7 @@ public class ShootingParameters {
     return m_target
         .minus(m_state.getTurretPose().getTranslation())
         .getAngle()
-        .plus(new Rotation2d(Constants.kFixedTurretRotation));
+        .minus(new Rotation2d(Constants.kFixedTurretRotation));
   }
 
   public void increaseFlywheelVelocity() {

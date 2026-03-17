@@ -12,6 +12,7 @@ import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -181,6 +182,24 @@ public class RobotState {
 
   public ShootingParameters getShootingParameters() {
     return m_shootingParameters;
+  }
+
+  public Translation2d calculateFeedTarget() {
+    double robotY = getRobotPose().getY();
+    Translation2d hubPosition = FieldConstants.getHubPosition2d();
+    double hubY = hubPosition.getY();
+
+    double targetY = robotY;
+
+    if (robotY > (hubY - 0.762) && robotY < (hubY + 0.762)) {
+      if (robotY > hubY) {
+        targetY = hubY + 1;
+      } else {
+        targetY = hubY - 1;
+      }
+    }
+
+    return new Translation2d(hubPosition.getX(), targetY);
   }
 
   public Command setFixedTurretModeEnabledCommand(boolean enabled) {

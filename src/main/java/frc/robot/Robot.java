@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.lib.LoggedCommandScheduler;
 import frc.lib.Watchdawg;
 import frc.robot.commands.RobotCommands;
+import frc.robot.constants.FieldConstants;
 import frc.robot.controls.Controls;
 import frc.robot.controls.TrimControls;
 import frc.robot.controls.TrimXboxControls;
@@ -225,6 +226,12 @@ public class Robot extends LoggedRobot {
     configureBindings();
 
     LoggedCommandScheduler.init(CommandScheduler.getInstance());
+
+    m_state.inAllianceZoneTrigger()
+        .onTrue(m_state.getShootingParameters().setTargetCommand(FieldConstants::getHubPosition2d)
+            .withName("setTargetCommandHubPosition"))
+        .onFalse(m_state.getShootingParameters().setTargetCommand(m_state::calculateFeedTarget)
+            .withName("setTargetCommandFeed"));
   }
 
   private void generateAutoChooser() {
