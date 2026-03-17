@@ -20,10 +20,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import frc.lib.LoggedCommandScheduler;
 import frc.lib.Watchdawg;
-import frc.robot.RobotState.RobotMode;
 import frc.robot.commands.RobotCommands;
-import frc.robot.constants.FieldConstants;
 import frc.robot.controls.Controls;
 import frc.robot.controls.TrimControls;
 import frc.robot.controls.TrimXboxControls;
@@ -224,6 +223,8 @@ public class Robot extends LoggedRobot {
     m_watchdog = new Watchdawg(getClass());
 
     configureBindings();
+
+    LoggedCommandScheduler.init(CommandScheduler.getInstance());
   }
 
   private void generateAutoChooser() {
@@ -234,43 +235,13 @@ public class Robot extends LoggedRobot {
   }
 
   public void configureBindings() {
-    m_controls.idle().onTrue(m_state.setRobotModeCommand(RobotMode.kIdle));
+    m_controls.idle().onTrue(m_robotCommands.idle());
 
-    m_controls.intake().onTrue(m_state.setRobotModeCommand(RobotMode.kIntake));
+    m_controls.intake().onTrue(m_robotCommands.runIntake());
 
-    m_controls.shoot().onTrue(m_state.setRobotModeCommand(RobotMode.kAutoAim));
+    m_controls.shoot().onTrue(m_robotCommands.autoAimAndPrepareShootTeleop());
 
-    m_controls.snowBlow().onTrue(m_state.setRobotModeCommand(RobotMode.kSnowBlow));
-
-    m_controls.unjam().onTrue(m_state.setRobotModeCommand(RobotMode.kUnjam));
-
-    m_controls.zeroHood().onTrue(m_robotCommands.zeroTurretHood());
-
-    m_controls.setpointShoot().onTrue(m_state.setRobotModeCommand(RobotMode.kSetpointShoot));
-
-    m_controls.fullFieldShoot().onTrue(m_state.setRobotModeCommand(RobotMode.kFullFieldShoot));
-
-    m_state.getModeTrigger(RobotMode.kIdle).whileTrue(m_robotCommands.idle());
-
-    m_state.getModeTrigger(RobotMode.kIntake).whileTrue(m_robotCommands.fill());
-
-    m_state.inAllianceZoneTrigger()
-        .whileTrue(m_state.getShootingParameters().setTargetCommand(FieldConstants.getHubPosition2d()))
-        .whileFalse(m_state.getShootingParameters().setTargetCommand(m_robotCommands::calculateFeedTarget));
-
-    m_state
-        .getModeTrigger(RobotMode.kAutoAim)
-        .whileTrue(m_robotCommands.autoAimAndPrepareShootTeleop());
-
-    m_state.getModeTrigger(RobotMode.kSnowBlow).whileTrue(m_robotCommands.snowBlow());
-
-    m_state.getModeTrigger(RobotMode.kSetpointShoot).whileTrue(m_robotCommands.setPointShoot());
-
-    m_state.getModeTrigger(RobotMode.kUnjam).whileTrue(m_robotCommands.reverseFeedFuel());
-
-    m_state
-        .getModeTrigger(RobotMode.kFullFieldShoot)
-        .whileTrue(m_robotCommands.fullFieldFeedShoot());
+    m_controls.snowBlow().onTrue(m_robotCommands.snowBlow());
   }
 
   public void configureTrimControlBindings(TrimControls controls) {
@@ -295,6 +266,8 @@ public class Robot extends LoggedRobot {
     m_watchdog.end("robotVizPeriodic");
 
     m_state.periodic();
+
+    LoggedCommandScheduler.periodic();
   }
 
   @Override

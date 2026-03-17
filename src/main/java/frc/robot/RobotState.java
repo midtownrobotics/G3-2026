@@ -3,11 +3,7 @@ package frc.robot;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
@@ -49,25 +45,12 @@ public class RobotState {
   private final Hood m_hood;
   private final ShootingParameters m_shootingParameters;
 
-  private RobotMode m_mode = RobotMode.kIdle;
   private boolean m_isFixedTurretModeEnabled = false;
   private boolean m_isShootOnTheMoveEnabled = true;
 
   private final LoggedNetworkBoolean m_fixedTurretModeToggle = new LoggedNetworkBoolean("Toggles/FixedTurretMode",
       false);
   private final LoggedNetworkBoolean m_shootOnTheMoveToggle = new LoggedNetworkBoolean("Toggles/ShootOnTheMove", true);
-
-  private final Map<RobotMode, Trigger> m_robotModesToTrigger;
-
-  public enum RobotMode {
-    kAutoAim,
-    kSnowBlow,
-    kIdle,
-    kIntake,
-    kSetpointShoot,
-    kUnjam,
-    kFullFieldShoot
-  }
 
   public RobotState(
       CommandSwerveDrivetrain drive,
@@ -90,10 +73,6 @@ public class RobotState {
     m_hood = hood;
     m_shootingParameters = new ShootingParameters(this);
 
-    m_robotModesToTrigger = Stream.of(RobotMode.values())
-        .collect(
-            Collectors.toMap(Function.identity(), mode -> new Trigger(() -> m_mode == mode)));
-
     new Trigger(m_fixedTurretModeToggle)
         .onChange(Commands.defer(() -> setFixedTurretModeEnabledCommand(m_fixedTurretModeToggle.get()), Set.of()));
     new Trigger(m_shootOnTheMoveToggle)
@@ -103,7 +82,6 @@ public class RobotState {
   public void periodic() {
     m_shootingParameters.periodic();
 
-    Logger.recordOutput("RobotState/robotMode", getRobotMode());
     Logger.recordOutput("RobotState/fixedTurretModeEnabled", isFixedTurretModeEnabled());
     Logger.recordOutput("RobotState/shootOnTheMoveEnabled", isShootOnTheMoveEnabled());
     Logger.recordOutput("RobotState/inAllianceZone", inAllianceZone());
@@ -193,10 +171,6 @@ public class RobotState {
     return m_feeder.fuelSensorTripped();
   }
 
-  public RobotMode getRobotMode() {
-    return m_mode;
-  }
-
   public boolean isFixedTurretModeEnabled() {
     return m_isFixedTurretModeEnabled;
   }
@@ -215,13 +189,5 @@ public class RobotState {
 
   public Command setShootOnTheMoveEnabledCommand(boolean enabled) {
     return Commands.runOnce(() -> m_isShootOnTheMoveEnabled = enabled);
-  }
-
-  public Command setRobotModeCommand(RobotMode mode) {
-    return Commands.runOnce(() -> m_mode = mode);
-  }
-
-  public Trigger getModeTrigger(RobotMode mode) {
-    return m_robotModesToTrigger.get(mode);
   }
 }
