@@ -31,10 +31,9 @@ import yams.units.EasyCRT;
 import yams.units.EasyCRTConfig;
 
 public class TurretIOTalonFX implements TurretIO {
-  private static final double kGearRatio = 48.0;
-
-  private static final Angle kLowSoftLimit = Degrees.of(-120);
-  private static final Angle kHighSoftLimit = Degrees.of(120);
+  private static final double kGearRatio = (82d / 10d) * (60d / 12d);
+  private static final Angle kLowSoftLimit = Degrees.of(45);
+  private static final Angle kHighSoftLimit = Degrees.of(270);
 
   private final TalonFX m_motor;
   private final CANcoder m_encoder1;
@@ -60,7 +59,7 @@ public class TurretIOTalonFX implements TurretIO {
 
     TalonFXConfiguration config = new TalonFXConfiguration();
 
-    config.Slot0 = new Slot0Configs().withKP(10).withKD(0);
+    config.Slot0 = new Slot0Configs().withKP(56).withKD(3).withKS(1.5).withKV(3);
 
     config.Feedback = new FeedbackConfigs().withSensorToMechanismRatio(kGearRatio);
 

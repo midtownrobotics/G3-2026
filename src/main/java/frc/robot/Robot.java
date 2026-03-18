@@ -249,6 +249,8 @@ public class Robot extends LoggedRobot {
     m_controls.shoot().onTrue(m_robotCommands.autoAimAndPrepareShootTeleop());
 
     m_controls.snowBlow().onTrue(m_robotCommands.snowBlow());
+
+    m_controls.setpointShoot().onTrue(m_robotCommands.setPointShoot());
   }
 
   public void configureTrimControlBindings(TrimControls controls) {

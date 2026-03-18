@@ -49,6 +49,8 @@ public class RobotState {
   private boolean m_isFixedTurretModeEnabled = false;
   private boolean m_isShootOnTheMoveEnabled = true;
 
+  private boolean m_holdFire = true;
+
   private final LoggedNetworkBoolean m_fixedTurretModeToggle = new LoggedNetworkBoolean("Toggles/FixedTurretMode",
       false);
   private final LoggedNetworkBoolean m_shootOnTheMoveToggle = new LoggedNetworkBoolean("Toggles/ShootOnTheMove", true);
@@ -137,6 +139,7 @@ public class RobotState {
     return m_shooter.isNearSetpointTrigger()
         .and(m_hood.isNearSetpointTrigger())
         .and(m_turret.isNearSetpointTrigger())
+        .and(holdFireTrigger().negate())
         .debounce(0.1, DebounceType.kFalling);
   }
 
@@ -161,6 +164,10 @@ public class RobotState {
         .debounce(0.2);
   }
 
+  public Trigger holdFireTrigger() {
+    return new Trigger(this::isHoldFireEnabled).debounce(0.2);
+  }
+
   public boolean inAllianceZone() {
     return DriverStation.getAlliance()
         .map(FieldConstants::getAllianceZone)
@@ -178,6 +185,10 @@ public class RobotState {
 
   public boolean isShootOnTheMoveEnabled() {
     return m_isShootOnTheMoveEnabled;
+  }
+
+  public boolean isHoldFireEnabled() {
+    return m_holdFire;
   }
 
   public ShootingParameters getShootingParameters() {
@@ -208,5 +219,9 @@ public class RobotState {
 
   public Command setShootOnTheMoveEnabledCommand(boolean enabled) {
     return Commands.runOnce(() -> m_isShootOnTheMoveEnabled = enabled);
+  }
+
+  public Command setHoldFireCommand(boolean enabled) {
+    return Commands.runOnce(() -> m_holdFire = enabled);
   }
 }

@@ -54,6 +54,7 @@ public class Turret extends SubsystemBase {
         hashCode(), values -> m_io.setPID(values[0], values[1], values[2]), m_kP, m_kI, m_kD);
 
     Logger.recordOutput("Turret/angle", getAngle());
+    Logger.recordOutput("Turret/isNearSetpoint", isNearSetpointTrigger().getAsBoolean());
 
     m_watchdog.end("periodic");
   }

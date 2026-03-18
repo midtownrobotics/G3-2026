@@ -73,6 +73,7 @@ public class Shooter extends SubsystemBase {
         m_kV);
 
     Logger.recordOutput("Shooter/speed", getSpeed());
+    Logger.recordOutput("Shooter/isNearSetpoint", isNearSetpointTrigger().getAsBoolean());
 
     m_watchdog.end("periodic");
   }

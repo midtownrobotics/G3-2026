@@ -63,21 +63,23 @@ public class RobotCommands {
   public Command snowBlow() {
     return Commands
         .parallel(Commands.either(autoAimWithDrivetrainForTeleop(), driveCommand(), m_state::isFixedTurretModeEnabled),
-            shooterTrackShootingParamters(), runIntake())
+            shooterTrackShootingParamters(), runIntake(), m_state.setHoldFireCommand(false))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("snowBlow");
   }
 
   public Command autoAimAndPrepareShootTeleop() {
     return Commands
         .parallel(prepareShoot(),
-            Commands.either(autoAimWithDrivetrainForTeleop(), driveCommand(), m_state::isFixedTurretModeEnabled))
+            Commands.either(autoAimWithDrivetrainForTeleop(), driveCommand(), m_state::isFixedTurretModeEnabled),
+            m_state.setHoldFireCommand(false))
         .withName("autoAimAndPrepareShootTeleop");
   }
 
   public Command autoAimAndPrepareShootAutonomous() {
     return Commands
         .parallel(prepareShoot(),
-            Commands.either(autoAimWithDrivetrainForAutonomous(), driveCommand(), m_state::isFixedTurretModeEnabled))
+            Commands.either(autoAimWithDrivetrainForAutonomous(), driveCommand(), m_state::isFixedTurretModeEnabled),
+            m_state.setHoldFireCommand(false))
         .withName("autoAimAndPrepareShootAutonomous");
   }
 
@@ -108,12 +110,12 @@ public class RobotCommands {
   }
 
   public Command idle() {
-    return Commands.parallel(m_shooter.stop(), stowIntake(), stopFeedingFuel())
+    return Commands.parallel(m_shooter.stop(), stowIntake(), m_state.setHoldFireCommand(true))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("idle");
   }
 
   public Command fill() {
-    return Commands.parallel(m_shooter.stop(), runIntake())
+    return Commands.parallel(m_shooter.stop(), runIntake(), m_state.setHoldFireCommand(true))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("fill");
   }
 
