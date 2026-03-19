@@ -31,11 +31,6 @@ public class Shooter extends SubsystemBase {
   private final Watchdawg m_watchdog;
   private final Trigger m_isNearSetpointTrigger;
 
-  private final LoggedTunableNumber m_kP = new LoggedTunableNumber("Shooter/kP", 0.3);
-  private final LoggedTunableNumber m_kI = new LoggedTunableNumber("Shooter/kI", 0);
-  private final LoggedTunableNumber m_kD = new LoggedTunableNumber("Shooter/kD", 0);
-  private final LoggedTunableNumber m_kS = new LoggedTunableNumber("Shooter/kS", 0);
-  private final LoggedTunableNumber m_kV = new LoggedTunableNumber("Shooter/kV", 0.083);
   private final LoggedTunableNumber m_shooterSetpointSpeed = new LoggedTunableNumber(
       "Shooter/SetpointRPM", 0);
 
@@ -62,15 +57,6 @@ public class Shooter extends SubsystemBase {
     m_talon2ConnectionAlert.set(!m_inputs.motor2Connected);
     m_stallAlert1.set(motor1HighCurrent && motor1NotMoving);
     m_stallAlert2.set(motor2HighCurrent && motor2NotMoving);
-
-    LoggedTunableNumber.ifChanged(
-        hashCode(),
-        values -> m_io.setPID(values[0], values[1], values[2], values[3], values[4]),
-        m_kP,
-        m_kI,
-        m_kD,
-        m_kS,
-        m_kV);
 
     Logger.recordOutput("Shooter/speed", getSpeed());
     Logger.recordOutput("Shooter/isNearSetpoint", isNearSetpointTrigger().getAsBoolean());
@@ -103,7 +89,7 @@ public class Shooter extends SubsystemBase {
   }
 
   public Command stop() {
-    return run(() -> m_io.setSpeed(RPM.of(0)));
+    return run(() -> m_io.stop());
   }
 
   public Command tuningMode() {

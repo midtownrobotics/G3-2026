@@ -11,6 +11,7 @@ import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.ClosedLoopRampsConfigs;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
+import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.OpenLoopRampsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -22,6 +23,7 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Voltage;
@@ -31,7 +33,8 @@ import yams.units.EasyCRT;
 import yams.units.EasyCRTConfig;
 
 public class TurretIOTalonFX implements TurretIO {
-  private static final double kGearRatio = (82d / 10d) * (60d / 12d);
+  private static final double kRotorToSensorRatio = (60d / 12d);
+  private static final double kSensorToMechanismRatio = 82d / 10d;
   private static final Angle kLowSoftLimit = Degrees.of(45);
   private static final Angle kHighSoftLimit = Degrees.of(270);
 
@@ -61,7 +64,9 @@ public class TurretIOTalonFX implements TurretIO {
 
     config.Slot0 = new Slot0Configs().withKP(56).withKD(3).withKS(1.5).withKV(3);
 
-    config.Feedback = new FeedbackConfigs().withSensorToMechanismRatio(kGearRatio);
+    config.Feedback = new FeedbackConfigs().withRotorToSensorRatio(kRotorToSensorRatio)
+        .withSensorToMechanismRatio(kSensorToMechanismRatio)
+        .withFusedCANcoder(m_encoder1);
 
     config.MotorOutput = new MotorOutputConfigs()
         .withNeutralMode(NeutralModeValue.Brake)
@@ -88,9 +93,13 @@ public class TurretIOTalonFX implements TurretIO {
     PhoenixUtil.tryUntilOk(5, () -> m_motor.getConfigurator().apply(config));
 
     // Configure CANcoders
-    CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
-    PhoenixUtil.tryUntilOk(5, () -> m_encoder1.getConfigurator().apply(encoderConfig));
-    PhoenixUtil.tryUntilOk(5, () -> m_encoder2.getConfigurator().apply(encoderConfig));
+    CANcoderConfiguration encoderConfig1 = new CANcoderConfiguration()
+        .withMagnetSensor(new MagnetSensorConfigs().withMagnetOffset(Degrees.of(-68.46))
+            .withSensorDirection(SensorDirectionValue.Clockwise_Positive));
+    CANcoderConfiguration encoderConfig2 = new CANcoderConfiguration()
+        .withMagnetSensor(new MagnetSensorConfigs().withMagnetOffset(Degrees.of(79.189)));
+    PhoenixUtil.tryUntilOk(5, () -> m_encoder1.getConfigurator().apply(encoderConfig1));
+    PhoenixUtil.tryUntilOk(5, () -> m_encoder2.getConfigurator().apply(encoderConfig2));
 
     // Cache status signals
     m_positionSignal = m_motor.getPosition();

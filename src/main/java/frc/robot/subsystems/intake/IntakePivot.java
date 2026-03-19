@@ -22,10 +22,6 @@ public class IntakePivot extends SubsystemBase {
   private final Alert m_stallAlert = new Alert("IntakePivot stalling", AlertType.kWarning);
   private final Watchdawg m_watchdog;
 
-  private final LoggedTunableNumber m_kP = new LoggedTunableNumber("IntakePivot/kP", 70.0);
-  private final LoggedTunableNumber m_kI = new LoggedTunableNumber("IntakePivot/kI", 0);
-  private final LoggedTunableNumber m_kD = new LoggedTunableNumber("IntakePivot/kD", 0);
-  private final LoggedTunableNumber m_kG = new LoggedTunableNumber("IntakePivot/kG", 0.5);
   private final LoggedTunableNumber m_setpointAngle = new LoggedTunableNumber("IntakePivot/SetpointAngleDegrees", 0);
 
   public IntakePivot(IntakePivotIO io) {
@@ -45,14 +41,6 @@ public class IntakePivot extends SubsystemBase {
 
     m_talonConnectionAlert.set(!m_inputs.motorConnected);
     m_stallAlert.set(highCurrent);
-
-    LoggedTunableNumber.ifChanged(
-        hashCode(),
-        values -> m_io.setPID(values[0], values[1], values[2], values[3]),
-        m_kP,
-        m_kI,
-        m_kD,
-        m_kG);
 
     Logger.recordOutput("IntakePivot/angle", getAngle());
 

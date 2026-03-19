@@ -30,11 +30,6 @@ public class Hood extends SubsystemBase {
   private final Watchdawg m_watchdog;
   private final Trigger m_isNearSetpointTrigger;
 
-  private final LoggedTunableNumber m_kP = new LoggedTunableNumber("Hood/kP", 250);
-  private final LoggedTunableNumber m_kI = new LoggedTunableNumber("Hood/kI", 0);
-  private final LoggedTunableNumber m_kD = new LoggedTunableNumber("Hood/kD", 3);
-  private final LoggedTunableNumber m_kS = new LoggedTunableNumber("Hood/kS", 0.01);
-  private final LoggedTunableNumber m_kG = new LoggedTunableNumber("Hood/kG", 0);
   private final LoggedTunableNumber m_setpointAngle = new LoggedTunableNumber("Hood/SetpointAngleDegrees", 0);
 
   public Hood(HoodIO io) {
@@ -59,15 +54,6 @@ public class Hood extends SubsystemBase {
 
     m_talonConnectionAlert.set(!m_inputs.motorConnected);
     m_stallAlert.set(m_inputs.statorCurrent.gt(Amps.of(30)));
-
-    LoggedTunableNumber.ifChanged(
-        hashCode(),
-        values -> m_io.setPID(values[0], values[1], values[2], values[3], values[4]),
-        m_kP,
-        m_kI,
-        m_kD,
-        m_kS,
-        m_kG);
 
     Logger.recordOutput("Hood/currentSpike", getIsCurrentSpiking());
     Logger.recordOutput("Hood/isNearSetpoint", isNearSetpointTrigger().getAsBoolean());

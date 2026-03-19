@@ -27,9 +27,6 @@ public class Turret extends SubsystemBase {
   private final Watchdawg m_watchdog;
   private final Trigger m_isNearSetpointTrigger;
 
-  private final LoggedTunableNumber m_kP = new LoggedTunableNumber("Turret/kP", 20);
-  private final LoggedTunableNumber m_kI = new LoggedTunableNumber("Turret/kI", 0);
-  private final LoggedTunableNumber m_kD = new LoggedTunableNumber("Turret/kD", 0);
   private final LoggedTunableNumber m_turretSetpointAngleDegrees = new LoggedTunableNumber(
       "Turret/SetpointDegrees", 0);
 
@@ -49,9 +46,6 @@ public class Turret extends SubsystemBase {
 
     m_talonConnectionAlert.set(!m_inputs.motorConnected);
     m_stallAlert.set(m_inputs.statorCurrent.gt(Amps.of(68)));
-
-    LoggedTunableNumber.ifChanged(
-        hashCode(), values -> m_io.setPID(values[0], values[1], values[2]), m_kP, m_kI, m_kD);
 
     Logger.recordOutput("Turret/angle", getAngle());
     Logger.recordOutput("Turret/isNearSetpoint", isNearSetpointTrigger().getAsBoolean());
