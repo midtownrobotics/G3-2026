@@ -2,6 +2,7 @@ package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
@@ -23,16 +24,19 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.lib.PhoenixUtil;
 import frc.robot.constants.Ports;
 import yams.units.EasyCRT;
 import yams.units.EasyCRTConfig;
 
 public class TurretIOTalonFX implements TurretIO {
-  private static final double kGearRatio = 48.0;
+  private static final double kRotorToSensorRatio = 60.0 / 12;
+  private static final double kSensorToMechanismRatio = 82.0 / 10;
 
   private static final Angle kLowSoftLimit = Degrees.of(-45);
   private static final Angle kHighSoftLimit = Degrees.of(315);
@@ -67,7 +71,10 @@ public class TurretIOTalonFX implements TurretIO {
         .withKS(1.5)
         .withKV(3);
 
-    config.Feedback = new FeedbackConfigs().withSensorToMechanismRatio(kGearRatio);
+    config.Feedback = new FeedbackConfigs()
+        .withRotorToSensorRatio(kRotorToSensorRatio)
+        .withSensorToMechanismRatio(kSensorToMechanismRatio)
+        .withFusedCANcoder(m_encoder1);
 
     config.MotorOutput = new MotorOutputConfigs()
         .withNeutralMode(NeutralModeValue.Brake)
@@ -94,9 +101,16 @@ public class TurretIOTalonFX implements TurretIO {
     PhoenixUtil.tryUntilOk(5, () -> m_motor.getConfigurator().apply(config));
 
     // Configure CANcoders
-    CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
-    PhoenixUtil.tryUntilOk(5, () -> m_encoder1.getConfigurator().apply(encoderConfig));
-    PhoenixUtil.tryUntilOk(5, () -> m_encoder2.getConfigurator().apply(encoderConfig));
+    CANcoderConfiguration encoder1Config = new CANcoderConfiguration();
+    CANcoderConfiguration encoder2Config = new CANcoderConfiguration();
+
+    encoder1Config.MagnetSensor.withMagnetOffset(Rotations.of(-0.18994140625))
+        .withSensorDirection(SensorDirectionValue.Clockwise_Positive);
+
+    encoder2Config.MagnetSensor.withMagnetOffset(Rotations.of(0.21484375));
+
+    PhoenixUtil.tryUntilOk(5, () -> m_encoder1.getConfigurator().apply(encoder1Config));
+    PhoenixUtil.tryUntilOk(5, () -> m_encoder2.getConfigurator().apply(encoder2Config));
 
     // Cache status signals
     m_positionSignal = m_motor.getPosition();
@@ -121,12 +135,13 @@ public class TurretIOTalonFX implements TurretIO {
     EasyCRTConfig easyCRTConfig = new EasyCRTConfig(m_encoder1AbsolutePosition::getValue,
         m_encoder2AbsolutePosition::getValue)
         .withAbsoluteEncoder1GearingStages(82, 10)
-        .withAbsoluteEncoder2GearingStages(82, 10, 21, 20)
+        .withAbsoluteEncoder2GearingStages(82, 10, 20, 21)
         .withMechanismRange(kLowSoftLimit, kHighSoftLimit);
 
     EasyCRT easyCRT = new EasyCRT(easyCRTConfig);
 
-    easyCRT.getAngleOptional().ifPresent(m_motor::setPosition);
+    easyCRT.getAngleOptional().ifPresentOrElse(m_motor::setPosition,
+        () -> DriverStation.reportError("Unable to seed turret position from CANcoder absolute position", true));
   }
 
   @Override
