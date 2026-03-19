@@ -20,12 +20,22 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 public class DriveCommands {
+  private final CommandSwerveDrivetrain m_drive;
+  private final Supplier<Double> m_driveLeftSupplier;
+  private final Supplier<Double> m_driveForwardSupplier;
+  private final Supplier<Double> m_driveRotationSupplier;
 
-  protected static Command rotateRobot(
-      CommandSwerveDrivetrain drive,
-      Supplier<Rotation2d> rotation,
-      Supplier<Double> driveForward,
-      Supplier<Double> driveLeft) {
+  public DriveCommands(CommandSwerveDrivetrain drive,
+      Supplier<Double> driveLeftSupplier,
+      Supplier<Double> driveForwardSupplier,
+      Supplier<Double> driveRotationSupplier) {
+    m_drive = drive;
+    m_driveLeftSupplier = driveLeftSupplier;
+    m_driveForwardSupplier = driveForwardSupplier;
+    m_driveRotationSupplier = driveRotationSupplier;
+  }
+
+  protected Command rotateRobot(Supplier<Rotation2d> rotation) {
     final PIDController headingController = new PIDController(7, 0, 0);
     final Watchdawg watchdog = new Watchdawg(DriveCommands.class);
     return Commands.run(
@@ -34,88 +44,78 @@ public class DriveCommands {
           headingController.enableContinuousInput(-Math.PI, Math.PI);
 
           final var speeds = new ChassisSpeeds(
-              driveForward.get()
+              m_driveForwardSupplier.get()
                   * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
                   * Constants.kLinearSpeedMultiplier,
-              driveLeft.get()
+              m_driveLeftSupplier.get()
                   * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
                   * Constants.kLinearSpeedMultiplier,
               0);
 
-          double fieldRelativeAngle = drive.getPose().getRotation().getRadians();
+          double fieldRelativeAngle = m_drive.getPose().getRotation().getRadians();
 
           speeds.omegaRadiansPerSecond = headingController.calculate(
               fieldRelativeAngle, rotation.get().getMeasure().in(Radians));
 
-          drive.setControl(
+          m_drive.setControl(
               new SwerveRequest.FieldCentric()
                   .withVelocityX(speeds.vxMetersPerSecond)
                   .withVelocityY(speeds.vyMetersPerSecond)
                   .withRotationalRate(speeds.omegaRadiansPerSecond));
           watchdog.end("rotateRobot");
-        },
-        drive);
+        }, m_drive);
   }
 
-  protected static Command rotateRobot(
-      CommandSwerveDrivetrain drive, Supplier<Rotation2d> rotation) {
-    return rotateRobot(drive, rotation, () -> Double.valueOf(0), () -> Double.valueOf(0));
+  protected Command rotateRobotForAutonomous(Supplier<Rotation2d> rotation) {
+    return rotateRobot(rotation);
   }
 
-  private static Command joyStickDrive(
-      CommandSwerveDrivetrain drive,
-      Supplier<Double> driveForward,
-      Supplier<Double> driveLeft,
-      Supplier<Double> driveRotation) {
+  private Command joyStickDrive() {
     final Watchdawg watchdog = new Watchdawg(DriveCommands.class);
     return Commands.run(
         () -> {
           watchdog.start();
           ChassisSpeeds speeds = new ChassisSpeeds(
-              driveForward.get()
+              m_driveForwardSupplier.get()
                   * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
                   * Constants.kLinearSpeedMultiplier,
-              driveLeft.get()
+              m_driveLeftSupplier.get()
                   * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
                   * Constants.kLinearSpeedMultiplier,
               Math.copySign(
-                  driveRotation.get()
-                      * driveRotation.get()
+                  m_driveRotationSupplier.get()
+                      * m_driveRotationSupplier.get()
                       * Constants.kAngularMaxSpeed.in(RadiansPerSecond)
                       * Constants.kAngluarSpeedMultiplier,
-                  driveRotation.get()));
+                  m_driveRotationSupplier.get()));
 
-          drive.setControl(
+          m_drive.setControl(
               new SwerveRequest.FieldCentric()
                   .withVelocityX(speeds.vxMetersPerSecond)
                   .withVelocityY(speeds.vyMetersPerSecond)
                   .withRotationalRate(speeds.omegaRadiansPerSecond));
           watchdog.end("joystickDrive");
         },
-        drive);
+        m_drive);
   }
 
-  private static Command snakeDrive(
-      CommandSwerveDrivetrain drive,
-      Supplier<Double> driveForward,
-      Supplier<Double> driveLeft,
-      Supplier<Double> driveRotation) {
+  private Command snakeDrive() {
     final Watchdawg watchdog = new Watchdawg(DriveCommands.class);
     return Commands.run(
         () -> {
           watchdog.start();
           final PIDController headingController = new PIDController(100, 0, 0);
-          final boolean snakeDriveActive = !(Math.abs(driveRotation.get()) > 0);
+          final boolean snakeDriveActive = !(Math.abs(m_driveRotationSupplier.get()) > 0);
 
           ChassisSpeeds speeds;
           if (snakeDriveActive) {
             headingController.enableContinuousInput(-Math.PI, Math.PI);
 
             speeds = new ChassisSpeeds(
-                driveForward.get()
+                m_driveForwardSupplier.get()
                     * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
                     * Constants.kLinearSpeedMultiplier,
-                driveLeft.get()
+                m_driveLeftSupplier.get()
                     * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
                     * Constants.kLinearSpeedMultiplier,
                 0);
@@ -126,25 +126,25 @@ public class DriveCommands {
             if (Math.abs(speeds.vyMetersPerSecond) > 0.1
                 || Math.abs(speeds.vxMetersPerSecond) > 0.1) {
               speeds.omegaRadiansPerSecond = headingController.calculate(
-                  drive.getPose().getRotation().getRadians(), headingAngle.in(Radians));
+                  m_drive.getPose().getRotation().getRadians(), headingAngle.in(Radians));
             }
           } else {
             speeds = new ChassisSpeeds(
-                driveForward.get()
+                m_driveForwardSupplier.get()
                     * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
                     * Constants.kLinearSpeedMultiplier,
-                driveLeft.get()
+                m_driveLeftSupplier.get()
                     * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
                     * Constants.kLinearSpeedMultiplier,
                 Math.copySign(
-                    driveRotation.get()
-                        * driveRotation.get()
+                    m_driveRotationSupplier.get()
+                        * m_driveRotationSupplier.get()
                         * Constants.kAngularMaxSpeed.in(RadiansPerSecond)
                         * Constants.kAngluarSpeedMultiplier,
-                    driveRotation.get()));
+                    m_driveRotationSupplier.get()));
           }
 
-          drive.setControl(
+          m_drive.setControl(
               new SwerveRequest.FieldCentric()
                   .withVelocityX(speeds.vxMetersPerSecond)
                   .withVelocityY(speeds.vyMetersPerSecond)
@@ -153,16 +153,12 @@ public class DriveCommands {
           headingController.close();
           watchdog.end("snakeDrive");
         },
-        drive);
+        m_drive);
   }
 
-  protected static Command driveCommand(
-      CommandSwerveDrivetrain drive,
-      Supplier<Double> driveForward,
-      Supplier<Double> driveLeft,
-      Supplier<Double> driveRotation) {
+  protected Command driveCommand() {
     return Constants.kUseWeirdSnakeDrive
-        ? snakeDrive(drive, driveForward, driveLeft, driveRotation)
-        : joyStickDrive(drive, driveForward, driveLeft, driveRotation);
+        ? snakeDrive()
+        : joyStickDrive();
   }
 }

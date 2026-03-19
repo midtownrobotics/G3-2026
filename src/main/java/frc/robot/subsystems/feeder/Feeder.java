@@ -4,8 +4,7 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
-
-import java.util.function.Supplier;
+import static edu.wpi.first.units.Units.Volts;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -13,7 +12,6 @@ import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -80,19 +78,19 @@ public class Feeder extends SubsystemBase {
     return run(() -> m_io.setSpeed(angularVelocity));
   }
 
-  public Command setSpeedCommand(Supplier<AngularVelocity> angularVelocity) {
-    return run(() -> m_io.setSpeed(angularVelocity.get()));
+  public Command runForward() {
+    return run(() -> m_io.setVoltage(Volts.of(10)));
   }
 
-  public Command setVoltageCommand(Supplier<Voltage> voltage) {
-    return run(() -> m_io.setVoltage(voltage.get()));
+  public Command stop() {
+    return run(() -> m_io.setVoltage(Volts.of(0)));
   }
 
-  public Command setVoltageCommand(Voltage voltage) {
-    return run(() -> m_io.setVoltage(voltage));
+  public Command runReverse() {
+    return run(() -> m_io.setVoltage(Volts.of(-10)));
   }
 
   public Command tuningMode() {
-    return setSpeedCommand(() -> RPM.of(m_speedSetpoint.getAsDouble()));
+    return run(() -> m_io.setSpeed(RPM.of(m_speedSetpoint.getAsDouble())));
   }
 }

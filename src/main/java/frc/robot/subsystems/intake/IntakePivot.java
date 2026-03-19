@@ -3,8 +3,6 @@ package frc.robot.subsystems.intake;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 
-import java.util.function.Supplier;
-
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.units.measure.Angle;
@@ -24,10 +22,6 @@ public class IntakePivot extends SubsystemBase {
   private final Alert m_stallAlert = new Alert("IntakePivot stalling", AlertType.kWarning);
   private final Watchdawg m_watchdog;
 
-  private final LoggedTunableNumber m_kP = new LoggedTunableNumber("IntakePivot/kP", 70.0);
-  private final LoggedTunableNumber m_kI = new LoggedTunableNumber("IntakePivot/kI", 0);
-  private final LoggedTunableNumber m_kD = new LoggedTunableNumber("IntakePivot/kD", 0);
-  private final LoggedTunableNumber m_kG = new LoggedTunableNumber("IntakePivot/kG", 0.5);
   private final LoggedTunableNumber m_setpointAngle = new LoggedTunableNumber("IntakePivot/SetpointAngleDegrees", 0);
 
   public IntakePivot(IntakePivotIO io) {
@@ -48,27 +42,19 @@ public class IntakePivot extends SubsystemBase {
     m_talonConnectionAlert.set(!m_inputs.motorConnected);
     m_stallAlert.set(highCurrent);
 
-    LoggedTunableNumber.ifChanged(
-        hashCode(),
-        values -> m_io.setPID(values[0], values[1], values[2], values[3]),
-        m_kP,
-        m_kI,
-        m_kD,
-        m_kG);
-
     m_watchdog.end("periodic");
   }
 
-  public Command setAngleCommand(Angle angle) {
-    return run(() -> m_io.setPosition(angle));
+  public Command stow() {
+    return run(() -> m_io.setPosition(Degrees.of(30)));
   }
 
-  public Command setAngleCommand(Supplier<Angle> angleSupplier) {
-    return run(() -> m_io.setPosition(angleSupplier.get()));
+  public Command intake() {
+    return run(() -> m_io.setPosition(Degrees.of(5)));
   }
 
   public Command tuningMode() {
-    return setAngleCommand(() -> Degrees.of(m_setpointAngle.getAsDouble()));
+    return run(() -> m_io.setPosition(Degrees.of(m_setpointAngle.getAsDouble())));
   }
 
   public Angle getAngle() {

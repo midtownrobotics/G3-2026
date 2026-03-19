@@ -46,6 +46,7 @@ public class Turret extends SubsystemBase {
     m_stallAlert.set(m_inputs.statorCurrent.gt(Amps.of(68)));
 
     Logger.recordOutput("Turret/angle", getAngle());
+    Logger.recordOutput("Turret/isNearSetpoint", isNearSetpointTrigger().getAsBoolean());
 
     m_watchdog.end("periodic");
   }

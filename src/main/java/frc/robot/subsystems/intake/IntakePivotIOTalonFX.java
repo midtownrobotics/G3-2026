@@ -4,7 +4,6 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
-import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -28,13 +27,13 @@ import com.ctre.phoenix6.signals.SensorDirectionValue;
 
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Voltage;
+import frc.lib.PhoenixUtil;
 import frc.robot.constants.Ports;
 
 public class IntakePivotIOTalonFX implements IntakePivotIO {
   // (50/12) * (60/20) * (48/16) = 37.5
   private static final double kRotorToSensorRatio = (50.0 / 12.0) * (60.0 / 20.0);
   private static final double kSensorToMechanismRatio = 48.0 / 16.0;
-  private static final Angle kMagnetOffset = Degrees.of(-9.6).times(kSensorToMechanismRatio);
 
   private final TalonFX m_motor;
   private final CANcoder m_encoder;
@@ -59,11 +58,11 @@ public class IntakePivotIOTalonFX implements IntakePivotIO {
     CANcoderConfiguration canCoderConfig = new CANcoderConfiguration();
 
     canCoderConfig.MagnetSensor = new MagnetSensorConfigs()
-        .withAbsoluteSensorDiscontinuityPoint(Rotations.of(1))
         .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)
-        .withMagnetOffset(kMagnetOffset);
+        .withAbsoluteSensorDiscontinuityPoint(Degrees.of(350))
+        .withMagnetOffset(Degrees.of(8.1 * kSensorToMechanismRatio));
 
-    m_encoder.getConfigurator().apply(canCoderConfig);
+    PhoenixUtil.tryUntilOk(5, () -> m_encoder.getConfigurator().apply(canCoderConfig));
 
     // Configure TalonFX
     TalonFXConfiguration config = new TalonFXConfiguration();
@@ -100,7 +99,7 @@ public class IntakePivotIOTalonFX implements IntakePivotIO {
         .withReverseSoftLimitEnable(true)
         .withReverseSoftLimitThreshold(Degrees.of(0));
 
-    m_motor.getConfigurator().apply(config);
+    PhoenixUtil.tryUntilOk(5, () -> m_motor.getConfigurator().apply(config));
 
     // Cache status signals
     m_positionSignal = m_motor.getPosition();

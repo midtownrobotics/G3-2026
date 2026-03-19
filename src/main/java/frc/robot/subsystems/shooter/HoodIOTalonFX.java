@@ -82,7 +82,7 @@ public class HoodIOTalonFX implements HoodIO {
 
     config.SoftwareLimitSwitch = new SoftwareLimitSwitchConfigs()
         .withForwardSoftLimitEnable(true)
-        .withForwardSoftLimitThreshold(Degrees.of(55))
+        .withForwardSoftLimitThreshold(Degrees.of(40))
         .withReverseSoftLimitEnable(true)
         .withReverseSoftLimitThreshold(Degrees.of(0));
 

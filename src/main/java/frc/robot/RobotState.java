@@ -3,11 +3,6 @@ package frc.robot;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
@@ -15,6 +10,7 @@ import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -29,7 +25,7 @@ import frc.robot.constants.FieldConstants;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
-import frc.robot.subsystems.indexer.TransportRoller;
+import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
 import frc.robot.subsystems.shooter.Hood;
@@ -43,28 +39,16 @@ public class RobotState {
   private final Turret m_turret;
   private final Feeder m_feeder;
   private final Vision m_vision;
-  private final TransportRoller m_transportRoller;
+  private final Indexer m_indexer;
   private final Shooter m_shooter;
   private final Hood m_hood;
   private final ShootingParameters m_shootingParameters;
 
-  private RobotMode m_mode = RobotMode.kIdle;
+  private boolean m_holdFire = true;
 
   private final LoggedNetworkBoolean m_fixedTurretModeToggle = new LoggedNetworkBoolean("Toggles/FixedTurretMode",
       false);
   private final LoggedNetworkBoolean m_shootOnTheMoveToggle = new LoggedNetworkBoolean("Toggles/ShootOnTheMove", true);
-
-  private final Map<RobotMode, Trigger> m_robotModesToTrigger;
-
-  public enum RobotMode {
-    kAutoAim,
-    kSnowBlow,
-    kIdle,
-    kIntake,
-    kSetpointShoot,
-    kUnjam,
-    kFullFieldShoot
-  }
 
   public RobotState(
       CommandSwerveDrivetrain drive,
@@ -73,7 +57,7 @@ public class RobotState {
       Turret turret,
       Feeder feeder,
       Vision vision,
-      TransportRoller transportRoller,
+      Indexer indexer,
       Shooter shooter,
       Hood hood) {
     m_drive = drive;
@@ -82,20 +66,15 @@ public class RobotState {
     m_turret = turret;
     m_feeder = feeder;
     m_vision = vision;
-    m_transportRoller = transportRoller;
+    m_indexer = indexer;
     m_shooter = shooter;
     m_hood = hood;
     m_shootingParameters = new ShootingParameters(this);
-
-    m_robotModesToTrigger = Stream.of(RobotMode.values())
-        .collect(
-            Collectors.toMap(Function.identity(), mode -> new Trigger(() -> m_mode == mode)));
   }
 
   public void periodic() {
     m_shootingParameters.periodic();
 
-    Logger.recordOutput("RobotState/robotMode", getRobotMode());
     Logger.recordOutput("RobotState/fixedTurretModeEnabled", isFixedTurretModeEnabled());
     Logger.recordOutput("RobotState/shootOnTheMoveEnabled", isShootOnTheMoveEnabled());
     Logger.recordOutput("RobotState/inAllianceZone", inAllianceZone());
@@ -154,6 +133,7 @@ public class RobotState {
     return m_shooter.isNearSetpointTrigger()
         .and(m_hood.isNearSetpointTrigger())
         .and(m_turret.isNearSetpointTrigger())
+        .and(holdFireTrigger().negate())
         .debounce(0.1, DebounceType.kFalling);
   }
 
@@ -178,6 +158,10 @@ public class RobotState {
         .debounce(0.2);
   }
 
+  public Trigger holdFireTrigger() {
+    return new Trigger(this::isHoldFireEnabled).debounce(0.2);
+  }
+
   public boolean inAllianceZone() {
     return DriverStation.getAlliance()
         .map(FieldConstants::getAllianceZone)
@@ -189,10 +173,6 @@ public class RobotState {
     return m_feeder.fuelSensorTripped();
   }
 
-  public RobotMode getRobotMode() {
-    return m_mode;
-  }
-
   public boolean isFixedTurretModeEnabled() {
     return m_fixedTurretModeToggle.get();
   }
@@ -201,8 +181,30 @@ public class RobotState {
     return m_shootOnTheMoveToggle.get();
   }
 
+  public boolean isHoldFireEnabled() {
+    return m_holdFire;
+  }
+
   public ShootingParameters getShootingParameters() {
     return m_shootingParameters;
+  }
+
+  public Translation2d calculateFeedTarget() {
+    double robotY = getRobotPose().getY();
+    Translation2d hubPosition = FieldConstants.getHubPosition2d();
+    double hubY = hubPosition.getY();
+
+    double targetY = robotY;
+
+    if (robotY > (hubY - 0.762) && robotY < (hubY + 0.762)) {
+      if (robotY > hubY) {
+        targetY = hubY + 1;
+      } else {
+        targetY = hubY - 1;
+      }
+    }
+
+    return new Translation2d(hubPosition.getX(), targetY);
   }
 
   public Command setFixedTurretModeEnabledCommand(boolean enabled) {
@@ -213,11 +215,7 @@ public class RobotState {
     return Commands.runOnce(() -> m_shootOnTheMoveToggle.set(enabled));
   }
 
-  public Command setRobotModeCommand(RobotMode mode) {
-    return Commands.runOnce(() -> m_mode = mode);
-  }
-
-  public Trigger getModeTrigger(RobotMode mode) {
-    return m_robotModesToTrigger.get(mode);
+  public Command setHoldFireCommand(boolean enabled) {
+    return Commands.runOnce(() -> m_holdFire = enabled);
   }
 }

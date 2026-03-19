@@ -22,7 +22,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.constants.Ports;
 
-public class TransportRollerIOTalonFX implements TransportRollerIO {
+public class IndexerIOTalonFX implements InexerIO {
   private static final double kGearRatio = 20.0 / 14.0;
 
   private final TalonFX m_motor;
@@ -37,8 +37,8 @@ public class TransportRollerIOTalonFX implements TransportRollerIO {
 
   private AngularVelocity m_setpoint = RPM.zero();
 
-  public TransportRollerIOTalonFX() {
-    m_motor = new TalonFX(Ports.kIndexerTransportRoller.canId(), Ports.kIndexerTransportRoller.canbus());
+  public IndexerIOTalonFX() {
+    m_motor = new TalonFX(Ports.kIndexer.canId(), Ports.kIndexer.canbus());
 
     TalonFXConfiguration config = new TalonFXConfiguration();
 
@@ -66,7 +66,7 @@ public class TransportRollerIOTalonFX implements TransportRollerIO {
   }
 
   @Override
-  public void updateInputs(TransportRollerIOInputs inputs) {
+  public void updateInputs(IndexerIOInputs inputs) {
     BaseStatusSignal.refreshAll(
         m_velocitySignal, m_appliedVoltsSignal, m_statorCurrentSignal, m_supplyCurrentSignal);
 

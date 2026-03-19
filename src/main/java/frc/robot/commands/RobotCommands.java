@@ -5,18 +5,16 @@ import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.RobotState;
 import frc.robot.constants.Constants;
-import frc.robot.constants.FieldConstants;
-import frc.robot.controls.DriveControls;
+import frc.robot.controls.Controls;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
-import frc.robot.subsystems.indexer.TransportRoller;
+import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
 import frc.robot.subsystems.shooter.Hood;
@@ -29,11 +27,12 @@ public class RobotCommands {
   private final IntakeRoller m_intakeRoller;
   private final Turret m_turret;
   private final Feeder m_feeder;
-  private final TransportRoller m_transportRoller;
+  private final Indexer m_indexer;
   private final Shooter m_shooter;
   private final Hood m_hood;
   private final RobotState m_state;
-  private final DriveControls m_controls;
+  private final Controls m_controls;
+  private final DriveCommands m_driveCommands;
 
   public RobotCommands(
       CommandSwerveDrivetrain drive,
@@ -42,168 +41,132 @@ public class RobotCommands {
       Turret turret,
       Feeder feeder,
       Vision vision,
-      TransportRoller transportRoller,
+      Indexer indexer,
       Shooter shooter,
       Hood hood,
       RobotState state,
-      DriveControls controls) {
+      Controls controls) {
     m_drive = drive;
     m_intakePivot = intakePivot;
     m_intakeRoller = intakeRoller;
     m_turret = turret;
     m_feeder = feeder;
     m_controls = controls;
-    m_transportRoller = transportRoller;
+    m_indexer = indexer;
     m_shooter = shooter;
     m_hood = hood;
     m_state = state;
+    m_driveCommands = new DriveCommands(drive, controls::getDriveLeft, controls::getDriveForward,
+        controls::getDriveRotation);
   }
 
   public Command snowBlow() {
-    return Commands.parallel(autoAimForTeleop(), runFlywheelCommand(), runIntake())
-        .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
+    return Commands
+        .parallel(Commands.either(autoAimWithDrivetrainForTeleop(), driveCommand(), m_state::isFixedTurretModeEnabled),
+            shooterTrackShootingParamters(), runIntake(), m_state.setHoldFireCommand(false))
+        .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("snowBlow");
   }
 
   public Command autoAimAndPrepareShootTeleop() {
-    return Commands.parallel(prepareShoot(), autoAimForTeleop());
+    return Commands
+        .parallel(prepareShoot(),
+            Commands.either(autoAimWithDrivetrainForTeleop(), driveCommand(), m_state::isFixedTurretModeEnabled),
+            m_state.setHoldFireCommand(false))
+        .withName("autoAimAndPrepareShootTeleop");
   }
 
   public Command autoAimAndPrepareShootAutonomous() {
-    return Commands.parallel(prepareShoot(), autoAimForAutonomous());
+    return Commands
+        .parallel(prepareShoot(),
+            Commands.either(autoAimWithDrivetrainForAutonomous(), driveCommand(), m_state::isFixedTurretModeEnabled),
+            m_state.setHoldFireCommand(false))
+        .withName("autoAimAndPrepareShootAutonomous");
   }
 
-  private Command runFlywheelCommand() {
-    return m_shooter.setSpeedCommand(() -> m_state.getShootingParameters().getParameters().flywheelVelocity());
+  private Command shooterTrackShootingParamters() {
+    return m_shooter.setSpeedCommand(() -> m_state.getShootingParameters().getParameters().flywheelVelocity())
+        .withName("shooterTrackShootingParamters");
   }
 
-  public Command autoAimForTeleop() {
-    return DriveCommands.rotateRobot(
-        m_drive,
-        () -> m_state.getShootingParameters().getTargetRobotRotation(),
-        m_controls::getDriveForward,
-        m_controls::getDriveLeft);
+  public Command autoAimWithDrivetrainForTeleop() {
+    return m_driveCommands.rotateRobot(() -> m_state.getShootingParameters().getTargetRobotRotation())
+        .withName("autoAimForTeleop");
   }
 
-  public Command autoAimForAutonomous() {
-    return DriveCommands.rotateRobot(m_drive, m_state.getShootingParameters()::getTargetRobotRotation);
-  }
-
-  private Command intakeStowPosition() {
-    return m_intakePivot.setAngleCommand(Degrees.of(30));
-  }
-
-  private Command intakeRunPosition() {
-    return m_intakePivot.setAngleCommand(Degrees.of(5));
-  }
-
-  private Command runIntakeRollers() {
-    return m_intakeRoller.setVoltageCommand(Volts.of(7));
-  }
-
-  private Command stopIntakeRollers() {
-    return m_intakeRoller.setVoltageCommand(Volts.of(2));
+  public Command autoAimWithDrivetrainForAutonomous() {
+    return m_driveCommands.rotateRobotForAutonomous(() -> m_state.getShootingParameters().getTargetRobotRotation())
+        .withName("autoAimForAutonomous");
   }
 
   public Command runIntake() {
     return Commands.parallel(
-        intakeRunPosition(),
-        runIntakeRollers());
+        m_intakePivot.intake(),
+        m_intakeRoller.intake()).withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("runIntake");
   }
 
   public Command stowIntake() {
-    return Commands.parallel(intakeStowPosition(), stopIntakeRollers())
-        .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
+    return Commands.parallel(m_intakePivot.stow(), m_intakeRoller.stow())
+        .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("stowIntake");
   }
 
   public Command idle() {
-    return Commands.parallel(m_shooter.setSpeedCommand(RPM.of(0)), stowIntake(), stopFeedingFuel())
-        .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
-  }
-
-  public Command stopFlywheel() {
-    return Commands.parallel(m_shooter.setSpeedCommand(RPM.of(0)))
-        .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
+    return Commands.parallel(m_shooter.stop(), stowIntake(), m_state.setHoldFireCommand(true))
+        .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("idle");
   }
 
   public Command fill() {
-    return Commands.parallel(stopFlywheel(), runIntake())
-        .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
+    return Commands.parallel(m_shooter.stop(), runIntake(), m_state.setHoldFireCommand(true))
+        .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("fill");
   }
 
   public Command prepareShoot() {
-    return Commands.parallel(runFlywheelCommand(), stowIntake())
-        .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
-  }
-
-  private Command runFeeder() {
-    return m_feeder.setVoltageCommand(Volts.of(10));
-  }
-
-  private Command runFeederReverse() {
-    return m_feeder.setVoltageCommand(Volts.of(-10));
-  }
-
-  private Command stopFeeder() {
-    return m_feeder.setVoltageCommand(Volts.of(0));
-  }
-
-  private Command runTransportRollers() {
-    return m_transportRoller.setVoltageCommand(Volts.of(10));
-  }
-
-  private Command stopTransportRollers() {
-    return m_transportRoller.setVoltageCommand(Volts.of(0));
-  }
-
-  private Command runTransportRollersReverse() {
-    return m_transportRoller.setVoltageCommand(Volts.of(-3));
+    return Commands.parallel(shooterTrackShootingParamters(), stowIntake())
+        .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("prepareShoot");
   }
 
   public Command feedFuel() {
-    return Commands.parallel(runFeeder(), runTransportRollers());
+    return Commands.parallel(m_feeder.runForward(), m_indexer.runForward()).withName("feedFuel");
   }
 
   public Command stopFeedingFuel() {
-    return Commands.parallel(stopFeeder(), stopTransportRollers());
+    return Commands.parallel(m_feeder.stop(), m_indexer.stop()).withName("stopFeedingFuel");
   }
 
   public Command reverseFeedFuel() {
-    return Commands.parallel(runFeederReverse(), runTransportRollersReverse(), driveCommand());
+    return Commands.parallel(m_feeder.runReverse(), m_indexer.runReverse(), driveCommand()).withName("reverseFeedFuel");
   }
 
   public Command revShooter() {
-    return m_shooter.setSpeedCommand(RPM.of(1800));
+    return m_shooter.setSpeedCommand(RPM.of(1800)).withName("revShooter");
   }
 
   public Command setPointShoot() {
     return Commands.parallel(
         m_shooter.setSpeedCommand(RPM.of(1800)), m_hood.setAngleCommand(Degrees.of(2)))
-        .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
+        .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("setPointShoot");
   }
 
   public Command fullFieldFeedShoot() {
     return Commands.parallel(
         m_shooter.setSpeedCommand(RPM.of(2600)), m_hood.setAngleCommand(Degrees.of(25)))
-        .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
+        .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("fullFieldFeedShoot");
   }
 
   public Command alignHood() {
-    return m_hood.setAngleCommand(() -> m_state.getShootingParameters().getParameters().hoodAngle());
+    return m_hood.setAngleCommand(() -> m_state.getShootingParameters().getParameters().hoodAngle())
+        .withName("alignHood");
   }
 
   public Command alignTurret() {
     return m_turret.setAngleCommand(
         () -> m_state.isFixedTurretModeEnabled()
             ? Constants.kFixedTurretRotation
-            : m_state.getShootingParameters().getParameters().turretAngle());
+            : m_state.getShootingParameters().getParameters().turretAngle())
+        .withName("alignTurret");
   }
 
   public Command driveCommand() {
-    return DriveCommands.driveCommand(
-        m_drive,
-        m_controls::getDriveForward,
-        m_controls::getDriveLeft,
-        m_controls::getDriveRotation);
+    return m_driveCommands.driveCommand().withName("driveCommand");
   }
 
   public Command zeroTurretHood() {
@@ -215,25 +178,7 @@ public class RobotCommands {
         m_hood.setEncoderAngleCommand(Degrees.of(10)))
         .withTimeout(4)
         .until(m_hood.getCurrentSpikeTrigger())
-        .andThen(m_hood.zeroEncoderAngleCommand());
-  }
-
-  public Translation2d calculateFeedTarget() {
-    double robotY = m_state.getRobotPose().getY();
-    Translation2d hubPosition = FieldConstants.getHubPosition2d();
-    double hubY = hubPosition.getY();
-
-    double targetY = robotY;
-
-    if (robotY > (hubY - 0.762) && robotY < (hubY + 0.762)) {
-      if (robotY > hubY) {
-        targetY = hubY + 1;
-      } else {
-        targetY = hubY - 1;
-      }
-    }
-
-    return new Translation2d(hubPosition.getX(), targetY);
+        .andThen(m_hood.zeroEncoderAngleCommand()).withName("zeroTurretHood");
   }
 
   public Command increaseFlywheelVelocity() {

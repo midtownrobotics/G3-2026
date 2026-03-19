@@ -2,7 +2,9 @@ package frc.robot.controls;
 
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
-public interface FourWayControls {
+public interface Controls {
+  public static double kDriverJoystickThreshold = 0.1;
+
   public Trigger idle();
 
   public Trigger intake();
@@ -18,4 +20,10 @@ public interface FourWayControls {
   public Trigger setpointShoot();
 
   public Trigger fullFieldShoot();
+
+  public double getDriveForward();
+
+  public double getDriveLeft();
+
+  public double getDriveRotation();
 }
