@@ -79,7 +79,7 @@ public class Feeder extends SubsystemBase {
   }
 
   public Command runForward() {
-    return run(() -> m_io.setVoltage(Volts.of(10)));
+    return run(() -> m_io.setVoltage(Volts.of(6)));
   }
 
   public Command stop() {
