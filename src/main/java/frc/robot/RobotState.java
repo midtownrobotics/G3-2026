@@ -1,6 +1,5 @@
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
@@ -200,27 +199,14 @@ public class RobotState {
   }
 
   public Translation2d calculateFeedTarget() {
-    double robotY = getRobotPose().getY();
-    Translation2d hubPosition = FieldConstants.getHubPosition2d();
-    double hubY = hubPosition.getY();
-
-    double targetY = robotY;
-
-    if (robotY > (hubY - 0.762) && robotY < (hubY + 0.762)) {
-      if (robotY > hubY) {
-        targetY = hubY + 1;
-      } else {
-        targetY = hubY - 1;
-      }
+    if (GeometryUtil.flip(getTurretPose()).getMeasureY().lt(FieldConstants.kFieldWidth.div(2))) {
+      System.out.println("lt");
+      return GeometryUtil.flip(new Translation2d(FieldConstants.kAllianceZoneOffset.getMeasureX().div(2),
+          FieldConstants.kFieldWidth.div(4)));
     }
-
-    if (robotY < 1.5) {
-      targetY += 1;
-    } else if (robotY > FieldConstants.kFieldWidth.in(Meters) - 1.5) {
-      targetY -= 1;
-    }
-
-    return new Translation2d(hubPosition.getX(), targetY);
+    System.out.println("gt");
+    return GeometryUtil.flip(new Translation2d(FieldConstants.kAllianceZoneOffset.getMeasureX().div(2),
+        FieldConstants.kFieldWidth.div(4).times(3)));
   }
 
   public Command setFixedTurretModeEnabledCommand(boolean enabled) {
