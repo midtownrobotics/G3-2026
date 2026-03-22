@@ -89,12 +89,24 @@ public class Hood extends SubsystemBase {
     return new Trigger(() -> getAngle().isNear(angle.get(), threshold));
   }
 
+  public void setEncoderPosition(Angle angle) {
+    m_io.setEncoderPosition(angle);
+  }
+
   public Command setEncoderAngleCommand(Angle angle) {
-    return Commands.runOnce(() -> m_io.setEncoderPosition(angle));
+    return Commands.runOnce(() -> setEncoderPosition(angle));
   }
 
   public Command zeroEncoderAngleCommand() {
     return setEncoderAngleCommand(Degrees.zero());
+  }
+
+  public void setLowerSoftLimitEnabled(boolean enabled) {
+    m_io.setLowerSoftLimitEnabled(enabled);
+  }
+
+  public Command setLowerSoftLimitEnabledCommand(boolean enabled) {
+    return Commands.runOnce(() -> setLowerSoftLimitEnabled(enabled));
   }
 
   public Command setAngleCommand(Angle angle) {

@@ -131,10 +131,10 @@ public class Robot extends LoggedRobot {
     if (isReal()) {
       m_intakePivot = new IntakePivot(new IntakePivotIOTalonFX());
       m_intakeRoller = new IntakeRoller(new IntakeRollerIOTalonFX());
-      m_feeder = new Feeder(new FeederIOTalonFX());
+      m_feeder = new Feeder(new FeederIOSim());
       m_indexer = new Indexer(new IndexerIOTalonFX());
-      m_hood = new Hood(new HoodIOTalonFX());
-      m_shooter = new Shooter(new ShooterIOTalonFX());
+      m_hood = new Hood(new HoodIOSim());
+      m_shooter = new Shooter(new ShooterIOSim());
       m_turret = new Turret(new TurretIOTalonFX());
     } else {
       m_intakePivot = new IntakePivot(new IntakePivotIOSim());
@@ -268,6 +268,8 @@ public class Robot extends LoggedRobot {
     m_controls.setpointShoot().onTrue(m_robotCommands.setPointShoot());
 
     m_controls.feedFuel().onTrue(m_robotCommands.feedFuel()).onFalse(m_robotCommands.stopFeedingFuel());
+
+    m_controls.zeroHood().whileTrue(m_robotCommands.zeroTurretHood());
   }
 
   public void configureTrimControlBindings(TrimControls controls) {

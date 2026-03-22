@@ -200,11 +200,9 @@ public class RobotState {
 
   public Translation2d calculateFeedTarget() {
     if (GeometryUtil.flip(getTurretPose()).getMeasureY().lt(FieldConstants.kFieldWidth.div(2))) {
-      System.out.println("lt");
       return GeometryUtil.flip(new Translation2d(FieldConstants.kAllianceZoneOffset.getMeasureX().div(2),
           FieldConstants.kFieldWidth.div(4)));
     }
-    System.out.println("gt");
     return GeometryUtil.flip(new Translation2d(FieldConstants.kAllianceZoneOffset.getMeasureX().div(2),
         FieldConstants.kFieldWidth.div(4).times(3)));
   }

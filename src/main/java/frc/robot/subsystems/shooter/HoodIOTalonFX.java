@@ -28,6 +28,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Voltage;
+import frc.lib.PhoenixUtil;
 import frc.robot.constants.Ports;
 
 public class HoodIOTalonFX implements HoodIO {
@@ -149,7 +150,17 @@ public class HoodIOTalonFX implements HoodIO {
   @Override
   public void setEncoderPosition(Angle angle) {
     m_motor.setPosition(angle);
-    m_encoder.setPosition(angle);
+  }
+
+  @Override
+  public void setLowerSoftLimitEnabled(boolean enabled) {
+    SoftwareLimitSwitchConfigs config = new SoftwareLimitSwitchConfigs()
+        .withForwardSoftLimitEnable(true)
+        .withForwardSoftLimitThreshold(Degrees.of(40))
+        .withReverseSoftLimitEnable(enabled)
+        .withReverseSoftLimitThreshold(Degrees.of(0));
+
+    PhoenixUtil.tryUntilOk(5, () -> m_motor.getConfigurator().apply(config));
   }
 
   @Override

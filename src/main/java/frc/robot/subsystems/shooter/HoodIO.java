@@ -41,6 +41,9 @@ public interface HoodIO {
   default void setEncoderPosition(Angle angle) {
   }
 
+  default void setLowerSoftLimitEnabled(boolean enabled) {
+  }
+
   default void setPID(double kP, double kI, double kD, double kS, double kG) {
   }
 }

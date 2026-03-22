@@ -62,7 +62,9 @@ public class RobotCommands {
 
   public Command snowBlow() {
     return Commands
-        .parallel(Commands.either(autoAimWithDrivetrainForTeleop(), driveCommand(), m_state::isAutoAimAndFixedTurretModeEnabled),
+        .parallel(
+            Commands.either(autoAimWithDrivetrainForTeleop(), driveCommand(),
+                m_state::isAutoAimAndFixedTurretModeEnabled),
             shooterTrackShootingParamters(), runIntake(), m_state.setHoldFireCommand(false))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("snowBlow");
   }
@@ -70,7 +72,8 @@ public class RobotCommands {
   public Command autoAimAndPrepareShootTeleop() {
     return Commands
         .parallel(prepareShoot(),
-            Commands.either(autoAimWithDrivetrainForTeleop(), driveCommand(), m_state::isAutoAimAndFixedTurretModeEnabled),
+            Commands.either(autoAimWithDrivetrainForTeleop(), driveCommand(),
+                m_state::isAutoAimAndFixedTurretModeEnabled),
             m_state.setHoldFireCommand(false))
         .withName("autoAimAndPrepareShootTeleop");
   }
@@ -171,15 +174,21 @@ public class RobotCommands {
   }
 
   public Command zeroTurretHood() {
-    return Commands.repeatingSequence(
-        m_hood
-            .setVoltage(Volts.of(-3.5))
-            .until(m_hood.isNearTrigger(() -> Degrees.zero(), Degrees.of(1)))
-            .withTimeout(Seconds.of(1)),
-        m_hood.setEncoderAngleCommand(Degrees.of(10)))
-        .withTimeout(4)
-        .until(m_hood.getCurrentSpikeTrigger())
-        .andThen(m_hood.zeroEncoderAngleCommand()).withName("zeroTurretHood");
+    // return Commands.repeatingSequence(
+    //     m_hood
+    //         .setVoltage(Volts.of(-3.5))
+    //         .until(m_hood.isNearTrigger(() -> Degrees.zero(), Degrees.of(1)))
+    //         .withTimeout(Seconds.of(1)),
+    //     m_hood.setEncoderAngleCommand(Degrees.of(10)))
+    //     .withTimeout(4)
+    //     .until(m_hood.getCurrentSpikeTrigger())
+    //     .andThen(m_hood.zeroEncoderAngleCommand()).withName("zeroTurretHood");
+    return m_hood.setLowerSoftLimitEnabledCommand(false)
+        .andThen(m_hood.setVoltage(Volts.of(-3.5)).until(m_hood.getCurrentSpikeTrigger()).withTimeout(Seconds.of(4)))
+        .finallyDo(() -> {
+          m_hood.setLowerSoftLimitEnabled(true);
+          m_hood.setEncoderPosition(Degrees.zero());
+        }).withName("zeroTurretHood");
   }
 
   public Command increaseFlywheelVelocity() {
