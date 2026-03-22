@@ -46,7 +46,7 @@ public class IntakePivot extends SubsystemBase {
   }
 
   public Command stow() {
-    return run(() -> m_io.setPosition(Degrees.of(30)));
+    return run(() -> m_io.setPosition(Degrees.of(40)));
   }
 
   public Command intake() {

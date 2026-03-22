@@ -128,6 +128,9 @@ public class TurretIOTalonFX implements TurretIO {
         m_encoder1AbsolutePosition,
         m_encoder2AbsolutePosition);
 
+    PhoenixUtil.tryUntilOk(5,
+        () -> BaseStatusSignal.refreshAll(m_encoder1AbsolutePosition, m_encoder2AbsolutePosition));
+
     // Seed motor position from CANcoder absolute position
     // EasyCRTConfig easyCRTConfig = new EasyCRTConfig(m_encoder1AbsolutePosition::getValue,
     //     m_encoder2AbsolutePosition::getValue)
@@ -139,11 +142,14 @@ public class TurretIOTalonFX implements TurretIO {
     // EasyCRT easyCRT = new EasyCRT(easyCRTConfig);
 
     // easyCRT.getAngleOptional().ifPresentOrElse(m_motor::setPosition,
-    //     () -> DriverStation.reportError(
-    //         "Unable to seed turret position from CANcoder absolute position\n" + "Encoder 1 position: "
-    //             + m_encoder1AbsolutePosition.getValue().in(Degrees)
-    //             + "\nEncoder 2 position: " + m_encoder2AbsolutePosition.getValue().in(Degrees),
-    //         true));
+    //     () -> {
+    //       DriverStation.reportError(
+    //           "Unable to seed turret position from CANcoder absolute position\n" + "Encoder 1 position: "
+    //               + m_encoder1AbsolutePosition.getValue().in(Degrees)
+    //               + "\nEncoder 2 position: " + m_encoder2AbsolutePosition.getValue().in(Degrees),
+    //           true);
+    //       m_motor.setPosition(Degrees.of(90));
+    //     });
     m_motor.setPosition(Degrees.of(90));
   }
 

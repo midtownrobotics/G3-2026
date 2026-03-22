@@ -64,61 +64,74 @@ public class ShootingParameters {
 
   // Takes in a distance in meters and outputs an angle in radians
   private final InterpolatingDoubleTreeMap m_scoringHoodAngleMap = InterpolatingDoubleTreeMap.ofEntries(
-      Map.entry(Feet.of(4.25).in(Meters), Degrees.of(2).in(Radians)),
-      Map.entry(Feet.of(4.75).in(Meters), Degrees.of(4).in(Radians)),
+      Map.entry(Feet.of(4).in(Meters), Degrees.of(2).in(Radians)),
       Map.entry(Feet.of(5).in(Meters), Degrees.of(3).in(Radians)),
-      Map.entry(Feet.of(5.5).in(Meters), Degrees.of(3).in(Radians)),
       Map.entry(Feet.of(6).in(Meters), Degrees.of(10).in(Radians)),
       Map.entry(Feet.of(7).in(Meters), Degrees.of(12).in(Radians)),
       Map.entry(Feet.of(8).in(Meters), Degrees.of(13).in(Radians)),
       Map.entry(Feet.of(9).in(Meters), Degrees.of(18).in(Radians)),
-      Map.entry(Feet.of(10).in(Meters), Degrees.of(20).in(Radians)),
-      Map.entry(Feet.of(11).in(Meters), Degrees.of(23).in(Radians)),
-      Map.entry(Feet.of(15).in(Meters), Degrees.of(25).in(Radians)),
+      Map.entry(Feet.of(10).in(Meters), Degrees.of(5).in(Radians)), //
+      Map.entry(Feet.of(11).in(Meters), Degrees.of(5).in(Radians)), //
+      Map.entry(Feet.of(12).in(Meters), Degrees.of(5).in(Radians)), //
+      Map.entry(Feet.of(13).in(Meters), Degrees.of(5).in(Radians)), //
+      Map.entry(Feet.of(14).in(Meters), Degrees.of(8).in(Radians)), //
+      Map.entry(Feet.of(15).in(Meters), Degrees.of(8).in(Radians)), //
+      Map.entry(Feet.of(16).in(Meters), Degrees.of(11).in(Radians)), //
+      Map.entry(Feet.of(17).in(Meters), Degrees.of(25).in(Radians)),
+      Map.entry(Feet.of(18).in(Meters), Degrees.of(25).in(Radians)),
+      Map.entry(Feet.of(19).in(Meters), Degrees.of(25).in(Radians)),
+      Map.entry(Feet.of(20).in(Meters), Degrees.of(25).in(Radians)),
       Map.entry(Feet.of(26.875).in(Meters), Degrees.of(20).in(Radians)));
 
   private final InterpolatingDoubleTreeMap m_feedingHoodAngleMap = InterpolatingDoubleTreeMap.ofEntries(
-      Map.entry(Feet.of(4.25).in(Meters), Degrees.of(2).in(Radians)),
-      Map.entry(Feet.of(4.75).in(Meters), Degrees.of(4).in(Radians)),
-      Map.entry(Feet.of(5).in(Meters), Degrees.of(3).in(Radians)),
-      Map.entry(Feet.of(5.5).in(Meters), Degrees.of(3).in(Radians)),
-      Map.entry(Feet.of(6).in(Meters), Degrees.of(10).in(Radians)),
-      Map.entry(Feet.of(7).in(Meters), Degrees.of(12).in(Radians)),
-      Map.entry(Feet.of(8).in(Meters), Degrees.of(13).in(Radians)),
-      Map.entry(Feet.of(9).in(Meters), Degrees.of(18).in(Radians)),
-      Map.entry(Feet.of(10).in(Meters), Degrees.of(20).in(Radians)),
-      Map.entry(Feet.of(11).in(Meters), Degrees.of(23).in(Radians)),
-      Map.entry(Feet.of(15).in(Meters), Degrees.of(25).in(Radians)),
-      Map.entry(Feet.of(26.875).in(Meters), Degrees.of(20).in(Radians)));
+      Map.entry(Feet.of(4.25).in(Meters), Degrees.of(30).in(Radians)),
+      Map.entry(Feet.of(4.75).in(Meters), Degrees.of(30).in(Radians)),
+      Map.entry(Feet.of(5).in(Meters), Degrees.of(30).in(Radians)),
+      Map.entry(Feet.of(5.5).in(Meters), Degrees.of(30).in(Radians)),
+      Map.entry(Feet.of(6).in(Meters), Degrees.of(30).in(Radians)),
+      Map.entry(Feet.of(7).in(Meters), Degrees.of(32).in(Radians)),
+      Map.entry(Feet.of(8).in(Meters), Degrees.of(33).in(Radians)),
+      Map.entry(Feet.of(9).in(Meters), Degrees.of(38).in(Radians)),
+      Map.entry(Feet.of(10).in(Meters), Degrees.of(40).in(Radians)),
+      Map.entry(Feet.of(11).in(Meters), Degrees.of(40).in(Radians)),
+      Map.entry(Feet.of(15).in(Meters), Degrees.of(40).in(Radians)),
+      Map.entry(Feet.of(26.875).in(Meters), Degrees.of(40).in(Radians)));
   // Takes in a distance in meters and outputs an angular velocity in radians per
   // second
   private final InterpolatingDoubleTreeMap m_scoringFlywheelVelocityMap = InterpolatingDoubleTreeMap.ofEntries(
-      Map.entry(Feet.of(4.25).in(Meters), RPM.of(1800).in(RadiansPerSecond)),
-      Map.entry(Feet.of(4.75).in(Meters), RPM.of(1750).in(RadiansPerSecond)),
+      Map.entry(Feet.of(4).in(Meters), RPM.of(1800).in(RadiansPerSecond)),
       Map.entry(Feet.of(5).in(Meters), RPM.of(1700).in(RadiansPerSecond)),
-      Map.entry(Feet.of(5.5).in(Meters), RPM.of(1700).in(RadiansPerSecond)),
       Map.entry(Feet.of(6).in(Meters), RPM.of(1750).in(RadiansPerSecond)),
       Map.entry(Feet.of(7).in(Meters), RPM.of(1800).in(RadiansPerSecond)),
       Map.entry(Feet.of(8).in(Meters), RPM.of(1800).in(RadiansPerSecond)),
       Map.entry(Feet.of(9).in(Meters), RPM.of(1950).in(RadiansPerSecond)),
-      Map.entry(Feet.of(10).in(Meters), RPM.of(2000).in(RadiansPerSecond)),
-      Map.entry(Feet.of(11).in(Meters), RPM.of(2100).in(RadiansPerSecond)),
-      Map.entry(Feet.of(15).in(Meters), RPM.of(2300).in(RadiansPerSecond)),
+      Map.entry(Feet.of(10).in(Meters), RPM.of(1950).in(RadiansPerSecond)), //
+      Map.entry(Feet.of(11).in(Meters), RPM.of(2200).in(RadiansPerSecond)), //
+      Map.entry(Feet.of(12).in(Meters), RPM.of(2250).in(RadiansPerSecond)), //
+      Map.entry(Feet.of(13).in(Meters), RPM.of(2300).in(RadiansPerSecond)), //
+      Map.entry(Feet.of(14).in(Meters), RPM.of(2300).in(RadiansPerSecond)), //
+      Map.entry(Feet.of(15).in(Meters), RPM.of(2350).in(RadiansPerSecond)), //
+      Map.entry(Feet.of(16).in(Meters), RPM.of(2300).in(RadiansPerSecond)), //
+      Map.entry(Feet.of(17).in(Meters), RPM.of(2300).in(RadiansPerSecond)),
+      Map.entry(Feet.of(18).in(Meters), RPM.of(2300).in(RadiansPerSecond)),
+      Map.entry(Feet.of(19).in(Meters), RPM.of(2300).in(RadiansPerSecond)),
+      Map.entry(Feet.of(20).in(Meters), RPM.of(2300).in(RadiansPerSecond)),
       Map.entry(Feet.of(26.875).in(Meters), RPM.of(3200).in(RadiansPerSecond)));
 
   private final InterpolatingDoubleTreeMap m_feedingFlywheelVelocityMap = InterpolatingDoubleTreeMap.ofEntries(
-      Map.entry(Feet.of(4.25).in(Meters), RPM.of(1800).in(RadiansPerSecond)),
-      Map.entry(Feet.of(4.75).in(Meters), RPM.of(1750).in(RadiansPerSecond)),
-      Map.entry(Feet.of(5).in(Meters), RPM.of(1700).in(RadiansPerSecond)),
-      Map.entry(Feet.of(5.5).in(Meters), RPM.of(1700).in(RadiansPerSecond)),
-      Map.entry(Feet.of(6).in(Meters), RPM.of(1750).in(RadiansPerSecond)),
-      Map.entry(Feet.of(7).in(Meters), RPM.of(1800).in(RadiansPerSecond)),
-      Map.entry(Feet.of(8).in(Meters), RPM.of(1800).in(RadiansPerSecond)),
-      Map.entry(Feet.of(9).in(Meters), RPM.of(1950).in(RadiansPerSecond)),
-      Map.entry(Feet.of(10).in(Meters), RPM.of(2000).in(RadiansPerSecond)),
-      Map.entry(Feet.of(11).in(Meters), RPM.of(2100).in(RadiansPerSecond)),
-      Map.entry(Feet.of(15).in(Meters), RPM.of(2300).in(RadiansPerSecond)),
-      Map.entry(Feet.of(26.875).in(Meters), RPM.of(3200).in(RadiansPerSecond)));
+      Map.entry(Feet.of(4).in(Meters), RPM.of(1550).in(RadiansPerSecond)),
+      Map.entry(Feet.of(5).in(Meters), RPM.of(1550).in(RadiansPerSecond)),
+      Map.entry(Feet.of(6).in(Meters), RPM.of(1550).in(RadiansPerSecond)),
+      Map.entry(Feet.of(7).in(Meters), RPM.of(1550).in(RadiansPerSecond)),
+      Map.entry(Feet.of(8).in(Meters), RPM.of(1550).in(RadiansPerSecond)),
+      Map.entry(Feet.of(9).in(Meters), RPM.of(1650).in(RadiansPerSecond)),
+      Map.entry(Feet.of(10).in(Meters), RPM.of(1800).in(RadiansPerSecond)),
+      Map.entry(Feet.of(11).in(Meters), RPM.of(1850).in(RadiansPerSecond)),
+      Map.entry(Feet.of(12).in(Meters), RPM.of(1850).in(RadiansPerSecond)),
+      Map.entry(Feet.of(13).in(Meters), RPM.of(1850).in(RadiansPerSecond)),
+      Map.entry(Feet.of(14).in(Meters), RPM.of(1850).in(RadiansPerSecond)),
+      Map.entry(Feet.of(15).in(Meters), RPM.of(2100).in(RadiansPerSecond)),
+      Map.entry(Feet.of(26.875).in(Meters), RPM.of(3000).in(RadiansPerSecond)));
 
   private double m_flywheelVelocityModifier = 1;
   private Angle m_hoodAngleModifier = Degrees.of(0);
@@ -231,6 +244,7 @@ public class ShootingParameters {
     Logger.recordOutput("ShootingParameters/targetPose", targetPose3d.toPose2d());
     Logger.recordOutput("ShootingParameters/targetPose3d", targetPose3d);
     Logger.recordOutput("ShootingParameters/distanceToTarget", distanceToTarget);
+    Logger.recordOutput("ShootingParameters/mode", m_mode);
 
     m_watchdog.end("periodic");
   }

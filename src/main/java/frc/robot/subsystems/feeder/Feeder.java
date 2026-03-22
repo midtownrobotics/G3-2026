@@ -58,9 +58,6 @@ public class Feeder extends SubsystemBase {
     m_talonConnectionAlert.set(!m_inputs.motorConnected);
     m_stallAlert.set(highCurrent && notMoving);
 
-    LoggedTunableNumber.ifChanged(
-        hashCode(), values -> m_io.setPID(values[0], values[1], values[2]), m_kP, m_kI, m_kD);
-
     Logger.recordOutput("Feeder/sensorTripped", getFuelSensorTripped());
 
     m_watchdog.end("periodic");

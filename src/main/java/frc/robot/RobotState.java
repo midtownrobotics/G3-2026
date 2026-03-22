@@ -1,5 +1,6 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
@@ -211,6 +212,12 @@ public class RobotState {
       } else {
         targetY = hubY - 1;
       }
+    }
+
+    if (robotY < 1.5) {
+      targetY += 1;
+    } else if (robotY > FieldConstants.kFieldWidth.in(Meters) - 1.5) {
+      targetY -= 1;
     }
 
     return new Translation2d(hubPosition.getX(), targetY);

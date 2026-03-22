@@ -1,38 +1,36 @@
 package frc.robot.sensors;
 
+import static edu.wpi.first.units.Units.Feet;
+import static edu.wpi.first.units.Units.Meters;
+
 import java.util.LinkedList;
 import java.util.List;
 
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.PhotonCamera;
-import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.targeting.PhotonPipelineResult;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import frc.robot.constants.FieldConstants;
 
 public class Camera {
   private PhotonCamera m_camera;
-  private PhotonPoseEstimator m_estimator;
   private Transform3d m_robotToCamera;
   private String m_name;
   private final Alert m_connectionAlert;
 
-  public static record PoseObservation(double timestamp, Pose3d pose, int tagCount) {
+  public static record PoseObservation(double timestamp, Pose3d pose, int tagCount, double averageDistanceMeters,
+      String cameraName) {
   }
 
   public Camera(String name, Transform3d robotToCamera) {
     m_name = name;
     m_camera = new PhotonCamera(name);
-    m_estimator = new PhotonPoseEstimator(
-        AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded), robotToCamera);
-
     m_robotToCamera = robotToCamera;
     m_connectionAlert = new Alert("Camera " + name + " is not connected!", AlertType.kWarning);
   }
@@ -65,38 +63,39 @@ public class Camera {
       Logger.recordOutput(
           "Vision/" + m_camera.getName() + "/timeStamp", result.getTimestampSeconds());
       if (result.multitagResult.isPresent()) {
+        List<Pose3d> tagPoses = result.targets.stream().map(t -> t.getFiducialId())
+            .map(d -> FieldConstants.kTagLayout.getTagPose(d).get()).toList();
         Logger.recordOutput("Vision/" + m_camera.getName() + "/isSingleTagResult", false);
+        Logger.recordOutput("Vision/" + m_camera.getName() + "/tagPoses", tagPoses.toArray(Pose3d[]::new));
         var multitagResult = result.multitagResult.get();
 
         Transform3d fieldToCamera = multitagResult.estimatedPose.best;
         Transform3d fieldToRobot = fieldToCamera.plus(m_robotToCamera.inverse());
         Pose3d robotPose = new Pose3d(fieldToRobot.getTranslation(), fieldToRobot.getRotation());
 
+        double avgDistance = tagPoses.stream().map(Pose3d::getTranslation)
+            .mapToDouble(p -> robotPose.getTranslation().getDistance(p)).average().orElse(Double.MAX_VALUE);
+
+        if (robotPose.getMeasureZ().abs(Feet) > 1.5) {
+          continue;
+        }
+
+        if (avgDistance > Feet.of(15).in(Meters)) {
+          continue;
+        }
+
         observations.add(
             new PoseObservation(
-                result.getTimestampSeconds(), robotPose, multitagResult.fiducialIDsUsed.size()));
+                result.getTimestampSeconds(),
+                robotPose,
+                multitagResult.fiducialIDsUsed.size(),
+                avgDistance,
+                m_name));
 
-      } else if (!result.targets.isEmpty()) {
-        Logger.recordOutput("Vision/" + m_camera.getName() + "/isSingleTagResult", true);
-        var target = result.targets.get(0);
-
-        var tagPose = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded)
-            .getTagPose(target.getFiducialId());
-
-        if (tagPose.isPresent()) {
-          Transform3d fieldToTarget = new Transform3d(tagPose.get().getTranslation(), tagPose.get().getRotation());
-          Transform3d cameraToTarget = target.bestCameraToTarget;
-          Transform3d fieldToCamera = fieldToTarget.plus(cameraToTarget.inverse());
-          Transform3d fieldToRobot = fieldToCamera.plus(m_robotToCamera.inverse());
-          Pose3d robotPose = new Pose3d(fieldToRobot.getTranslation(), fieldToRobot.getRotation());
-
-          observations.add(new PoseObservation(result.getTimestampSeconds(), robotPose, 1));
-        }
       }
     }
 
-    Logger.recordOutput(
-        "Vision/" + m_camera.getName() + "/numberOfObservations", observations.size());
+    Logger.recordOutput("Vision/" + m_camera.getName() + "/numberOfObservations", observations.size());
 
     return observations;
   }

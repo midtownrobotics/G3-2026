@@ -87,13 +87,11 @@ public class Robot extends LoggedRobot {
 
   private final Watchdawg m_watchdog;
 
-  // private final PowerDistribution m_pdh;
-
   private final RobotCommands m_robotCommands;
 
   public Robot() {
     DriverStation.silenceJoystickConnectionWarning(Robot.isSimulation());
-    // m_pdh = new PowerDistribution();
+
     // m_pdh.setSwitchableChannel(true);
 
     // AdvantageKit Logger setup
@@ -233,11 +231,13 @@ public class Robot extends LoggedRobot {
 
     LoggedCommandScheduler.init(CommandScheduler.getInstance());
 
-    m_state.inAllianceZoneTrigger()
-        .whileTrue(m_state.getShootingParameters().setTargetCommand(FieldConstants::getHubPosition2d, ShootingParametersMode.kShoot)
+    m_state.inAllianceZoneTrigger().and(RobotModeTriggers.disabled().negate())
+        .whileTrue(m_state.getShootingParameters()
+            .setTargetCommand(FieldConstants::getHubPosition2d, ShootingParametersMode.kShoot)
             .withName("setTargetCommandHubPosition"))
-        .whileFalse(m_state.getShootingParameters().setTargetCommand(m_state::calculateFeedTarget, ShootingParametersMode.kPass)
-            .withName("setTargetCommandFeed"));
+        .whileFalse(
+            m_state.getShootingParameters().setTargetCommand(m_state::calculateFeedTarget, ShootingParametersMode.kPass)
+                .withName("setTargetCommandFeed"));
 
     SmartDashboard.putData("QuasistaticForward", m_drive.sysIdQuasistatic(Direction.kForward));
     SmartDashboard.putData("QuasistaticReverse", m_drive.sysIdQuasistatic(Direction.kReverse));
@@ -259,7 +259,7 @@ public class Robot extends LoggedRobot {
   public void configureBindings() {
     m_controls.idle().onTrue(m_robotCommands.idle());
 
-    m_controls.intake().onTrue(m_robotCommands.runIntake());
+    m_controls.intake().onTrue(m_robotCommands.fill());
 
     m_controls.shoot().onTrue(m_robotCommands.autoAimAndPrepareShootTeleop());
 
@@ -279,6 +279,11 @@ public class Robot extends LoggedRobot {
 
     controls.increaseVelocityCompensation().onTrue(m_robotCommands.increaseVelocityCompensation());
     controls.decreaseVelocityCompensation().onTrue(m_robotCommands.decreaseVelocityCompensation());
+  }
+
+  @Override
+  public void disabledExit() {
+    CommandScheduler.getInstance().schedule(m_robotCommands.idle());
   }
 
   @Override

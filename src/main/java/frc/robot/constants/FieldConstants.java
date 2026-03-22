@@ -2,6 +2,8 @@ package frc.robot.constants;
 
 import static edu.wpi.first.units.Units.Meters;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rectangle2d;
@@ -17,6 +19,7 @@ public class FieldConstants {
   public static final Distance kFieldWidth = Meters.of(8.07);
   public static final Pose2d kRedAllianceRightSide = new Pose2d(kFieldLength, kFieldWidth, Rotation2d.k180deg);
   public static final Pose3d kRedAllianceRightSide3d = new Pose3d(kRedAllianceRightSide);
+  public static final AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
 
   public static final Translation2d kAllianceZoneOffset = new Translation2d(4.03, 8.07);
 
