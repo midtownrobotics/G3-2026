@@ -21,6 +21,8 @@ public interface Controls {
 
   public Trigger fullFieldShoot();
 
+  public Trigger feedFuel();
+
   public double getDriveForward();
 
   public double getDriveLeft();

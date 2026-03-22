@@ -65,4 +65,9 @@ public class XboxControls implements Controls {
   public Trigger fullFieldShoot() {
     return m_controller.x();
   }
+
+  @Override
+  public Trigger feedFuel() {
+    return m_controller.b();
+  }
 }
