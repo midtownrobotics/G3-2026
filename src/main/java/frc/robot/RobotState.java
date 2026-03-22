@@ -49,6 +49,7 @@ public class RobotState {
   private final LoggedNetworkBoolean m_fixedTurretModeToggle = new LoggedNetworkBoolean("Toggles/FixedTurretMode",
       false);
   private final LoggedNetworkBoolean m_shootOnTheMoveToggle = new LoggedNetworkBoolean("Toggles/ShootOnTheMove", true);
+  private final LoggedNetworkBoolean m_autoAimToggle = new LoggedNetworkBoolean("Toggles/AutoAim", false);
 
   public RobotState(
       CommandSwerveDrivetrain drive,
@@ -175,6 +176,14 @@ public class RobotState {
 
   public boolean isFixedTurretModeEnabled() {
     return m_fixedTurretModeToggle.get();
+  }
+
+  public boolean isAutoAimEnabled() {
+    return m_autoAimToggle.get();
+  }
+
+  public boolean isAutoAimAndFixedTurretModeEnabled() {
+    return isAutoAimEnabled() && isFixedTurretModeEnabled();
   }
 
   public boolean isShootOnTheMoveEnabled() {

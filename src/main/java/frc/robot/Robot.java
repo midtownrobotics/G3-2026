@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.lib.LoggedCommandScheduler;
 import frc.lib.Watchdawg;
+import frc.robot.ShootingParameters.ShootingParametersMode;
 import frc.robot.commands.RobotCommands;
 import frc.robot.constants.FieldConstants;
 import frc.robot.controls.Controls;
@@ -229,9 +230,9 @@ public class Robot extends LoggedRobot {
     LoggedCommandScheduler.init(CommandScheduler.getInstance());
 
     m_state.inAllianceZoneTrigger()
-        .onTrue(m_state.getShootingParameters().setTargetCommand(FieldConstants::getHubPosition2d)
+        .onTrue(m_state.getShootingParameters().setTargetCommand(FieldConstants::getHubPosition2d, ShootingParametersMode.kShoot)
             .withName("setTargetCommandHubPosition"))
-        .onFalse(m_state.getShootingParameters().setTargetCommand(m_state::calculateFeedTarget)
+        .onFalse(m_state.getShootingParameters().setTargetCommand(m_state::calculateFeedTarget, ShootingParametersMode.kPass)
             .withName("setTargetCommandFeed"));
   }
 

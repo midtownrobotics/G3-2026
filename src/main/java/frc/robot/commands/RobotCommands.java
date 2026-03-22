@@ -62,7 +62,7 @@ public class RobotCommands {
 
   public Command snowBlow() {
     return Commands
-        .parallel(Commands.either(autoAimWithDrivetrainForTeleop(), driveCommand(), m_state::isFixedTurretModeEnabled),
+        .parallel(Commands.either(autoAimWithDrivetrainForTeleop(), driveCommand(), m_state::isAutoAimAndFixedTurretModeEnabled),
             shooterTrackShootingParamters(), runIntake(), m_state.setHoldFireCommand(false))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("snowBlow");
   }
@@ -70,7 +70,7 @@ public class RobotCommands {
   public Command autoAimAndPrepareShootTeleop() {
     return Commands
         .parallel(prepareShoot(),
-            Commands.either(autoAimWithDrivetrainForTeleop(), driveCommand(), m_state::isFixedTurretModeEnabled),
+            Commands.either(autoAimWithDrivetrainForTeleop(), driveCommand(), m_state::isAutoAimAndFixedTurretModeEnabled),
             m_state.setHoldFireCommand(false))
         .withName("autoAimAndPrepareShootTeleop");
   }
