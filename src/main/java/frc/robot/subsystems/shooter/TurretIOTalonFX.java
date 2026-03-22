@@ -28,18 +28,15 @@ import com.ctre.phoenix6.signals.SensorDirectionValue;
 
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Voltage;
-import edu.wpi.first.wpilibj.DriverStation;
 import frc.lib.PhoenixUtil;
 import frc.robot.constants.Ports;
-import yams.units.EasyCRT;
-import yams.units.EasyCRTConfig;
 
 public class TurretIOTalonFX implements TurretIO {
   private static final double kRotorToSensorRatio = 60.0 / 12;
   private static final double kSensorToMechanismRatio = 82.0 / 10;
 
-  private static final Angle kLowSoftLimit = Degrees.of(-45);
-  private static final Angle kHighSoftLimit = Degrees.of(315);
+  private static final Angle kLowSoftLimit = Degrees.of(45);
+  private static final Angle kHighSoftLimit = Degrees.of(330);
 
   private final TalonFX m_motor;
   private final CANcoder m_encoder1;
@@ -72,9 +69,9 @@ public class TurretIOTalonFX implements TurretIO {
         .withKV(3);
 
     config.Feedback = new FeedbackConfigs()
-        .withRotorToSensorRatio(kRotorToSensorRatio)
-        .withSensorToMechanismRatio(kSensorToMechanismRatio)
-        .withFusedCANcoder(m_encoder1);
+        // .withRotorToSensorRatio(kRotorToSensorRatio)
+        .withSensorToMechanismRatio(kSensorToMechanismRatio * kRotorToSensorRatio);
+    // .withFusedCANcoder(m_encoder1);
 
     config.MotorOutput = new MotorOutputConfigs()
         .withNeutralMode(NeutralModeValue.Brake)
@@ -132,16 +129,22 @@ public class TurretIOTalonFX implements TurretIO {
         m_encoder2AbsolutePosition);
 
     // Seed motor position from CANcoder absolute position
-    EasyCRTConfig easyCRTConfig = new EasyCRTConfig(m_encoder1AbsolutePosition::getValue,
-        m_encoder2AbsolutePosition::getValue)
-        .withAbsoluteEncoder1GearingStages(82, 10)
-        .withAbsoluteEncoder2GearingStages(82, 10, 20, 21)
-        .withMechanismRange(kLowSoftLimit, kHighSoftLimit);
+    // EasyCRTConfig easyCRTConfig = new EasyCRTConfig(m_encoder1AbsolutePosition::getValue,
+    //     m_encoder2AbsolutePosition::getValue)
+    //     .withAbsoluteEncoder1GearingStages(82, 10)
+    //     .withAbsoluteEncoder2GearingStages(82, 10, 20, 21)
+    //     .withMechanismRange(kLowSoftLimit, kHighSoftLimit)
+    //     .withMatchTolerance(Rotations.of(0.01));
 
-    EasyCRT easyCRT = new EasyCRT(easyCRTConfig);
+    // EasyCRT easyCRT = new EasyCRT(easyCRTConfig);
 
-    easyCRT.getAngleOptional().ifPresentOrElse(m_motor::setPosition,
-        () -> DriverStation.reportError("Unable to seed turret position from CANcoder absolute position", true));
+    // easyCRT.getAngleOptional().ifPresentOrElse(m_motor::setPosition,
+    //     () -> DriverStation.reportError(
+    //         "Unable to seed turret position from CANcoder absolute position\n" + "Encoder 1 position: "
+    //             + m_encoder1AbsolutePosition.getValue().in(Degrees)
+    //             + "\nEncoder 2 position: " + m_encoder2AbsolutePosition.getValue().in(Degrees),
+    //         true));
+    m_motor.setPosition(Degrees.of(90));
   }
 
   @Override

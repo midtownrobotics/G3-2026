@@ -142,7 +142,8 @@ public class RobotCommands {
 
   public Command setPointShoot() {
     return Commands.parallel(
-        m_shooter.setSpeedCommand(RPM.of(1800)), m_hood.setAngleCommand(Degrees.of(2)))
+        m_shooter.setSpeedCommand(RPM.of(1800)), m_hood.setAngleCommand(Degrees.of(2)),
+        m_state.setHoldFireCommand(false))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("setPointShoot");
   }
 
