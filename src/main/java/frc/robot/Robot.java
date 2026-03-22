@@ -11,6 +11,8 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import com.ctre.phoenix6.SignalLogger;
+
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -20,7 +22,9 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.lib.LoggedCommandScheduler;
 import frc.lib.Watchdawg;
 import frc.robot.ShootingParameters.ShootingParametersMode;
@@ -230,10 +234,19 @@ public class Robot extends LoggedRobot {
     LoggedCommandScheduler.init(CommandScheduler.getInstance());
 
     m_state.inAllianceZoneTrigger()
-        .onTrue(m_state.getShootingParameters().setTargetCommand(FieldConstants::getHubPosition2d, ShootingParametersMode.kShoot)
+        .whileTrue(m_state.getShootingParameters().setTargetCommand(FieldConstants::getHubPosition2d, ShootingParametersMode.kShoot)
             .withName("setTargetCommandHubPosition"))
-        .onFalse(m_state.getShootingParameters().setTargetCommand(m_state::calculateFeedTarget, ShootingParametersMode.kPass)
+        .whileFalse(m_state.getShootingParameters().setTargetCommand(m_state::calculateFeedTarget, ShootingParametersMode.kPass)
             .withName("setTargetCommandFeed"));
+
+    SmartDashboard.putData("QuasistaticForward", m_drive.sysIdQuasistatic(Direction.kForward));
+    SmartDashboard.putData("QuasistaticReverse", m_drive.sysIdQuasistatic(Direction.kReverse));
+    SmartDashboard.putData("DynamicForward", m_drive.sysIdDynamic(Direction.kForward));
+    SmartDashboard.putData("DynamicReverse", m_drive.sysIdDynamic(Direction.kReverse));
+
+    SmartDashboard.putData("StartSignalLogger", Commands.runOnce(() -> SignalLogger.start()));
+    SmartDashboard.putData("StopSignalLogger", Commands.runOnce(() -> SignalLogger.stop()));
+
   }
 
   private void generateAutoChooser() {
@@ -253,6 +266,8 @@ public class Robot extends LoggedRobot {
     m_controls.snowBlow().onTrue(m_robotCommands.snowBlow());
 
     m_controls.setpointShoot().onTrue(m_robotCommands.setPointShoot());
+
+    m_controls.feedFuel().onTrue(m_robotCommands.feedFuel()).onFalse(m_robotCommands.stopFeedingFuel());
   }
 
   public void configureTrimControlBindings(TrimControls controls) {
@@ -291,5 +306,11 @@ public class Robot extends LoggedRobot {
   @Override
   public void testInit() {
     CommandScheduler.getInstance().cancelAll();
+  }
+
+  @Override
+  public void driverStationConnected() {
+    CommandScheduler.getInstance()
+        .schedule(m_state.getShootingParameters().setTargetCommand(FieldConstants.getHubPosition2d()));
   }
 }

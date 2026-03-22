@@ -6,6 +6,7 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.Map;
@@ -156,11 +157,13 @@ public class ShootingParameters {
   }
 
   private Angle getTurretAngle(Translation2d turret, Translation2d target, Rotation2d robotRotation) {
-    return target.minus(turret)
+    return Degrees.of(target.minus(turret)
         .getAngle()
         .minus(robotRotation)
         .getMeasure()
-        .plus(m_turretAngleModifier);
+        .plus(m_turretAngleModifier)
+        .plus(Rotations.of(1))
+        .in(Degrees) % 360);
   }
 
   private Optional<Translation2d> getVelocityCompensatedTarget(
@@ -287,11 +290,11 @@ public class ShootingParameters {
   }
 
   public Command setTargetCommand(Translation2d target) {
-    return Commands.runOnce(() -> setTarget(target));
+    return Commands.runOnce(() -> setTarget(target)).ignoringDisable(true);
   }
 
   public Command setTargetCommand(Supplier<Translation2d> target) {
-    return Commands.run(() -> setTarget(target.get()));
+    return Commands.run(() -> setTarget(target.get())).ignoringDisable(true);
   }
 
   public Command setTargetCommand(Supplier<Translation2d> target, ShootingParametersMode mode) {

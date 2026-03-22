@@ -38,7 +38,7 @@ public class Hood extends SubsystemBase {
     m_currentSpikeTrigger = new Trigger(this::getIsCurrentSpiking);
     m_watchdog = new Watchdawg(getClass());
     SmartDashboard.putData("TuningModes/Hood", tuningMode());
-    m_isNearSetpointTrigger = new Trigger(() -> isNearSetpoint(Degrees.of(1)));
+    m_isNearSetpointTrigger = new Trigger(() -> isNearSetpoint(Degrees.of(3)));
   }
 
   private boolean getIsCurrentSpiking() {

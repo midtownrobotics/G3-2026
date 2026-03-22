@@ -50,7 +50,7 @@ public class IntakePivot extends SubsystemBase {
   }
 
   public Command intake() {
-    return run(() -> m_io.setPosition(Degrees.of(5)));
+    return run(() -> m_io.setPosition(Degrees.of(0)));
   }
 
   public Command tuningMode() {
