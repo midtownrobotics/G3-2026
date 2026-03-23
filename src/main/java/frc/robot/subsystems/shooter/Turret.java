@@ -76,8 +76,8 @@ public class Turret extends SubsystemBase {
     return run(() -> m_io.setPosition(angle.get()));
   }
 
-  public Command setVoltageCommand(Voltage voltage) {
-    return run(() -> m_io.setVoltage(voltage));
+  public Command stop() {
+    return run(() -> m_io.stop());
   }
 
   public Command tuningMode() {

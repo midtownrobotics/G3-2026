@@ -3,7 +3,6 @@ package frc.robot.commands;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
-import static edu.wpi.first.units.Units.Volt;
 import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.wpilibj2.command.Command;
@@ -119,7 +118,7 @@ public class RobotCommands {
   }
 
   public Command startUp() {
-    return Commands.parallel(idle(), m_turret.setVoltageCommand(Volts.of(0)), m_hood.setVoltage(Volts.of(0)))
+    return Commands.parallel(idle(), m_turret.stop(), m_hood.stop())
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("startUp");
   }
 
