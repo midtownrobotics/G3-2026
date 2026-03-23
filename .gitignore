@@ -5,6 +5,8 @@
 # Prerequisites
 *.d
 
+**/BuildConstants.java
+
 # Compiled Object files
 *.slo
 *.lo

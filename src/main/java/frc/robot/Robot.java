@@ -3,52 +3,66 @@ package frc.robot;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
+import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+
+import com.ctre.phoenix6.SignalLogger;
+
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
-import dev.doglog.DogLog;
-import dev.doglog.DogLogOptions;
-import edu.wpi.first.epilogue.Epilogue;
-import edu.wpi.first.epilogue.Logged;
-import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
-import frc.lib.Logger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.lib.LoggedCommandScheduler;
 import frc.lib.Watchdawg;
-import frc.robot.RobotState.RobotMode;
+import frc.robot.ShootingParameters.ShootingParametersMode;
 import frc.robot.commands.RobotCommands;
-import frc.robot.constants.Constants;
-import frc.robot.constants.Constants.ControlMode;
-import frc.robot.controls.ConventionalControls;
-import frc.robot.controls.ConventionalXboxControls;
-import frc.robot.controls.DriveControls;
-import frc.robot.controls.FourWayControls;
-import frc.robot.controls.FourWayXboxControls;
+import frc.robot.constants.FieldConstants;
+import frc.robot.controls.Controls;
 import frc.robot.controls.TrimControls;
 import frc.robot.controls.TrimXboxControls;
+import frc.robot.controls.XboxControls;
 import frc.robot.generated.TunerConstants;
 import frc.robot.sensors.Camera;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
+import frc.robot.subsystems.feeder.FeederIOSim;
+import frc.robot.subsystems.feeder.FeederIOTalonFX;
 import frc.robot.subsystems.indexer.Indexer;
+import frc.robot.subsystems.indexer.IndexerIOSim;
+import frc.robot.subsystems.indexer.IndexerIOTalonFX;
 import frc.robot.subsystems.intake.IntakePivot;
+import frc.robot.subsystems.intake.IntakePivotIOSim;
+import frc.robot.subsystems.intake.IntakePivotIOTalonFX;
 import frc.robot.subsystems.intake.IntakeRoller;
+import frc.robot.subsystems.intake.IntakeRollerIOSim;
+import frc.robot.subsystems.intake.IntakeRollerIOTalonFX;
 import frc.robot.subsystems.shooter.Hood;
+import frc.robot.subsystems.shooter.HoodIOSim;
+import frc.robot.subsystems.shooter.HoodIOTalonFX;
 import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.ShooterIOSim;
+import frc.robot.subsystems.shooter.ShooterIOTalonFX;
 import frc.robot.subsystems.shooter.Turret;
+import frc.robot.subsystems.shooter.TurretIOSim;
+import frc.robot.subsystems.shooter.TurretIOTalonFX;
 
-@Logged(strategy = Strategy.OPT_IN)
-public class Robot extends TimedRobot {
+public class Robot extends LoggedRobot {
   private Command m_autonomousCommand;
-  private final DriveControls m_controls;
+  private final Controls m_controls;
   private final TrimControls m_trimControls;
 
   private final CommandSwerveDrivetrain m_drive;
@@ -73,50 +87,96 @@ public class Robot extends TimedRobot {
 
   private final Watchdawg m_watchdog;
 
-  // private final PowerDistribution m_pdh;
-
   private final RobotCommands m_robotCommands;
 
-  private final Logger m_log = new Logger(getClass());
+  public Robot() {
+    DriverStation.silenceJoystickConnectionWarning(Robot.isSimulation());
 
-  public Robot(){
-    DriverStation.silenceJoystickConnectionWarning(true);
-    // m_pdh = new PowerDistribution();
     // m_pdh.setSwitchableChannel(true);
 
-    DogLog.setOptions(new DogLogOptions().withCaptureDs(true));
-    DataLogManager.start();
-    Epilogue.bind(this);
+    // AdvantageKit Logger setup
+    // Record metadata
+    Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
+    Logger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
+    Logger.recordMetadata("GitSHA", BuildConstants.GIT_SHA);
+    Logger.recordMetadata("GitDate", BuildConstants.GIT_DATE);
+    Logger.recordMetadata("GitBranch", BuildConstants.GIT_BRANCH);
+    Logger.recordMetadata(
+        "GitDirty",
+        switch (BuildConstants.DIRTY) {
+          case 0 -> "All changes committed";
+          case 1 -> "Uncommitted changes";
+          default -> "Unknown";
+        });
+    try {
+      Logger.recordMetadata(
+          "Hostname", InetAddress.getLocalHost().getHostName().replaceAll("\\.local$", ""));
+    } catch (UnknownHostException e) {
+      Logger.recordMetadata("Hostname", "Unknown");
+    }
+
+    // Set up data receivers & replay source
+    if (isReal()) {
+      Logger.addDataReceiver(new WPILOGWriter());
+      Logger.addDataReceiver(new NT4Publisher());
+    } else {
+      // Running a physics simulator, log to NT
+      Logger.addDataReceiver(new NT4Publisher());
+    }
+
+    Logger.start();
 
     m_drive = TunerConstants.createDrivetrain();
-    m_intakePivot = new IntakePivot();
-    m_intakeRoller = new IntakeRoller();
-    m_feeder = new Feeder();
-    m_indexer = new Indexer();
-    m_hood = new Hood();
-    m_shooter = new Shooter();
-    m_turret = new Turret();
 
-    Camera rear = new Camera("Rear",
-        new Transform3d(new Translation3d(Inches.of(-11.018), Inches.of(7.388), Inches.of(14.444)),
+    if (isReal()) {
+      m_intakePivot = new IntakePivot(new IntakePivotIOTalonFX());
+      m_intakeRoller = new IntakeRoller(new IntakeRollerIOTalonFX());
+      m_feeder = new Feeder(new FeederIOTalonFX());
+      m_indexer = new Indexer(new IndexerIOTalonFX());
+      m_hood = new Hood(new HoodIOTalonFX());
+      m_shooter = new Shooter(new ShooterIOTalonFX());
+      m_turret = new Turret(new TurretIOTalonFX());
+    } else {
+      m_intakePivot = new IntakePivot(new IntakePivotIOSim());
+      m_intakeRoller = new IntakeRoller(new IntakeRollerIOSim());
+      m_feeder = new Feeder(new FeederIOSim());
+      m_indexer = new Indexer(new IndexerIOSim());
+      m_hood = new Hood(new HoodIOSim());
+      m_shooter = new Shooter(new ShooterIOSim());
+      m_turret = new Turret(new TurretIOSim());
+    }
+
+    Camera rear = new Camera(
+        "Rear",
+        new Transform3d(
+            new Translation3d(Inches.of(-11.018), Inches.of(7.388), Inches.of(14.444)),
             new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(180))));
-    Camera rearRight = new Camera("Rear Right",
-        new Transform3d(new Translation3d(Inches.of(-8.758), Inches.of(-14.541), Inches.of(8.022)),
+    Camera rearRight = new Camera(
+        "Rear Right",
+        new Transform3d(
+            new Translation3d(Inches.of(-8.758), Inches.of(-14.541), Inches.of(8.022)),
             new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(-33.26 - 90))));
-    Camera rearLeft = new Camera("Rear Left",
-        new Transform3d(new Translation3d(Inches.of(-7.692), Inches.of(14.396), Inches.of(14.217)),
+    Camera rearLeft = new Camera(
+        "Rear Left",
+        new Transform3d(
+            new Translation3d(Inches.of(-7.692), Inches.of(14.396), Inches.of(14.217)),
             new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(31.475 + 90))));
-    Camera frontLeft = new Camera("Front Left",
-        new Transform3d(new Translation3d(Inches.of(-7.076), Inches.of(14.525), Inches.of(10.65)),
+    Camera frontLeft = new Camera(
+        "Front Left",
+        new Transform3d(
+            new Translation3d(Inches.of(-7.076), Inches.of(14.525), Inches.of(10.65)),
             new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(90 - 37.698))));
 
     m_vision = new Vision(
-        (observation) -> m_drive.addVisionMeasurement(observation.pose().toPose2d(), observation.timestamp()),
+        (observation) -> m_drive.addVisionMeasurement(
+            observation.pose().toPose2d(), observation.timestamp()),
         m_drive::getPose,
         rearRight,
         rearLeft,
         rear,
         frontLeft);
+
+    m_controls = new XboxControls(0);
 
     m_state = new RobotState(
         m_drive,
@@ -129,32 +189,22 @@ public class Robot extends TimedRobot {
         m_shooter,
         m_hood);
 
-    if (Constants.kControlMode == ControlMode.Conventional) {
-      var controls = new ConventionalXboxControls(0);
-      m_controls = controls;
-
-      m_robotCommands = new RobotCommands(m_drive, m_intakePivot, m_intakeRoller, m_turret, m_feeder, m_vision,
-          m_indexer, m_shooter, m_hood, m_state, controls);
-
-      configureConventionalBindings(controls);
-    } else {
-      var controls = new FourWayXboxControls(0);
-      m_controls = controls;
-
-      m_robotCommands = new RobotCommands(m_drive, m_intakePivot, m_intakeRoller, m_turret, m_feeder, m_vision,
-          m_indexer, m_shooter, m_hood, m_state, controls);
-
-      configureFourWayBindings(controls);
-    }
+    m_robotCommands = new RobotCommands(
+        m_drive,
+        m_intakePivot,
+        m_intakeRoller,
+        m_turret,
+        m_feeder,
+        m_vision,
+        m_indexer,
+        m_shooter,
+        m_hood,
+        m_state,
+        m_controls);
 
     m_viz = new RobotViz(m_state);
 
-    m_autoFactory = new AutoFactory(
-        m_drive::getPose,
-        m_drive::resetPose,
-        m_drive::followPath,
-        true,
-        m_drive);
+    m_autoFactory = new AutoFactory(m_drive::getPose, m_drive::resetPose, m_drive::followPath, true, m_drive);
 
     m_autoRoutines = new AutoRoutines(m_autoFactory, this, m_robotCommands);
     m_autoChooser = new AutoChooser("Do Nothing");
@@ -168,57 +218,60 @@ public class Robot extends TimedRobot {
     m_drive.setDefaultCommand(m_robotCommands.driveCommand());
 
     m_trimControls = new TrimXboxControls(1);
+
     configureTrimControlBindings(m_trimControls);
 
-    m_robotCommands.parametersHasShot().onTrue(m_robotCommands.feedFuel())
+    m_state.isPreparedToShootTrigger()
+        .onTrue(m_robotCommands.feedFuel())
         .onFalse(m_robotCommands.stopFeedingFuel());
 
     m_watchdog = new Watchdawg(getClass());
+
+    configureBindings();
+
+    LoggedCommandScheduler.init(CommandScheduler.getInstance());
+
+    m_state.inAllianceZoneTrigger().and(RobotModeTriggers.disabled().negate())
+        .whileTrue(m_state.getShootingParameters()
+            .setTargetCommand(FieldConstants::getHubPosition2d, ShootingParametersMode.kShoot)
+            .withName("setTargetCommandHubPosition"))
+        .whileFalse(
+            m_state.getShootingParameters().setTargetCommand(m_state::calculateFeedTarget, ShootingParametersMode.kPass)
+                .withName("setTargetCommandFeed"));
+
+    SmartDashboard.putData("QuasistaticForward", m_drive.sysIdQuasistatic(Direction.kForward));
+    SmartDashboard.putData("QuasistaticReverse", m_drive.sysIdQuasistatic(Direction.kReverse));
+    SmartDashboard.putData("DynamicForward", m_drive.sysIdDynamic(Direction.kForward));
+    SmartDashboard.putData("DynamicReverse", m_drive.sysIdDynamic(Direction.kReverse));
+
+    SmartDashboard.putData("StartSignalLogger", Commands.runOnce(() -> SignalLogger.start()));
+    SmartDashboard.putData("StopSignalLogger", Commands.runOnce(() -> SignalLogger.stop()));
+
   }
 
   private void generateAutoChooser() {
     m_autoChooser.addRoutine("Left Depot Shoot", m_autoRoutines::pickupDepotAndShoot);
     m_autoChooser.addRoutine("Depot And Middle Shoot", m_autoRoutines::depotAndMiddleShoot);
+    m_autoChooser.addRoutine("Middle and Depot Shoot", m_autoRoutines::middleAndDepotShootLeft);
 
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
     RobotModeTriggers.autonomous().whileTrue(m_autoChooser.selectedCommandScheduler());
   }
 
-  public void configureConventionalBindings(ConventionalControls controls) {
-    controls.shoot().onTrue(m_robotCommands.prepareShoot()).onFalse(m_robotCommands.stopFlywheel());
-    controls.intake().onTrue(m_robotCommands.runIntake()).onFalse(m_robotCommands.stowIntake());
-  }
+  public void configureBindings() {
+    m_controls.idle().onTrue(m_robotCommands.idle());
 
-  public void configureFourWayBindings(FourWayControls controls) {
-    controls.idle().onTrue(m_state.setRobotModeCommand(RobotMode.kIdle));
+    m_controls.intake().onTrue(m_robotCommands.fill());
 
-    controls.intake().onTrue(m_state.setRobotModeCommand(RobotMode.kIntake));
+    m_controls.shoot().onTrue(m_robotCommands.autoAimAndPrepareShootTeleop());
 
-    controls.shoot().onTrue(m_state.setRobotModeCommand(RobotMode.kAutoAim));
+    m_controls.snowBlow().onTrue(m_robotCommands.snowBlow());
 
-    controls.snowBlow().onTrue(m_state.setRobotModeCommand(RobotMode.kSnowBlow));
+    m_controls.setpointShoot().onTrue(m_robotCommands.setPointShoot());
 
-    controls.unjam().onTrue(m_state.setRobotModeCommand(RobotMode.kUnjam));
+    m_controls.feedFuel().onTrue(m_robotCommands.feedFuel()).onFalse(m_robotCommands.stopFeedingFuel());
 
-    controls.zeroHood().onTrue(m_robotCommands.zeroTurretHood());
-
-    controls.setpointShoot().onTrue(m_state.setRobotModeCommand(RobotMode.kSetpointShoot));
-
-    controls.fullFieldShoot().onTrue(m_state.setRobotModeCommand(RobotMode.kFullFieldShoot));
-
-    m_state.getModeTrigger(RobotMode.kIdle).whileTrue(m_robotCommands.idle());
-
-    m_state.getModeTrigger(RobotMode.kIntake).whileTrue(m_robotCommands.fill());
-
-    m_state.getModeTrigger(RobotMode.kAutoAim).whileTrue(m_robotCommands.autoAimAndPrepareShootTeleop());
-
-    m_state.getModeTrigger(RobotMode.kSnowBlow).whileTrue(m_robotCommands.snowBlow());
-
-    m_state.getModeTrigger(RobotMode.kSetpointShoot).whileTrue(m_robotCommands.setPointShoot());
-
-    m_state.getModeTrigger(RobotMode.kUnjam).whileTrue(m_robotCommands.reverseFeedFuel());
-
-    m_state.getModeTrigger(RobotMode.kFullFieldShoot).whileTrue(m_robotCommands.fullFieldFeedShoot());
+    m_controls.zeroHood().whileTrue(m_robotCommands.zeroTurretHood());
   }
 
   public void configureTrimControlBindings(TrimControls controls) {
@@ -228,10 +281,13 @@ public class Robot extends TimedRobot {
     controls.increaseHoodAngle().onTrue(m_robotCommands.increaseHoodAngle());
     controls.decreaseHoodAngle().onTrue(m_robotCommands.decreaseHoodAngle());
 
-    controls.increaseVelocityCompensation()
-        .onTrue(m_robotCommands.increaseVelocityCompensation());
-    controls.decreaseVelocityCompensation()
-        .onTrue(m_robotCommands.decreaseVelocityCompensation());
+    controls.increaseVelocityCompensation().onTrue(m_robotCommands.increaseVelocityCompensation());
+    controls.decreaseVelocityCompensation().onTrue(m_robotCommands.decreaseVelocityCompensation());
+  }
+
+  @Override
+  public void disabledExit() {
+    CommandScheduler.getInstance().schedule(m_robotCommands.idle());
   }
 
   @Override
@@ -244,11 +300,9 @@ public class Robot extends TimedRobot {
     m_viz.periodic();
     m_watchdog.end("robotVizPeriodic");
 
-    m_watchdog.start();
-    m_robotCommands.periodic();
-    m_watchdog.end("robotCommandsPeriodic");
+    m_state.periodic();
 
-    m_log.log("mode", m_state.getRobotMode());
+    LoggedCommandScheduler.periodic();
   }
 
   @Override
@@ -261,5 +315,11 @@ public class Robot extends TimedRobot {
   @Override
   public void testInit() {
     CommandScheduler.getInstance().cancelAll();
+  }
+
+  @Override
+  public void driverStationConnected() {
+    CommandScheduler.getInstance()
+        .schedule(m_state.getShootingParameters().setTargetCommand(FieldConstants.getHubPosition2d()));
   }
 }

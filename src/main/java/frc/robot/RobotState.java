@@ -3,23 +3,23 @@ package frc.robot;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
-import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.lib.GeometryUtil;
 import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
 import frc.robot.sensors.Vision;
@@ -32,31 +32,24 @@ import frc.robot.subsystems.shooter.Hood;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.Turret;
 
-@Logged
 public class RobotState {
-  public final CommandSwerveDrivetrain m_drive;
-  public final IntakePivot m_intakePivot;
-  public final IntakeRoller m_intakeRoller;
-  public final Turret m_turret;
-  public final Feeder m_feeder;
-  public final Vision m_vision;
-  public final Indexer m_indexer;
-  public final Shooter m_shooter;
-  public final Hood m_hood;
+  private final CommandSwerveDrivetrain m_drive;
+  private final IntakePivot m_intakePivot;
+  private final IntakeRoller m_intakeRoller;
+  private final Turret m_turret;
+  private final Feeder m_feeder;
+  private final Vision m_vision;
+  private final Indexer m_indexer;
+  private final Shooter m_shooter;
+  private final Hood m_hood;
+  private final ShootingParameters m_shootingParameters;
 
-  private RobotMode m_mode = RobotMode.kIdle;
+  private boolean m_holdFire = true;
 
-  private final Map<RobotMode, Trigger> m_robotModesToTrigger;
-
-  public enum RobotMode {
-    kAutoAim,
-    kSnowBlow,
-    kIdle,
-    kIntake,
-    kSetpointShoot,
-    kUnjam,
-    kFullFieldShoot
-  }
+  private final LoggedNetworkBoolean m_fixedTurretModeToggle = new LoggedNetworkBoolean("Toggles/FixedTurretMode",
+      false);
+  private final LoggedNetworkBoolean m_shootOnTheMoveToggle = new LoggedNetworkBoolean("Toggles/ShootOnTheMove", true);
+  private final LoggedNetworkBoolean m_autoAimToggle = new LoggedNetworkBoolean("Toggles/AutoAim", false);
 
   public RobotState(
       CommandSwerveDrivetrain drive,
@@ -77,21 +70,39 @@ public class RobotState {
     m_indexer = indexer;
     m_shooter = shooter;
     m_hood = hood;
-
-    m_robotModesToTrigger = Stream.of(RobotMode.values())
-        .collect(Collectors.toMap(Function.identity(), mode -> new Trigger(() -> m_mode == mode)));
+    m_shootingParameters = new ShootingParameters(this);
   }
 
-  public RobotMode getRobotMode() {
-    return m_mode;
+  public void periodic() {
+    m_shootingParameters.periodic();
+
+    Logger.recordOutput("RobotState/fixedTurretModeEnabled", isFixedTurretModeEnabled());
+    Logger.recordOutput("RobotState/shootOnTheMoveEnabled", isShootOnTheMoveEnabled());
+    Logger.recordOutput("RobotState/inAllianceZone", inAllianceZone());
   }
 
   public Pose2d getRobotPose() {
     return m_drive.getPose();
   }
 
+  public Pose2d getExpRobotPose(double seconds) {
+    return getRobotPose().exp(getRobotRelativeSpeeds().toTwist2d(seconds));
+  }
+
+  private Transform2d getRobotToTurretTransform() {
+    return Constants.kRobotToTurret.plus(GeometryUtil.transform2dFromRotation(new Rotation2d(getTurretAngle())));
+  }
+
+  public Pose2d getTurretPose(Pose2d robotPose) {
+    return robotPose.plus(getRobotToTurretTransform());
+  }
+
   public Pose2d getTurretPose() {
-    return getRobotPose().transformBy(Constants.kRobotToTurret);
+    return getTurretPose(getRobotPose());
+  }
+
+  public Pose2d getExpTurretPose(double seconds) {
+    return getTurretPose(getExpRobotPose(seconds));
   }
 
   public ChassisSpeeds getRobotRelativeSpeeds() {
@@ -99,13 +110,18 @@ public class RobotState {
   }
 
   public ChassisSpeeds getFieldRelativeSpeeds() {
-    return ChassisSpeeds.fromRobotRelativeSpeeds(getRobotRelativeSpeeds(), getRobotPose().getRotation());
+    return ChassisSpeeds.fromRobotRelativeSpeeds(
+        getRobotRelativeSpeeds(), getRobotPose().getRotation());
   }
 
   public ChassisSpeeds getFieldRelativeTurretSpeeds() {
+    return getFieldRelativeTurretSpeeds(getRobotPose());
+  }
+
+  public ChassisSpeeds getFieldRelativeTurretSpeeds(Pose2d robotPose) {
     ChassisSpeeds robotSpeeds = getFieldRelativeSpeeds();
     double h = Constants.kRobotToTurret.getTranslation().getNorm();
-    double theta = getRobotPose().getRotation().getRadians()
+    double theta = robotPose.getRotation().getRadians()
         + Constants.kRobotToTurret.getTranslation().getAngle().getRadians();
     double omega = getFieldRelativeSpeeds().omegaRadiansPerSecond;
     LinearVelocity xDt = MetersPerSecond.of(-h * Math.sin(theta) * omega);
@@ -114,14 +130,19 @@ public class RobotState {
     return robotSpeeds.plus(robotRelativeTurretSpeeds);
   }
 
+  public Trigger isPreparedToShootTrigger() {
+    return m_shooter.isNearSetpointTrigger()
+        .and(m_hood.isNearSetpointTrigger())
+        .and(m_turret.isNearSetpointTrigger())
+        .and(holdFireTrigger().negate())
+        .debounce(0.1, DebounceType.kFalling);
+  }
+
   public Angle getIntakeAngle() {
     return m_intakePivot.getAngle();
   }
 
   public Angle getTurretAngle() {
-    if (Constants.kUseFixedTurretMode) {
-      return Constants.kFixedTurretRotation;
-    }
     return m_turret.getAngle();
   }
 
@@ -134,29 +155,67 @@ public class RobotState {
   }
 
   public Trigger inAllianceZoneTrigger() {
-    return new Trigger(
-        () -> DriverStation.getAlliance()
-            .or(() -> Optional.of(Alliance.Blue))
-            .map(FieldConstants::getAllianceZone)
-            .map(r -> r.contains(m_drive.getPose().getTranslation()))
-            .orElse(false))
+    return new Trigger(this::inAllianceZone)
         .debounce(0.2);
   }
 
+  public Trigger holdFireTrigger() {
+    return new Trigger(this::isHoldFireEnabled).debounce(0.2);
+  }
+
   public boolean inAllianceZone() {
-    return FieldConstants.getAllianceZone(DriverStation.getAlliance().orElseGet(() -> Alliance.Blue))
-        .contains(getRobotPose().getTranslation());
+    return DriverStation.getAlliance()
+        .map(FieldConstants::getAllianceZone)
+        .map(r -> r.contains(m_drive.getPose().getTranslation()))
+        .orElse(false);
   }
 
   public Trigger fuelSensorTripped() {
     return m_feeder.fuelSensorTripped();
   }
 
-  public Command setRobotModeCommand(RobotMode mode) {
-    return Commands.runOnce(() -> m_mode = mode);
+  public boolean isFixedTurretModeEnabled() {
+    return m_fixedTurretModeToggle.get();
   }
 
-  public Trigger getModeTrigger(RobotMode mode) {
-    return m_robotModesToTrigger.get(mode);
+  public boolean isAutoAimEnabled() {
+    return m_autoAimToggle.get();
+  }
+
+  public boolean isAutoAimAndFixedTurretModeEnabled() {
+    return isAutoAimEnabled() && isFixedTurretModeEnabled();
+  }
+
+  public boolean isShootOnTheMoveEnabled() {
+    return m_shootOnTheMoveToggle.get();
+  }
+
+  public boolean isHoldFireEnabled() {
+    return m_holdFire;
+  }
+
+  public ShootingParameters getShootingParameters() {
+    return m_shootingParameters;
+  }
+
+  public Translation2d calculateFeedTarget() {
+    if (GeometryUtil.flip(getTurretPose()).getMeasureY().lt(FieldConstants.kFieldWidth.div(2))) {
+      return GeometryUtil.flip(new Translation2d(FieldConstants.kAllianceZoneOffset.getMeasureX().div(2),
+          FieldConstants.kFieldWidth.div(4)));
+    }
+    return GeometryUtil.flip(new Translation2d(FieldConstants.kAllianceZoneOffset.getMeasureX().div(2),
+        FieldConstants.kFieldWidth.div(4).times(3)));
+  }
+
+  public Command setFixedTurretModeEnabledCommand(boolean enabled) {
+    return Commands.runOnce(() -> m_fixedTurretModeToggle.set(enabled));
+  }
+
+  public Command setShootOnTheMoveEnabledCommand(boolean enabled) {
+    return Commands.runOnce(() -> m_shootOnTheMoveToggle.set(enabled));
+  }
+
+  public Command setHoldFireCommand(boolean enabled) {
+    return Commands.runOnce(() -> m_holdFire = enabled);
   }
 }

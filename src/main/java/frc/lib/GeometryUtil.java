@@ -66,7 +66,9 @@ public class GeometryUtil {
 
   public static Translation2d flip(Translation2d translation) {
     if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
-      return FieldConstants.kRedAllianceRightSide.transformBy(transform2dFromTranslation(translation)).getTranslation();
+      return FieldConstants.kRedAllianceRightSide
+          .transformBy(transform2dFromTranslation(translation))
+          .getTranslation();
     } else {
       return translation;
     }
@@ -82,7 +84,8 @@ public class GeometryUtil {
 
   public static Translation3d flip(Translation3d translation) {
     if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
-      return FieldConstants.kRedAllianceRightSide3d.transformBy(transform3dFromTranslation(translation))
+      return FieldConstants.kRedAllianceRightSide3d
+          .transformBy(transform3dFromTranslation(translation))
           .getTranslation();
     } else {
       return translation;
