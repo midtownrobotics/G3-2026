@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -73,6 +74,10 @@ public class Turret extends SubsystemBase {
 
   public Command setAngleCommand(Supplier<Angle> angle) {
     return run(() -> m_io.setPosition(angle.get()));
+  }
+
+  public Command setVoltageCommand(Voltage voltage) {
+    return run(() -> m_io.setVoltage(voltage));
   }
 
   public Command tuningMode() {

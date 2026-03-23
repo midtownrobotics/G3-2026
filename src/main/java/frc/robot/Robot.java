@@ -2,6 +2,7 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Seconds;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -287,7 +288,7 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void disabledExit() {
-    CommandScheduler.getInstance().schedule(m_robotCommands.idle());
+    CommandScheduler.getInstance().schedule(m_robotCommands.startUp().withTimeout(Seconds.of(2)));
   }
 
   @Override

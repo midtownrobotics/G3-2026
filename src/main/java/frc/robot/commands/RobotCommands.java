@@ -3,6 +3,7 @@ package frc.robot.commands;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volt;
 import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.wpilibj2.command.Command;
@@ -117,6 +118,11 @@ public class RobotCommands {
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("idle");
   }
 
+  public Command startUp() {
+    return Commands.parallel(idle(), m_turret.setVoltageCommand(Volts.of(0)), m_hood.setVoltage(Volts.of(0)))
+        .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("startUp");
+  }
+
   public Command fill() {
     return Commands.parallel(m_shooter.stop(), runIntake(), m_state.setHoldFireCommand(true))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("fill");
@@ -174,15 +180,6 @@ public class RobotCommands {
   }
 
   public Command zeroTurretHood() {
-    // return Commands.repeatingSequence(
-    //     m_hood
-    //         .setVoltage(Volts.of(-3.5))
-    //         .until(m_hood.isNearTrigger(() -> Degrees.zero(), Degrees.of(1)))
-    //         .withTimeout(Seconds.of(1)),
-    //     m_hood.setEncoderAngleCommand(Degrees.of(10)))
-    //     .withTimeout(4)
-    //     .until(m_hood.getCurrentSpikeTrigger())
-    //     .andThen(m_hood.zeroEncoderAngleCommand()).withName("zeroTurretHood");
     return m_hood.setLowerSoftLimitEnabledCommand(false)
         .andThen(m_hood.setVoltage(Volts.of(-3.5)).until(m_hood.getCurrentSpikeTrigger()).withTimeout(Seconds.of(4)))
         .finallyDo(() -> {
