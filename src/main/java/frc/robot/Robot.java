@@ -131,10 +131,10 @@ public class Robot extends LoggedRobot {
     if (isReal()) {
       m_intakePivot = new IntakePivot(new IntakePivotIOTalonFX());
       m_intakeRoller = new IntakeRoller(new IntakeRollerIOTalonFX());
-      m_feeder = new Feeder(new FeederIOSim());
+      m_feeder = new Feeder(new FeederIOTalonFX());
       m_indexer = new Indexer(new IndexerIOTalonFX());
-      m_hood = new Hood(new HoodIOSim());
-      m_shooter = new Shooter(new ShooterIOSim());
+      m_hood = new Hood(new HoodIOTalonFX());
+      m_shooter = new Shooter(new ShooterIOTalonFX());
       m_turret = new Turret(new TurretIOTalonFX());
     } else {
       m_intakePivot = new IntakePivot(new IntakePivotIOSim());
@@ -251,6 +251,8 @@ public class Robot extends LoggedRobot {
 
   private void generateAutoChooser() {
     m_autoChooser.addRoutine("Left Depot Shoot", m_autoRoutines::pickupDepotAndShoot);
+    m_autoChooser.addRoutine("Depot And Middle Shoot", m_autoRoutines::depotAndMiddleShoot);
+    m_autoChooser.addRoutine("Middle and Depot Shoot", m_autoRoutines::middleAndDepotShootLeft);
 
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
     RobotModeTriggers.autonomous().whileTrue(m_autoChooser.selectedCommandScheduler());

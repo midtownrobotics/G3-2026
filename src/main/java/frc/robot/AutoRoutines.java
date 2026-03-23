@@ -4,17 +4,14 @@ import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.lib.Logger;
 import frc.robot.commands.RobotCommands;
 
 public class AutoRoutines {
   private final AutoFactory m_autoFactory;
-  private final Logger m_log;
   private final RobotCommands m_robotCommands;
 
   public AutoRoutines(AutoFactory autoFactory, Robot robot, RobotCommands robotCommands) {
     m_autoFactory = autoFactory;
-    m_log = new Logger(getClass());
     m_robotCommands = robotCommands;
   }
 

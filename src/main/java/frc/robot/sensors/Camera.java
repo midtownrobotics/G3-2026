@@ -80,7 +80,7 @@ public class Camera {
           continue;
         }
 
-        if (avgDistance > Feet.of(15).in(Meters)) {
+        if (avgDistance > Feet.of(25).in(Meters)) {
           continue;
         }
 

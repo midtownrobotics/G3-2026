@@ -38,7 +38,7 @@ public class Feeder extends SubsystemBase {
 
   public Feeder(FeederIO io) {
     m_io = io;
-    m_fuelSensorFilter = LinearFilter.movingAverage(5);
+    m_fuelSensorFilter = LinearFilter.movingAverage(4);
     m_fuelSensorTrippedTrigger = new Trigger(this::getFuelSensorTripped).debounce(0.1, DebounceType.kFalling);
     m_watchdog = new Watchdawg(getClass());
   }
@@ -52,6 +52,8 @@ public class Feeder extends SubsystemBase {
 
     m_filteredSensorDistance = Meters.of(m_fuelSensorFilter.calculate(m_inputs.fuelSensorDistance.in(Meters)));
 
+    Logger.recordOutput("Feeder/sensorFilteredDistance", m_filteredSensorDistance);
+
     boolean highCurrent = m_inputs.statorCurrent.gt(Amps.of(30));
     boolean notMoving = m_inputs.velocity.abs(RPM) < 120;
 
@@ -64,7 +66,7 @@ public class Feeder extends SubsystemBase {
   }
 
   private boolean getFuelSensorTripped() {
-    return m_filteredSensorDistance.lt(Inches.of(5));
+    return m_filteredSensorDistance.lt(Inches.of(6.5));
   }
 
   public Trigger fuelSensorTripped() {

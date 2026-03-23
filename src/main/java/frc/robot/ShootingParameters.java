@@ -108,8 +108,8 @@ public class ShootingParameters {
       Map.entry(Feet.of(6).in(Meters), RPM.of(1750).in(RadiansPerSecond)), //
       Map.entry(Feet.of(7).in(Meters), RPM.of(1800).in(RadiansPerSecond)), //
       Map.entry(Feet.of(8).in(Meters), RPM.of(1900).in(RadiansPerSecond)), //
-      Map.entry(Feet.of(9).in(Meters), RPM.of(1950).in(RadiansPerSecond)), //
-      Map.entry(Feet.of(10).in(Meters), RPM.of(1950).in(RadiansPerSecond)), //
+      Map.entry(Feet.of(9).in(Meters), RPM.of(1980).in(RadiansPerSecond)), //
+      Map.entry(Feet.of(10).in(Meters), RPM.of(2050).in(RadiansPerSecond)), //
       Map.entry(Feet.of(11).in(Meters), RPM.of(2200).in(RadiansPerSecond)), //
       Map.entry(Feet.of(12).in(Meters), RPM.of(2250).in(RadiansPerSecond)), //
       Map.entry(Feet.of(13).in(Meters), RPM.of(2300).in(RadiansPerSecond)), //
