@@ -240,6 +240,8 @@ public class Robot extends LoggedRobot {
             m_state.getShootingParameters().setTargetCommand(m_state::calculateFeedTarget, ShootingParametersMode.kPass)
                 .withName("setTargetCommandFeed"));
 
+    RobotModeTriggers.teleop().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement());
+
     SmartDashboard.putData("QuasistaticForward", m_drive.sysIdQuasistatic(Direction.kForward));
     SmartDashboard.putData("QuasistaticReverse", m_drive.sysIdQuasistatic(Direction.kReverse));
     SmartDashboard.putData("DynamicForward", m_drive.sysIdDynamic(Direction.kForward));
@@ -284,11 +286,6 @@ public class Robot extends LoggedRobot {
 
     controls.increaseVelocityCompensation().onTrue(m_robotCommands.increaseVelocityCompensation());
     controls.decreaseVelocityCompensation().onTrue(m_robotCommands.decreaseVelocityCompensation());
-  }
-
-  @Override
-  public void disabledExit() {
-    if (DriverStation.isTeleop()) CommandScheduler.getInstance().schedule(m_robotCommands.stowIntakeAndHaltTurretMovement());
   }
 
   @Override
