@@ -119,7 +119,11 @@ public class RobotCommands {
 
   public Command startUp() {
     return Commands.parallel(idle(), m_turret.stop(), m_hood.stop())
-        .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("startUp");
+        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming).withName("startUp");
+  }
+
+  public Command startUpWithTimeout() {
+    return startUp().withTimeout(Seconds.of(0.5));
   }
 
   public Command fill() {

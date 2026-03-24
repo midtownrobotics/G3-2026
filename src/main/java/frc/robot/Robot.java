@@ -288,7 +288,7 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void disabledExit() {
-    CommandScheduler.getInstance().schedule(m_robotCommands.startUp().withTimeout(Seconds.of(2)));
+    CommandScheduler.getInstance().schedule(m_robotCommands.startUpWithTimeout());
   }
 
   @Override
