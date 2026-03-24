@@ -119,7 +119,7 @@ public class RobotCommands {
 
   public Command stowIntakeAndHaltTurretMovement() {
     return Commands.parallel(idle(), m_turret.stop(), m_hood.stop()).withTimeout(Seconds.of(0.5))
-        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming).withName("startUp");
+        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming).withName("stowIntakeAndHaltTurretMovement");
   }
 
   public Command fill() {
