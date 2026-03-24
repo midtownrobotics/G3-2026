@@ -2,6 +2,7 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Seconds;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -239,6 +240,8 @@ public class Robot extends LoggedRobot {
             m_state.getShootingParameters().setTargetCommand(m_state::calculateFeedTarget, ShootingParametersMode.kPass)
                 .withName("setTargetCommandFeed"));
 
+    RobotModeTriggers.teleop().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement());
+
     SmartDashboard.putData("QuasistaticForward", m_drive.sysIdQuasistatic(Direction.kForward));
     SmartDashboard.putData("QuasistaticReverse", m_drive.sysIdQuasistatic(Direction.kReverse));
     SmartDashboard.putData("DynamicForward", m_drive.sysIdDynamic(Direction.kForward));
@@ -283,11 +286,6 @@ public class Robot extends LoggedRobot {
 
     controls.increaseVelocityCompensation().onTrue(m_robotCommands.increaseVelocityCompensation());
     controls.decreaseVelocityCompensation().onTrue(m_robotCommands.decreaseVelocityCompensation());
-  }
-
-  @Override
-  public void disabledExit() {
-    CommandScheduler.getInstance().schedule(m_robotCommands.idle());
   }
 
   @Override

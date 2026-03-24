@@ -27,6 +27,7 @@ public class AutoRoutines {
 
     routine.active().onTrue(
         Commands.sequence(
+            m_robotCommands.stowIntakeAndHaltTurretMovement(),
             leftStartToDepot.resetOdometry(),
             leftStartToDepot.cmd()));
     return routine;
@@ -51,6 +52,7 @@ public class AutoRoutines {
 
     routine.active().onTrue(
         Commands.sequence(
+            m_robotCommands.stowIntakeAndHaltTurretMovement(),
             leftStartToDepot.resetOdometry(),
             leftStartToDepot.cmd()));
     return routine;
@@ -73,9 +75,9 @@ public class AutoRoutines {
 
     routine.active().onTrue(
       Commands.sequence(
+        m_robotCommands.stowIntakeAndHaltTurretMovement(),
         startToCenterShoot.resetOdometry(),
         startToCenterShoot.cmd()));
-
     return routine;
   }
 
@@ -89,9 +91,9 @@ public class AutoRoutines {
 
     routine.active().onTrue(
       Commands.sequence(
+        m_robotCommands.stowIntakeAndHaltTurretMovement(),
         startToCenterShoot.resetOdometry(), 
         startToCenterShoot.cmd()));
-
     return routine;
   }
 }

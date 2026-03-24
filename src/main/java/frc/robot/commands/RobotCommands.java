@@ -117,6 +117,11 @@ public class RobotCommands {
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("idle");
   }
 
+  public Command stowIntakeAndHaltTurretMovement() {
+    return Commands.parallel(idle(), m_turret.stop(), m_hood.stop()).withTimeout(Seconds.of(0.5))
+        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming).withName("stowIntakeAndHaltTurretMovement");
+  }
+
   public Command fill() {
     return Commands.parallel(m_shooter.stop(), runIntake(), m_state.setHoldFireCommand(true))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("fill");
@@ -174,15 +179,6 @@ public class RobotCommands {
   }
 
   public Command zeroTurretHood() {
-    // return Commands.repeatingSequence(
-    //     m_hood
-    //         .setVoltage(Volts.of(-3.5))
-    //         .until(m_hood.isNearTrigger(() -> Degrees.zero(), Degrees.of(1)))
-    //         .withTimeout(Seconds.of(1)),
-    //     m_hood.setEncoderAngleCommand(Degrees.of(10)))
-    //     .withTimeout(4)
-    //     .until(m_hood.getCurrentSpikeTrigger())
-    //     .andThen(m_hood.zeroEncoderAngleCommand()).withName("zeroTurretHood");
     return m_hood.setLowerSoftLimitEnabledCommand(false)
         .andThen(m_hood.setVoltage(Volts.of(-3.5)).until(m_hood.getCurrentSpikeTrigger()).withTimeout(Seconds.of(4)))
         .finallyDo(() -> {

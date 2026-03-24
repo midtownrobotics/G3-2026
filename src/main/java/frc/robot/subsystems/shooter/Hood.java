@@ -117,6 +117,10 @@ public class Hood extends SubsystemBase {
     return run(() -> m_io.setPosition(angle.get()));
   }
 
+  public Command stop() {
+    return run(() -> m_io.stop());
+  }
+
   public Command tuningMode() {
     return setAngleCommand(() -> Degrees.of(m_setpointAngle.getAsDouble()));
   }
