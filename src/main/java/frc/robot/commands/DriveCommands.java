@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
@@ -16,7 +17,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.Watchdawg;
 import frc.robot.constants.Constants;
-import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 public class DriveCommands {
@@ -30,9 +30,14 @@ public class DriveCommands {
       Supplier<Double> driveForwardSupplier,
       Supplier<Double> driveRotationSupplier) {
     m_drive = drive;
-    m_driveLeftSupplier = driveLeftSupplier;
-    m_driveForwardSupplier = driveForwardSupplier;
+
+    SlewRateLimiter m_forwardLimiter = new SlewRateLimiter(1.5);
+    SlewRateLimiter m_leftLimiter = new SlewRateLimiter(1.5);
+
+    m_driveLeftSupplier = () -> m_leftLimiter.calculate(driveLeftSupplier.get());
+    m_driveForwardSupplier = () -> m_forwardLimiter.calculate(driveForwardSupplier.get());
     m_driveRotationSupplier = driveRotationSupplier;
+
   }
 
   protected Command rotateRobot(Supplier<Rotation2d> rotation) {
@@ -45,10 +50,10 @@ public class DriveCommands {
 
           final var speeds = new ChassisSpeeds(
               m_driveForwardSupplier.get()
-                  * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                  * Constants.kMaxLinearSpeed.in(MetersPerSecond)
                   * Constants.kLinearSpeedMultiplier,
               m_driveLeftSupplier.get()
-                  * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                  * Constants.kMaxLinearSpeed.in(MetersPerSecond)
                   * Constants.kLinearSpeedMultiplier,
               0);
 
@@ -77,10 +82,10 @@ public class DriveCommands {
           watchdog.start();
           ChassisSpeeds speeds = new ChassisSpeeds(
               m_driveForwardSupplier.get()
-                  * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                  * Constants.kMaxLinearSpeed.in(MetersPerSecond)
                   * Constants.kLinearSpeedMultiplier,
               m_driveLeftSupplier.get()
-                  * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                  * Constants.kMaxLinearSpeed.in(MetersPerSecond)
                   * Constants.kLinearSpeedMultiplier,
               Math.copySign(
                   m_driveRotationSupplier.get()
@@ -113,10 +118,10 @@ public class DriveCommands {
 
             speeds = new ChassisSpeeds(
                 m_driveForwardSupplier.get()
-                    * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                    * Constants.kMaxLinearSpeed.in(MetersPerSecond)
                     * Constants.kLinearSpeedMultiplier,
                 m_driveLeftSupplier.get()
-                    * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                    * Constants.kMaxLinearSpeed.in(MetersPerSecond)
                     * Constants.kLinearSpeedMultiplier,
                 0);
 
@@ -131,10 +136,10 @@ public class DriveCommands {
           } else {
             speeds = new ChassisSpeeds(
                 m_driveForwardSupplier.get()
-                    * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                    * Constants.kMaxLinearSpeed.in(MetersPerSecond)
                     * Constants.kLinearSpeedMultiplier,
                 m_driveLeftSupplier.get()
-                    * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                    * Constants.kMaxLinearSpeed.in(MetersPerSecond)
                     * Constants.kLinearSpeedMultiplier,
                 Math.copySign(
                     m_driveRotationSupplier.get()

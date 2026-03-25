@@ -86,8 +86,10 @@ public class RobotCommands {
         .withName("autoAimAndPrepareShootAutonomous");
   }
 
-  private Command shooterTrackShootingParamters() {
-    return m_shooter.setSpeedCommand(() -> m_state.getShootingParameters().getParameters().flywheelVelocity())
+  public Command shooterTrackShootingParamters() {
+    return Commands
+        .parallel(m_shooter.setSpeedCommand(() -> m_state.getShootingParameters().getParameters().flywheelVelocity()),
+            m_state.setHoldFireCommand(false))
         .withName("shooterTrackShootingParamters");
   }
 

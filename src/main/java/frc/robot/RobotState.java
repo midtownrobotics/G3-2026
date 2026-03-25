@@ -79,6 +79,7 @@ public class RobotState {
     Logger.recordOutput("RobotState/fixedTurretModeEnabled", isFixedTurretModeEnabled());
     Logger.recordOutput("RobotState/shootOnTheMoveEnabled", isShootOnTheMoveEnabled());
     Logger.recordOutput("RobotState/inAllianceZone", inAllianceZone());
+    Logger.recordOutput("RobotState/isPreparedToShootTrigger", isPreparedToShootTrigger().getAsBoolean());
   }
 
   public Pose2d getRobotPose() {

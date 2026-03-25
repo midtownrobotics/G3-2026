@@ -18,7 +18,7 @@ import com.ctre.phoenix6.configs.OpenLoopRampsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -50,7 +50,7 @@ public class TurretIOTalonFX implements TurretIO {
   private final StatusSignal<Angle> m_encoder1AbsolutePosition;
   private final StatusSignal<Angle> m_encoder2AbsolutePosition;
 
-  private final PositionVoltage m_positionRequest = new PositionVoltage(0).withEnableFOC(true);
+  private final MotionMagicVoltage m_positionRequest = new MotionMagicVoltage(0).withEnableFOC(true);
   private final VoltageOut m_voltageRequest = new VoltageOut(0);
 
   private Angle m_setpoint = Degrees.zero();
@@ -63,10 +63,11 @@ public class TurretIOTalonFX implements TurretIO {
     TalonFXConfiguration config = new TalonFXConfiguration();
 
     config.Slot0 = new Slot0Configs()
-        .withKP(56)
-        .withKD(3)
+        .withKP(59)
+        .withKI(2)
+        .withKD(3.5)
         .withKS(1.5)
-        .withKV(3);
+        .withKV(3.7);
 
     config.Feedback = new FeedbackConfigs()
         // .withRotorToSensorRatio(kRotorToSensorRatio)

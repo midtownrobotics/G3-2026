@@ -2,7 +2,6 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Seconds;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -256,6 +255,7 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addRoutine("Left Depot Shoot", m_autoRoutines::pickupDepotAndShoot);
     m_autoChooser.addRoutine("Depot And Middle Shoot", m_autoRoutines::depotAndMiddleShoot);
     m_autoChooser.addRoutine("Middle and Depot Shoot", m_autoRoutines::middleAndDepotShootLeft);
+    m_autoChooser.addRoutine("SOTM Depot", m_autoRoutines::SOTMDepot);
 
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
     RobotModeTriggers.autonomous().whileTrue(m_autoChooser.selectedCommandScheduler());

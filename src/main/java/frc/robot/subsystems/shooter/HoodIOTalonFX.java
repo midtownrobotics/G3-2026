@@ -150,6 +150,7 @@ public class HoodIOTalonFX implements HoodIO {
   @Override
   public void setEncoderPosition(Angle angle) {
     m_motor.setPosition(angle);
+    m_encoder.setPosition(angle);
   }
 
   @Override
