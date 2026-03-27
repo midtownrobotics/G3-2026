@@ -22,11 +22,11 @@ public class AutoRoutines {
 
     leftStartToDepot.active().onTrue(m_robotCommands.runIntake());
     leftStartToDepot.doneDelayed(1).onTrue(depotToShoot.cmd());
-    depotToShoot.doneDelayed(0.5).onTrue(m_robotCommands.autoAimAndPrepareShootAutonomous());
+    depotToShoot.doneDelayed(0.5).onTrue(m_robotCommands.shootShooterCommand());
 
     routine.active().onTrue(
         Commands.sequence(
-            m_robotCommands.stowIntakeAndHaltTurretMovement(),
+            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
             leftStartToDepot.resetOdometry(),
             leftStartToDepot.cmd()));
     return routine;
@@ -41,16 +41,16 @@ public class AutoRoutines {
     leftStartToDepot.atTime(1).onTrue(m_robotCommands.runIntake());
     // leftStartToDepot.active().onTrue(m_robotCommands.zeroTurretHood());
     leftStartToDepot.doneDelayed(1).onTrue(depotToShoot.cmd());
-    depotToShoot.done().onTrue(m_robotCommands.autoAimAndPrepareShootAutonomous());
+    depotToShoot.done().onTrue(m_robotCommands.shootShooterCommand());
     depotToShoot.doneDelayed(5).onTrue(m_robotCommands.idle());
     depotToShoot.doneDelayed(5).onTrue(shootToCenter.cmd());
     shootToCenter.atTime(2.5).onTrue(m_robotCommands.runIntake());
     shootToCenter.atTime(6.9).onTrue(m_robotCommands.stowIntake());
-    shootToCenter.done().onTrue(m_robotCommands.autoAimAndPrepareShootAutonomous());
+    shootToCenter.done().onTrue(m_robotCommands.shootShooterCommand());
 
     routine.active().onTrue(
         Commands.sequence(
-            m_robotCommands.stowIntakeAndHaltTurretMovement(),
+            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
             leftStartToDepot.resetOdometry(),
             leftStartToDepot.cmd()));
     return routine;
@@ -63,17 +63,17 @@ public class AutoRoutines {
 
     startToCenterShoot.atTime(2.0).onTrue(m_robotCommands.runIntake());
     startToCenterShoot.atTime(4.1).onTrue(m_robotCommands.stowIntake());
-    startToCenterShoot.done().onTrue(m_robotCommands.autoAimAndPrepareShootAutonomous());
+    startToCenterShoot.done().onTrue(m_robotCommands.shootShooterCommand());
     startToCenterShoot.doneDelayed(5).onFalse(m_robotCommands.idle());
     startToCenterShoot.doneDelayed(5).onTrue(shootToDepotStraight.cmd());
 
     shootToDepotStraight.active().onTrue(m_robotCommands.runIntake());
     shootToDepotStraight.done().onTrue(m_robotCommands.stowIntake());
-    shootToDepotStraight.done().onTrue(m_robotCommands.autoAimAndPrepareShootAutonomous());
+    shootToDepotStraight.done().onTrue(m_robotCommands.shootShooterCommand());
 
     routine.active().onTrue(
         Commands.sequence(
-            m_robotCommands.stowIntakeAndHaltTurretMovement(),
+            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
             startToCenterShoot.resetOdometry(),
             startToCenterShoot.cmd()));
     return routine;
@@ -85,11 +85,11 @@ public class AutoRoutines {
 
     startToCenterShoot.atTime(2.8).onTrue(m_robotCommands.runIntake());
     startToCenterShoot.atTime(4.9).onTrue(m_robotCommands.stowIntake());
-    startToCenterShoot.done().onTrue(m_robotCommands.autoAimAndPrepareShootAutonomous());
+    startToCenterShoot.done().onTrue(m_robotCommands.shootShooterCommand());
 
     routine.active().onTrue(
         Commands.sequence(
-            m_robotCommands.stowIntakeAndHaltTurretMovement(),
+            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
             startToCenterShoot.resetOdometry(),
             startToCenterShoot.cmd()));
     return routine;
@@ -99,7 +99,7 @@ public class AutoRoutines {
     AutoRoutine routine = m_autoFactory.newRoutine("SOTMDepot");
     AutoTrajectory SOTMLeftStartToDepot = routine.trajectory("SOTMLeftStartToDepot");
 
-    SOTMLeftStartToDepot.atTime(0.5).onTrue(m_robotCommands.shooterTrackShootingParamters());
+    SOTMLeftStartToDepot.atTime(0.5).onTrue(m_robotCommands.shootShooterCommand().asProxy());
     SOTMLeftStartToDepot.atTime(0.67).onTrue(m_robotCommands.runIntake());
     SOTMLeftStartToDepot.atTime(4.0).onTrue(m_robotCommands.stowIntake());
 
