@@ -24,8 +24,8 @@ public class AutoRoutines {
     routine.active().onTrue(
         Commands.sequence(
             m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
-            startToCenterShoot.resetOdometry(),
-            startToCenterShoot.cmd()));
+            radialTrajectory.resetOdometry(),
+            radialTrajectory.cmd()));
     return routine;
   }
 
@@ -38,8 +38,8 @@ public class AutoRoutines {
     routine.active().onTrue(
         Commands.sequence(
             m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
-            startToCenterShoot.resetOdometry(),
-            startToCenterShoot.cmd()));
+            tangentialTrajectory.resetOdometry(),
+            tangentialTrajectory.cmd()));
     return routine;
   }
 
