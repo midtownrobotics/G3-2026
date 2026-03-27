@@ -1,5 +1,6 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
@@ -17,6 +18,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -50,6 +52,14 @@ public class RobotState {
   private final LoggedNetworkBoolean m_shootOnTheMoveToggle = new LoggedNetworkBoolean("Toggles/ShootOnTheMove", true);
   private final LoggedNetworkBoolean m_autoAimToggle = new LoggedNetworkBoolean("Toggles/AutoAim", false);
 
+  public enum ShooterState {
+    kIdle,
+    kRev,
+    kShoot
+  }
+
+  private ShooterState m_shooterState = ShooterState.kIdle;
+
   public RobotState(
       CommandSwerveDrivetrain drive,
       IntakePivot intakePivot,
@@ -79,6 +89,15 @@ public class RobotState {
     Logger.recordOutput("RobotState/shootOnTheMoveEnabled", isShootOnTheMoveEnabled());
     Logger.recordOutput("RobotState/inAllianceZone", inAllianceZone());
     Logger.recordOutput("RobotState/isPreparedToShootTrigger", isPreparedToShootTrigger().getAsBoolean());
+    Logger.recordOutput("RobotState/shooterMode", getShooterState());
+  }
+
+  public ShooterState getShooterState() {
+    return m_shooterState;
+  }
+
+  public Command setShooterStateCommand(ShooterState state) {
+    return Commands.runOnce(() -> m_shooterState = state);
   }
 
   public Pose2d getRobotPose() {
@@ -132,6 +151,7 @@ public class RobotState {
 
   public Trigger isPreparedToShootTrigger() {
     return m_shooter.isNearSetpointTrigger()//.debounce(0.2, DebounceType.kFalling)
+        .and(() -> m_shooterState == ShooterState.kShoot)
         .and(m_hood.isNearSetpointTrigger())
         .and(m_turret.isNearSetpointTrigger().debounce(0.3, DebounceType.kFalling))
         .and(() -> m_shooter.getSetpointSpeed().gt(RPM.of(500)))
@@ -160,10 +180,14 @@ public class RobotState {
   }
 
   public boolean inAllianceZone() {
-    return DriverStation.getAlliance()
-        .map(FieldConstants::getAllianceZone)
-        .map(r -> r.contains(m_drive.getPose().getTranslation()))
-        .orElse(false);
+    double hubX = FieldConstants.getHubPosition2d().getX();
+    double robotX = getRobotPose().getX();
+
+    if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) {
+      return robotX < hubX;
+    }
+
+    return robotX > hubX;
   }
 
   public Trigger fuelSensorTripped() {
@@ -191,12 +215,28 @@ public class RobotState {
   }
 
   public Translation2d calculateFeedTarget() {
-    if (GeometryUtil.flip(getTurretPose()).getMeasureY().lt(FieldConstants.kFieldWidth.div(2))) {
-      return GeometryUtil.flip(new Translation2d(FieldConstants.kAllianceZoneOffset.getMeasureX().div(2),
-          FieldConstants.kFieldWidth.div(4)));
+    // if (GeometryUtil.flip(getTurretPose()).getMeasureY().lt(FieldConstants.kFieldWidth.div(2))) {
+    //   return GeometryUtil.flip(new Translation2d(FieldConstants.kAllianceZoneOffset.getMeasureX().div(2),
+    //       FieldConstants.kFieldWidth.div(4)));
+    // }
+    // return GeometryUtil.flip(new Translation2d(FieldConstants.kAllianceZoneOffset.getMeasureX().div(2),
+    //     FieldConstants.kFieldWidth.div(4).times(3)));
+
+    Translation2d hubTranslation = FieldConstants.getHubPosition2d();
+    double robotY = getRobotPose().getY();
+    double hubX = hubTranslation.getX();
+    double hubY = hubTranslation.getY();
+
+    double targetX = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? 1.5
+        : FieldConstants.kFieldLength.in(Meters) - 1.5;
+
+    double targetY = hubY - 1.3;
+
+    if (robotY > hubY) {
+      targetY = hubY + 1.3;
     }
-    return GeometryUtil.flip(new Translation2d(FieldConstants.kAllianceZoneOffset.getMeasureX().div(2),
-        FieldConstants.kFieldWidth.div(4).times(3)));
+
+    return new Translation2d(targetX, targetY);
   }
 
   public Command setFixedTurretModeEnabledCommand(boolean enabled) {

@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.lib.LoggedCommandScheduler;
 import frc.lib.Watchdawg;
+import frc.robot.RobotState.ShooterState;
 import frc.robot.ShootingParameters.ShootingParametersMode;
 import frc.robot.commands.RobotCommands;
 import frc.robot.constants.FieldConstants;
@@ -268,8 +269,12 @@ public class Robot extends LoggedRobot {
     m_controls.intake().onTrue(m_robotCommands.fill());
 
     m_controls.shoot().onTrue(m_robotCommands.autoAimAndPrepareShootTeleop());
+    m_controls.shoot().onTrue(m_state.setShooterStateCommand(ShooterState.kRev))
+        .onFalse(m_state.setShooterStateCommand(ShooterState.kShoot));
 
     m_controls.snowBlow().onTrue(m_robotCommands.snowBlow());
+    m_controls.snowBlow().onTrue(m_state.setShooterStateCommand(ShooterState.kRev))
+        .onFalse(m_state.setShooterStateCommand(ShooterState.kShoot));
 
     m_controls.setpointShoot().onTrue(m_robotCommands.setPointShoot());
 

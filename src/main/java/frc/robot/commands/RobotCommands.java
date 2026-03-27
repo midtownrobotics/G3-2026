@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.RobotState;
+import frc.robot.RobotState.ShooterState;
 import frc.robot.constants.Constants;
 import frc.robot.controls.Controls;
 import frc.robot.sensors.Vision;
@@ -54,7 +55,7 @@ public class RobotCommands {
     m_hood = hood;
     m_state = state;
     m_driveCommands = new DriveCommands(drive, controls::getDriveLeft, controls::getDriveForward,
-        controls::getDriveRotation);
+        controls::getDriveRotation, m_state);
 
     SmartDashboard.putData("MissingShort", increaseHoodAngle());
     SmartDashboard.putData("MissingLong", decreaseHoodAngle());
@@ -113,17 +114,18 @@ public class RobotCommands {
   }
 
   public Command idle() {
-    return Commands.parallel(m_shooter.stop(), stowIntake())
+    return Commands.parallel(m_shooter.stop(), stowIntake(), m_state.setShooterStateCommand(ShooterState.kIdle))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("idle");
   }
 
   public Command stowIntakeAndHaltTurretMovement() {
-    return Commands.parallel(idle(), m_turret.stop(), m_hood.stop()).withTimeout(Seconds.of(0.5))
+    return Commands.parallel(idle(), m_turret.stop(), zeroTurretHood().andThen(m_hood.stop()))
+        .withTimeout(Seconds.of(0.5))
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming).withName("stowIntakeAndHaltTurretMovement");
   }
 
   public Command fill() {
-    return Commands.parallel(m_shooter.stop(), runIntake())
+    return Commands.parallel(m_shooter.stop(), runIntake(), m_state.setShooterStateCommand(ShooterState.kIdle))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("fill");
   }
 
@@ -142,10 +144,6 @@ public class RobotCommands {
 
   public Command reverseFeedFuel() {
     return Commands.parallel(m_feeder.runReverse(), m_indexer.runReverse(), driveCommand()).withName("reverseFeedFuel");
-  }
-
-  public Command revShooter() {
-    return m_shooter.setSpeedCommand(RPM.of(1800)).withName("revShooter");
   }
 
   public Command setPointShoot() {
