@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -54,6 +55,10 @@ public class RobotCommands {
     m_state = state;
     m_driveCommands = new DriveCommands(drive, controls::getDriveLeft, controls::getDriveForward,
         controls::getDriveRotation);
+
+    SmartDashboard.putData("MissingShort", increaseHoodAngle());
+    SmartDashboard.putData("MissingLong", decreaseHoodAngle());
+
   }
 
   public Command snowBlow() {

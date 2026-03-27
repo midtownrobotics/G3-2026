@@ -37,7 +37,7 @@ public class ShootingParameters {
   private static final int kMaximumIterations = 100;
   private static final double kToFTrimStep = 0.05;
   private static final double kFlywheelVelocityTrimStep = 0.05;
-  private static final Angle kHoodAngleTrimStep = Degrees.of(1);
+  private static final Angle kHoodAngleTrimStep = Degrees.of(0.5);
   private static final double kLatencyCompensationSeconds = 0.03;
 
   private ShootingParametersMode m_mode = ShootingParametersMode.kShoot;
