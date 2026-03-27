@@ -81,7 +81,7 @@ public class RobotCommands {
 
   public Command autoAimAndPrepareShootAutonomous() {
     return Commands
-        .parallel(prepareShoot(),
+        .parallel(shootShooterCommand(), m_intakePivot.stow(),
             Commands.either(autoAimWithDrivetrainForAutonomous(), driveCommand(), m_state::isFixedTurretModeEnabled))
         .withName("autoAimAndPrepareShootAutonomous");
   }
@@ -100,6 +100,18 @@ public class RobotCommands {
   public Command autoAimWithDrivetrainForAutonomous() {
     return m_driveCommands.rotateRobotForAutonomous(() -> m_state.getShootingParameters().getTargetRobotRotation())
         .withName("autoAimForAutonomous");
+  }
+
+  public Command revShooterCommand() {
+    return Commands.parallel(shooterTrackShootingParamters(), m_state.setShooterStateCommand(ShooterState.kRev));
+  }
+
+  public Command shootShooterCommand() {
+    return Commands.parallel(shooterTrackShootingParamters(), m_state.setShooterStateCommand(ShooterState.kShoot));
+  }
+
+  public Command stopShooterCommand() {
+    return Commands.parallel(m_shooter.stop(), m_state.setShooterStateCommand(ShooterState.kIdle));
   }
 
   public Command runIntake() {
