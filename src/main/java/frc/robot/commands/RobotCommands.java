@@ -147,7 +147,7 @@ public class RobotCommands {
   }
 
   public Command feedFuel() {
-    return Commands.parallel(m_feeder.runForward(), m_indexer.runForward()).withName("feedFuel");
+    return Commands.parallel(m_feeder.runForward(), m_indexer.runForward(), m_intakeRoller.feedStow()).withName("feedFuel");
   }
 
   public Command stopFeedingFuel() {
