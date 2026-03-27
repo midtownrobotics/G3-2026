@@ -1,6 +1,7 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import org.littletonrobotics.junction.Logger;
@@ -43,8 +44,6 @@ public class RobotState {
   private final Shooter m_shooter;
   private final Hood m_hood;
   private final ShootingParameters m_shootingParameters;
-
-  private boolean m_holdFire = true;
 
   private final LoggedNetworkBoolean m_fixedTurretModeToggle = new LoggedNetworkBoolean("Toggles/FixedTurretMode",
       false);
@@ -132,10 +131,10 @@ public class RobotState {
   }
 
   public Trigger isPreparedToShootTrigger() {
-    return m_shooter.isNearSetpointTrigger()
+    return m_shooter.isNearSetpointTrigger().debounce(0.2, DebounceType.kFalling)
         .and(m_hood.isNearSetpointTrigger())
-        .and(m_turret.isNearSetpointTrigger())
-        .and(holdFireTrigger().negate())
+        .and(m_turret.isNearSetpointTrigger().debounce(0.3, DebounceType.kFalling))
+        .and(() -> m_shooter.getSetpointSpeed().gt(RPM.of(500)))
         .debounce(0.1, DebounceType.kFalling);
   }
 
@@ -158,10 +157,6 @@ public class RobotState {
   public Trigger inAllianceZoneTrigger() {
     return new Trigger(this::inAllianceZone)
         .debounce(0.2);
-  }
-
-  public Trigger holdFireTrigger() {
-    return new Trigger(this::isHoldFireEnabled).debounce(0.2);
   }
 
   public boolean inAllianceZone() {
@@ -191,10 +186,6 @@ public class RobotState {
     return m_shootOnTheMoveToggle.get();
   }
 
-  public boolean isHoldFireEnabled() {
-    return m_holdFire;
-  }
-
   public ShootingParameters getShootingParameters() {
     return m_shootingParameters;
   }
@@ -214,9 +205,5 @@ public class RobotState {
 
   public Command setShootOnTheMoveEnabledCommand(boolean enabled) {
     return Commands.runOnce(() -> m_shootOnTheMoveToggle.set(enabled));
-  }
-
-  public Command setHoldFireCommand(boolean enabled) {
-    return Commands.runOnce(() -> m_holdFire = enabled);
   }
 }

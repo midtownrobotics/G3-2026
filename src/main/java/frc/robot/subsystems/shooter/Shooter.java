@@ -87,6 +87,10 @@ public class Shooter extends SubsystemBase {
     return run(() -> m_io.setSpeed(speedSupplier.get()));
   }
 
+  public Command slowIdle() {
+    return run(() -> m_io.setSpeed(RPM.of(100)));
+  }
+
   public Command stop() {
     return run(() -> m_io.stop());
   }

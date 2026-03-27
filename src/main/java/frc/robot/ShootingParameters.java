@@ -49,10 +49,10 @@ public class ShootingParameters {
 
   // Takes in a distance in meters and outputs a time in seconds
   private final InterpolatingDoubleTreeMap m_scoringTimeOfFlightMap = InterpolatingDoubleTreeMap.ofEntries(
-      Map.entry(Feet.of(6.7).in(Meters), 1.1),
-      Map.entry(Feet.of(10.4).in(Meters), 1.6),
-      Map.entry(Feet.of(15.2).in(Meters), 1.6),
-      Map.entry(Feet.of(20).in(Meters), 1.8)
+      Map.entry(Feet.of(6.7).in(Meters), 0.9),
+      Map.entry(Feet.of(10.4).in(Meters), 1.4),
+      Map.entry(Feet.of(15.2).in(Meters), 1.4),
+      Map.entry(Feet.of(20).in(Meters), 1.6)
   // Map.entry(Feet.of(5).in(Meters), 0.7),
   // Map.entry(Feet.of(10).in(Meters), 1.0),
   // Map.entry(Feet.of(20).in(Meters), 1.5));
@@ -115,7 +115,8 @@ public class ShootingParameters {
       Map.entry(Feet.of(13).in(Meters), RPM.of(2300).in(RadiansPerSecond)), //
       Map.entry(Feet.of(14).in(Meters), RPM.of(2300).in(RadiansPerSecond)), //
       Map.entry(Feet.of(15).in(Meters), RPM.of(2350).in(RadiansPerSecond)), //
-      Map.entry(Feet.of(16).in(Meters), RPM.of(2300).in(RadiansPerSecond)) //
+      Map.entry(Feet.of(16).in(Meters), RPM.of(2300).in(RadiansPerSecond)), //
+      Map.entry(Feet.of(25).in(Meters), RPM.of(2600).in(RadiansPerSecond))
   // Map.entry(Feet.of(17).in(Meters), RPM.of(2300).in(RadiansPerSecond)),
   // Map.entry(Feet.of(18).in(Meters), RPM.of(2300).in(RadiansPerSecond)),
   // Map.entry(Feet.of(19).in(Meters), RPM.of(2300).in(RadiansPerSecond)),

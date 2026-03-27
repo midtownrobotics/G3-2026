@@ -22,7 +22,6 @@ import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.Turret;
 
 public class RobotCommands {
-  private final CommandSwerveDrivetrain m_drive;
   private final IntakePivot m_intakePivot;
   private final IntakeRoller m_intakeRoller;
   private final Turret m_turret;
@@ -31,7 +30,6 @@ public class RobotCommands {
   private final Shooter m_shooter;
   private final Hood m_hood;
   private final RobotState m_state;
-  private final Controls m_controls;
   private final DriveCommands m_driveCommands;
 
   public RobotCommands(
@@ -46,12 +44,10 @@ public class RobotCommands {
       Hood hood,
       RobotState state,
       Controls controls) {
-    m_drive = drive;
     m_intakePivot = intakePivot;
     m_intakeRoller = intakeRoller;
     m_turret = turret;
     m_feeder = feeder;
-    m_controls = controls;
     m_indexer = indexer;
     m_shooter = shooter;
     m_hood = hood;
@@ -65,7 +61,7 @@ public class RobotCommands {
         .parallel(
             Commands.either(autoAimWithDrivetrainForTeleop(), driveCommand(),
                 m_state::isAutoAimAndFixedTurretModeEnabled),
-            shooterTrackShootingParamters(), runIntake(), m_state.setHoldFireCommand(false))
+            shooterTrackShootingParamters(), runIntake())
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("snowBlow");
   }
 
@@ -73,23 +69,20 @@ public class RobotCommands {
     return Commands
         .parallel(prepareShoot(),
             Commands.either(autoAimWithDrivetrainForTeleop(), driveCommand(),
-                m_state::isAutoAimAndFixedTurretModeEnabled),
-            m_state.setHoldFireCommand(false))
+                m_state::isAutoAimAndFixedTurretModeEnabled))
         .withName("autoAimAndPrepareShootTeleop");
   }
 
   public Command autoAimAndPrepareShootAutonomous() {
     return Commands
         .parallel(prepareShoot(),
-            Commands.either(autoAimWithDrivetrainForAutonomous(), driveCommand(), m_state::isFixedTurretModeEnabled),
-            m_state.setHoldFireCommand(false))
+            Commands.either(autoAimWithDrivetrainForAutonomous(), driveCommand(), m_state::isFixedTurretModeEnabled))
         .withName("autoAimAndPrepareShootAutonomous");
   }
 
   public Command shooterTrackShootingParamters() {
     return Commands
-        .parallel(m_shooter.setSpeedCommand(() -> m_state.getShootingParameters().getParameters().flywheelVelocity()),
-            m_state.setHoldFireCommand(false))
+        .parallel(m_shooter.setSpeedCommand(() -> m_state.getShootingParameters().getParameters().flywheelVelocity()))
         .withName("shooterTrackShootingParamters");
   }
 
@@ -115,7 +108,7 @@ public class RobotCommands {
   }
 
   public Command idle() {
-    return Commands.parallel(m_shooter.stop(), stowIntake(), m_state.setHoldFireCommand(true))
+    return Commands.parallel(m_shooter.slowIdle(), stowIntake())
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("idle");
   }
 
@@ -125,7 +118,7 @@ public class RobotCommands {
   }
 
   public Command fill() {
-    return Commands.parallel(m_shooter.stop(), runIntake(), m_state.setHoldFireCommand(true))
+    return Commands.parallel(m_shooter.slowIdle(), runIntake())
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("fill");
   }
 
@@ -152,8 +145,7 @@ public class RobotCommands {
 
   public Command setPointShoot() {
     return Commands.parallel(
-        m_shooter.setSpeedCommand(RPM.of(1800)), m_hood.setAngleCommand(Degrees.of(2)),
-        m_state.setHoldFireCommand(false))
+        m_shooter.setSpeedCommand(RPM.of(1800)), m_hood.setAngleCommand(Degrees.of(2)))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("setPointShoot");
   }
 

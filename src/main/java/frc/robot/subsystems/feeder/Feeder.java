@@ -14,6 +14,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -33,6 +34,8 @@ public class Feeder extends SubsystemBase {
   private final LoggedTunableNumber m_kI = new LoggedTunableNumber("Feeder/kI", 0);
   private final LoggedTunableNumber m_kD = new LoggedTunableNumber("Feeder/kD", 0);
   private final LoggedTunableNumber m_speedSetpoint = new LoggedTunableNumber("Feeder/SpeedSetpointRPM", 0);
+  private final LoggedTunableNumber m_voltageSetpoint = new LoggedTunableNumber("Feeder/voltageSetpoint", 0);
+  private final LoggedTunableNumber m_feedVoltage = new LoggedTunableNumber("Feeder/feedVoltage", 10);
 
   private Distance m_filteredSensorDistance = Meters.zero();
 
@@ -41,6 +44,8 @@ public class Feeder extends SubsystemBase {
     m_fuelSensorFilter = LinearFilter.movingAverage(4);
     m_fuelSensorTrippedTrigger = new Trigger(this::getFuelSensorTripped).debounce(0.1, DebounceType.kFalling);
     m_watchdog = new Watchdawg(getClass());
+
+    SmartDashboard.putData("TuningModes/feeder", tuningMode());
   }
 
   @Override
@@ -78,7 +83,7 @@ public class Feeder extends SubsystemBase {
   }
 
   public Command runForward() {
-    return run(() -> m_io.setVoltage(Volts.of(6)));
+    return run(() -> m_io.setVoltage(Volts.of(m_feedVoltage.get())));
   }
 
   public Command stop() {
@@ -90,6 +95,6 @@ public class Feeder extends SubsystemBase {
   }
 
   public Command tuningMode() {
-    return run(() -> m_io.setSpeed(RPM.of(m_speedSetpoint.getAsDouble())));
+    return run(() -> m_io.setVoltage(Volts.of(m_voltageSetpoint.get())));
   }
 }

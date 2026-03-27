@@ -112,4 +112,25 @@ public class AutoRoutines {
             SOTMLeftStartToDepot.cmd()));
     return routine;
   }
+
+  public AutoRoutine SOTMLeftCenter() {
+    AutoRoutine routine = m_autoFactory.newRoutine("SOTMLeftCenter");
+    AutoTrajectory startToCenterShoot = routine.trajectory("LeftStartToCenterToShoot");
+    AutoTrajectory shootToDepotStraight = routine.trajectory("LeftShootToDepotStraightOn");
+
+    startToCenterShoot.atTime(2.0).onTrue(m_robotCommands.runIntake());
+    startToCenterShoot.atTime(4.1).onTrue(m_robotCommands.stowIntake());
+    startToCenterShoot.atTime(6.2).onTrue(m_robotCommands.shooterTrackShootingParamters().asProxy());
+    startToCenterShoot.doneDelayed(3).onTrue(shootToDepotStraight.cmd());
+
+    shootToDepotStraight.active().onTrue(m_robotCommands.runIntake());
+    shootToDepotStraight.done().onTrue(m_robotCommands.stowIntake());
+
+    routine.active().onTrue(
+        Commands.sequence(
+            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
+            startToCenterShoot.resetOdometry(),
+            startToCenterShoot.cmd()));
+    return routine;
+  }
 }
