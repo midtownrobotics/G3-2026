@@ -15,6 +15,34 @@ public class AutoRoutines {
     m_robotCommands = robotCommands;
   }
 
+  public AutoRoutine tuneRadial() {
+    AutoRoutine routine = m_autoFactory.newRoutine("TuneRadial");
+    AutoTrajectory radialTrajectory = routine.trajectory("RadialTrajectory");
+
+    radialTrajectory.active().onTrue(m_robotCommands.shooterTrackShootingParamters().asProxy());
+
+    routine.active().onTrue(
+        Commands.sequence(
+            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
+            startToCenterShoot.resetOdometry(),
+            startToCenterShoot.cmd()));
+    return routine;
+  }
+
+  public AutoRoutine tuneTangential() {
+    AutoRoutine routine = m_autoFactory.newRoutine("TuneTangential");
+    AutoTrajectory tangentialTrajectory = routine.trajectory("TangentialTrajectory");
+
+    tangentialTrajectory.active().onTrue(m_robotCommands.shooterTrackShootingParamters().asProxy());
+
+    routine.active().onTrue(
+        Commands.sequence(
+            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
+            startToCenterShoot.resetOdometry(),
+            startToCenterShoot.cmd()));
+    return routine;
+  }
+
   public AutoRoutine pickupDepotAndShoot() {
     AutoRoutine routine = m_autoFactory.newRoutine("DepotToShoot");
     AutoTrajectory leftStartToDepot = routine.trajectory("LeftStartToDepot");
