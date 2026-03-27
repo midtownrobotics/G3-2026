@@ -31,11 +31,13 @@ public class DriveCommands {
       Supplier<Double> driveRotationSupplier) {
     m_drive = drive;
 
-    SlewRateLimiter m_forwardLimiter = new SlewRateLimiter(1.5);
-    SlewRateLimiter m_leftLimiter = new SlewRateLimiter(1.5);
+    // SlewRateLimiter m_forwardLimiter = new SlewRateLimiter(1.5);
+    // SlewRateLimiter m_leftLimiter = new SlewRateLimiter(1.5);
 
-    m_driveLeftSupplier = () -> m_leftLimiter.calculate(driveLeftSupplier.get());
-    m_driveForwardSupplier = () -> m_forwardLimiter.calculate(driveForwardSupplier.get());
+    // m_driveLeftSupplier = () -> m_leftLimiter.calculate(driveLeftSupplier.get());
+    // m_driveForwardSupplier = () -> m_forwardLimiter.calculate(driveForwardSupplier.get());
+    m_driveForwardSupplier = driveForwardSupplier;
+    m_driveLeftSupplier = driveLeftSupplier;
     m_driveRotationSupplier = driveRotationSupplier;
 
   }

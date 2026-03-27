@@ -38,7 +38,7 @@ public class Shooter extends SubsystemBase {
     m_io = io;
     m_watchdog = new Watchdawg(getClass());
     SmartDashboard.putData("TuningModes/Shooter", tuningMode());
-    m_isNearSetpointTrigger = new Trigger(() -> isNearSetpoint(RPM.of(15)));
+    m_isNearSetpointTrigger = new Trigger(() -> isNearSetpoint(RPM.of(50)));
   }
 
   @Override

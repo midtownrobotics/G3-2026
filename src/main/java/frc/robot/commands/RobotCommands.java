@@ -108,7 +108,7 @@ public class RobotCommands {
   }
 
   public Command idle() {
-    return Commands.parallel(m_shooter.slowIdle(), stowIntake())
+    return Commands.parallel(m_shooter.stop(), stowIntake())
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("idle");
   }
 
@@ -118,7 +118,7 @@ public class RobotCommands {
   }
 
   public Command fill() {
-    return Commands.parallel(m_shooter.slowIdle(), runIntake())
+    return Commands.parallel(m_shooter.stop(), runIntake())
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("fill");
   }
 

@@ -23,7 +23,7 @@ public class Constants {
   public static final double kLinearSpeedMultiplier = 1;
   public static final double kAngluarSpeedMultiplier = 0.9;
 
-  public static final LinearVelocity kMaxLinearSpeed = MetersPerSecond.of(1.5);
+  public static final LinearVelocity kMaxLinearSpeed = MetersPerSecond.of(3);
 
   /** Calculated based on tuner constants. */
   public static final AngularVelocity kAngularMaxSpeed = RadiansPerSecond.of(

@@ -131,7 +131,7 @@ public class RobotState {
   }
 
   public Trigger isPreparedToShootTrigger() {
-    return m_shooter.isNearSetpointTrigger().debounce(0.2, DebounceType.kFalling)
+    return m_shooter.isNearSetpointTrigger()//.debounce(0.2, DebounceType.kFalling)
         .and(m_hood.isNearSetpointTrigger())
         .and(m_turret.isNearSetpointTrigger().debounce(0.3, DebounceType.kFalling))
         .and(() -> m_shooter.getSetpointSpeed().gt(RPM.of(500)))
