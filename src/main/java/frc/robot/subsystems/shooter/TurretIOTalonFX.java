@@ -79,8 +79,8 @@ public class TurretIOTalonFX implements TurretIO {
         .withInverted(InvertedValue.CounterClockwise_Positive);
 
     config.MotionMagic
-        .withMotionMagicCruiseVelocity(RotationsPerSecond.of(4.5))
-        .withMotionMagicAcceleration(RotationsPerSecondPerSecond.of(5));
+        .withMotionMagicCruiseVelocity(RotationsPerSecond.of(8))
+        .withMotionMagicAcceleration(RotationsPerSecondPerSecond.of(9));
 
     config.CurrentLimits = new CurrentLimitsConfigs()
         .withStatorCurrentLimitEnable(true)

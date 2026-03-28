@@ -5,6 +5,9 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
+import java.util.Optional;
+import java.util.function.BooleanSupplier;
+
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
@@ -13,12 +16,15 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -60,6 +66,8 @@ public class RobotState {
 
   private ShooterState m_shooterState = ShooterState.kIdle;
 
+  private TimeInterpolatableBuffer<Pose2d> m_robotPoseBuffer = TimeInterpolatableBuffer.createBuffer(1.0);
+
   public RobotState(
       CommandSwerveDrivetrain drive,
       IntakePivot intakePivot,
@@ -84,6 +92,23 @@ public class RobotState {
 
   public void periodic() {
     m_shootingParameters.periodic();
+
+    double timestamp = Timer.getFPGATimestamp();
+    Pose2d robotPose = getRobotPose();
+
+    m_robotPoseBuffer.addSample(timestamp, robotPose);
+
+    double timeslice = 0.04;
+
+    Optional<Pose2d> oldPose = m_robotPoseBuffer.getSample(timestamp - timeslice);
+
+    if (oldPose.isPresent()) {
+      Twist2d robotTwist = oldPose.get().log(robotPose);
+
+      ChassisSpeeds speeds = new ChassisSpeeds(robotTwist.dx / timeslice, robotTwist.dy / timeslice,
+          robotTwist.dtheta / timeslice);
+      Logger.recordOutput("RobotState/PoseDerivedChassisSpeeds", speeds);
+    }
 
     Logger.recordOutput("RobotState/fixedTurretModeEnabled", isFixedTurretModeEnabled());
     Logger.recordOutput("RobotState/shootOnTheMoveEnabled", isShootOnTheMoveEnabled());
@@ -245,5 +270,9 @@ public class RobotState {
 
   public Command setShootOnTheMoveEnabledCommand(boolean enabled) {
     return Commands.runOnce(() -> m_shootOnTheMoveToggle.set(enabled));
+  }
+
+  public Command setShootOnTheMoveEnabledCommand(BooleanSupplier enabled) {
+    return Commands.runOnce(() -> m_shootOnTheMoveToggle.set(enabled.getAsBoolean()));
   }
 }

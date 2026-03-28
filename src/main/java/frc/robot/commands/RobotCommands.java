@@ -5,6 +5,8 @@ import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.util.function.Supplier;
+
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
@@ -126,7 +128,8 @@ public class RobotCommands {
   }
 
   public Command idle() {
-    return Commands.parallel(m_shooter.stop(), m_feeder.stop(), stowIntake(), m_state.setShooterStateCommand(ShooterState.kIdle))
+    return Commands
+        .parallel(m_shooter.stop(), m_feeder.stop(), stowIntake(), m_state.setShooterStateCommand(ShooterState.kIdle))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("idle");
   }
 
@@ -137,7 +140,8 @@ public class RobotCommands {
   }
 
   public Command fill() {
-    return Commands.parallel(m_shooter.stop(), m_feeder.stop(), runIntake(), m_state.setShooterStateCommand(ShooterState.kIdle))
+    return Commands
+        .parallel(m_shooter.stop(), m_feeder.stop(), runIntake(), m_state.setShooterStateCommand(ShooterState.kIdle))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("fill");
   }
 
@@ -147,7 +151,16 @@ public class RobotCommands {
   }
 
   public Command feedFuel() {
-    return Commands.parallel(m_feeder.runForward(), m_indexer.runForward(), m_intakeRoller.feedStow()).withName("feedFuel");
+    return Commands.parallel(m_feeder.runForward(), m_indexer.runForward(), m_intakeRoller.feedStow())
+        .withName("feedFuel");
+  }
+
+  public Command defense() {
+    Supplier<Boolean> turretBlockingIntake = () -> m_state.getTurretAngle().gt(Degrees.of(90))
+        || m_state.getHoodAngle().gt(Degrees.of(1));
+    return Commands.parallel(m_turret.setAngleCommand(Degrees.of(90)), m_hood.setAngleCommand(Degrees.zero()),
+        m_feeder.stop(), m_indexer.stop(), m_state.setShooterStateCommand(ShooterState.kIdle), m_intakeRoller.stop(),
+        m_intakePivot.setAngle(() -> Degrees.of(turretBlockingIntake.get() ? 40 : 65)));
   }
 
   public Command stopFeedingFuel() {

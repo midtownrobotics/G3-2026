@@ -1,6 +1,7 @@
 package frc.robot.sensors;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -73,6 +74,10 @@ public class Vision extends SubsystemBase {
       m_addVisionMeasurement.accept(observation);
     }
     m_watchdog.end("periodic");
+  }
+
+  public Optional<Pose2d> getPoseAtTime(double time) {
+    return m_observations.getSample(time);
   }
 
   @Override

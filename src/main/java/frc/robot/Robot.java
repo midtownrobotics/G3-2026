@@ -292,6 +292,9 @@ public class Robot extends LoggedRobot {
 
     controls.increaseVelocityCompensation().onTrue(m_robotCommands.increaseVelocityCompensation());
     controls.decreaseVelocityCompensation().onTrue(m_robotCommands.decreaseVelocityCompensation());
+
+    controls.toggleShootOnTheMove()
+        .onTrue(m_state.setShootOnTheMoveEnabledCommand(() -> !m_state.isShootOnTheMoveEnabled()));
   }
 
   @Override
