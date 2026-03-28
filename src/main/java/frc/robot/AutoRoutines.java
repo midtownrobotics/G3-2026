@@ -131,4 +131,46 @@ public class AutoRoutines {
             startToCenterShoot.cmd()));
     return routine;
   }
+
+  public AutoRoutine SOTMLeftTwice() {
+    AutoRoutine routine = m_autoFactory.newRoutine("SOTMLeftCenter");
+    AutoTrajectory startToCenter = routine.trajectory("AlbanyCenterLeft");
+    AutoTrajectory startToCenterReturn = routine.trajectory("AlbanyReturnLeft");
+
+    startToCenter.atTime("startintake").onTrue(m_robotCommands.runIntake());
+    startToCenter.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
+    startToCenter.atTime("startshooting").onTrue(m_robotCommands.shootShooterCommand());
+    startToCenter.doneDelayed(8).onTrue(startToCenterReturn.cmd());
+
+    startToCenterReturn.active().onTrue(m_robotCommands.stopShooterCommand());
+    startToCenterReturn.atTime("startintake").onTrue(m_robotCommands.runIntake());
+
+    routine.active().onTrue(
+        Commands.sequence(
+            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
+            startToCenter.resetOdometry(),
+            startToCenter.cmd()));
+    return routine;
+  }
+
+  public AutoRoutine SOTMRightTwice() {
+    AutoRoutine routine = m_autoFactory.newRoutine("SOTMRightCenter");
+    AutoTrajectory startToCenter = routine.trajectory("AlbanyCenterRight");
+    AutoTrajectory startToCenterReturn = routine.trajectory("AlbanyReturnRight");
+
+    startToCenter.atTime("startintake").onTrue(m_robotCommands.runIntake());
+    startToCenter.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
+    startToCenter.atTime("startshooting").onTrue(m_robotCommands.shootShooterCommand());
+    startToCenter.doneDelayed(8).onTrue(startToCenterReturn.cmd());
+
+    startToCenterReturn.active().onTrue(m_robotCommands.stopShooterCommand());
+    startToCenterReturn.atTime("startintake").onTrue(m_robotCommands.runIntake());
+
+    routine.active().onTrue(
+        Commands.sequence(
+            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
+            startToCenter.resetOdometry(),
+            startToCenter.cmd()));
+    return routine;
+  }
 }
