@@ -156,7 +156,7 @@ public class RobotCommands {
   }
 
   public Command defense() {
-    Supplier<Boolean> turretBlockingIntake = () -> m_state.getTurretAngle().gt(Degrees.of(90))
+    Supplier<Boolean> turretBlockingIntake = () -> m_state.getTurretAngle().gt(Degrees.of(92))
         || m_state.getHoodAngle().gt(Degrees.of(1));
     return Commands.parallel(m_turret.setAngleCommand(Degrees.of(90)), m_hood.setAngleCommand(Degrees.zero()),
         m_feeder.stop(), m_indexer.stop(), m_state.setShooterStateCommand(ShooterState.kIdle), m_intakeRoller.stop(),
