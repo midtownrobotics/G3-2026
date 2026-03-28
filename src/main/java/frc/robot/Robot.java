@@ -270,7 +270,7 @@ public class Robot extends LoggedRobot {
 
     m_controls.intake().onTrue(m_robotCommands.fill());
 
-    m_controls.defense().onTrue(m_robotCommands.defense());
+    m_controls.defense().onTrue(m_robotCommands.defense()).onFalse(m_robotCommands.stowIntakeAndHaltTurretMovement());
 
     m_controls.shoot().onTrue(m_robotCommands.autoAimAndPrepareShootTeleop());
     m_controls.shoot().onTrue(m_state.setShooterStateCommand(ShooterState.kRev))
