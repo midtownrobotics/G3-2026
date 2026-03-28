@@ -141,7 +141,7 @@ public class ShootingParameters {
 
   private double m_flywheelVelocityModifier = 1;
   private Angle m_hoodAngleModifier = Degrees.of(0);
-  private double m_ToFModifier = 0.75;
+  private double m_ToFModifier = 0.85;
   private Angle m_turretAngleModifier = Degrees.of(0);
 
   private final RobotState m_state;
