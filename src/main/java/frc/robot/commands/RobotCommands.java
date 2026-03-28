@@ -160,10 +160,9 @@ public class RobotCommands {
         || m_state.getHoodAngle().gt(Degrees.of(1));
     return Commands.parallel(m_turret.setAngleCommand(Degrees.of(90)), m_hood.setAngleCommand(Degrees.zero()),
         m_feeder.stop(), m_indexer.stop(), m_state.setShooterStateCommand(ShooterState.kIdle), m_intakeRoller.stop(),
-        m_intakePivot.setAngle(() -> Degrees.of(turretBlockingIntake.get() ? 40 : 65)));
+        m_intakePivot.setAngle(() -> Degrees.of(turretBlockingIntake.get() ? 40 : 65))).withName("defense");
   }
 
-  
   public Command stopFeedingFuel() {
     return Commands.parallel(m_feeder.stop(), m_indexer.stop()).withName("stopFeedingFuel");
   }

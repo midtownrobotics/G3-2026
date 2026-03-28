@@ -96,7 +96,7 @@ public class IntakePivotIOTalonFX implements IntakePivotIO {
 
     config.SoftwareLimitSwitch = new SoftwareLimitSwitchConfigs()
         .withForwardSoftLimitEnable(true)
-        .withForwardSoftLimitThreshold(Degrees.of(60))
+        .withForwardSoftLimitThreshold(Degrees.of(70))
         .withReverseSoftLimitEnable(true)
         .withReverseSoftLimitThreshold(Degrees.of(0));
 
