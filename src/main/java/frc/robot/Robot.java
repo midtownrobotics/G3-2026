@@ -258,6 +258,8 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addRoutine("Middle and Depot Shoot", m_autoRoutines::middleAndDepotShootLeft);
     m_autoChooser.addRoutine("SOTM Depot", m_autoRoutines::SOTMDepot);
     m_autoChooser.addRoutine("SOTM Left Center", m_autoRoutines::SOTMLeftCenter);
+    m_autoChooser.addRoutine("SOTM Right Twice", m_autoRoutines::SOTMRightTwice);
+    m_autoChooser.addRoutine("SOTM Left Twice", m_autoRoutines::SOTMLeftTwice);
 
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
     RobotModeTriggers.autonomous().whileTrue(m_autoChooser.selectedCommandScheduler());

@@ -140,7 +140,7 @@ public class AutoRoutines {
     startToCenter.atTime("startintake").onTrue(m_robotCommands.runIntake());
     startToCenter.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
     startToCenter.atTime("startshooting").onTrue(m_robotCommands.shootShooterCommand());
-    startToCenter.doneDelayed(6).onTrue(startToCenterReturn.cmd());
+    startToCenter.doneDelayed(8).onTrue(startToCenterReturn.cmd());
 
     startToCenterReturn.active().onTrue(m_robotCommands.stopShooterCommand());
     startToCenterReturn.atTime("startintake").onTrue(m_robotCommands.runIntake());
@@ -161,7 +161,7 @@ public class AutoRoutines {
     startToCenter.atTime("startintake").onTrue(m_robotCommands.runIntake());
     startToCenter.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
     startToCenter.atTime("startshooting").onTrue(m_robotCommands.shootShooterCommand());
-    startToCenter.doneDelayed(6).onTrue(startToCenterReturn.cmd());
+    startToCenter.doneDelayed(8).onTrue(startToCenterReturn.cmd());
 
     startToCenterReturn.active().onTrue(m_robotCommands.stopShooterCommand());
     startToCenterReturn.atTime("startintake").onTrue(m_robotCommands.runIntake());
