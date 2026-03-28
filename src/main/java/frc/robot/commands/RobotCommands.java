@@ -163,6 +163,7 @@ public class RobotCommands {
         m_intakePivot.setAngle(() -> Degrees.of(turretBlockingIntake.get() ? 40 : 65)));
   }
 
+  
   public Command stopFeedingFuel() {
     return Commands.parallel(m_feeder.stop(), m_indexer.stop()).withName("stopFeedingFuel");
   }

@@ -70,4 +70,9 @@ public class XboxControls implements Controls {
   public Trigger feedFuel() {
     return m_controller.b();
   }
+
+  @Override
+  public Trigger defense() {
+    return m_controller.povDown();
+  }
 }

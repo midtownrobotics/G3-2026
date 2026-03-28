@@ -59,8 +59,8 @@ public class IntakePivotIOTalonFX implements IntakePivotIO {
 
     canCoderConfig.MagnetSensor = new MagnetSensorConfigs()
         .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)
-        .withAbsoluteSensorDiscontinuityPoint(Degrees.of(350))
-        .withMagnetOffset(Degrees.of(8.1 * kSensorToMechanismRatio));
+        .withAbsoluteSensorDiscontinuityPoint(Degrees.of(350));
+        // .withMagnetOffset(Degrees.of(8.1 * kSensorToMechanismRatio));
 
     PhoenixUtil.tryUntilOk(5, () -> m_encoder.getConfigurator().apply(canCoderConfig));
 
