@@ -15,6 +15,7 @@ import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
@@ -133,8 +134,16 @@ public class RobotState {
     return getRobotPose().exp(getRobotRelativeSpeeds().toTwist2d(seconds));
   }
 
-  private Transform2d getRobotToTurretTransform() {
-    return Constants.kRobotToTurret.plus(GeometryUtil.transform2dFromRotation(new Rotation2d(getTurretAngle())));
+  public Transform2d getRobotToTurretTransform() {
+    return new Transform2d(Constants.kRobotToTurret, new Rotation2d(getTurretAngle()));
+  }
+
+  public Transform3d getRobotToTurretTransform3d() {
+    return new Transform3d(Constants.kRobotToTurret3d, GeometryUtil.rotation3dFromYaw(getTurretAngle()));
+  }
+
+  public Transform3d getRobotToTurretCamera() {
+    return getRobotToTurretTransform3d().plus(Constants.kTurretToCamera);
   }
 
   public Pose2d getTurretPose(Pose2d robotPose) {
@@ -164,9 +173,9 @@ public class RobotState {
 
   public ChassisSpeeds getFieldRelativeTurretSpeeds(Pose2d robotPose) {
     ChassisSpeeds robotSpeeds = getFieldRelativeSpeeds();
-    double h = Constants.kRobotToTurret.getTranslation().getNorm();
+    double h = Constants.kRobotToTurret.getNorm();
     double theta = robotPose.getRotation().getRadians()
-        + Constants.kRobotToTurret.getTranslation().getAngle().getRadians();
+        + Constants.kRobotToTurret.getAngle().getRadians();
     double omega = getFieldRelativeSpeeds().omegaRadiansPerSecond;
     LinearVelocity xDt = MetersPerSecond.of(-h * Math.sin(theta) * omega);
     LinearVelocity yDt = MetersPerSecond.of(h * Math.cos(theta) * omega);

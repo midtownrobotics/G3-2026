@@ -20,7 +20,7 @@ import frc.robot.constants.FieldConstants;
 
 public class Camera {
   private PhotonCamera m_camera;
-  private Transform3d m_robotToCamera;
+  protected Transform3d m_robotToCamera;
   private String m_name;
   private final Alert m_connectionAlert;
 
@@ -70,7 +70,7 @@ public class Camera {
         var multitagResult = result.multitagResult.get();
 
         Transform3d fieldToCamera = multitagResult.estimatedPose.best;
-        Transform3d fieldToRobot = fieldToCamera.plus(m_robotToCamera.inverse());
+        Transform3d fieldToRobot = fieldToCamera.plus(getRobotToCamera().inverse());
         Pose3d robotPose = new Pose3d(fieldToRobot.getTranslation(), fieldToRobot.getRotation());
 
         double avgDistance = tagPoses.stream().map(Pose3d::getTranslation)

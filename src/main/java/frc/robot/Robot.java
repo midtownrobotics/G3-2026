@@ -37,6 +37,7 @@ import frc.robot.controls.TrimXboxControls;
 import frc.robot.controls.XboxControls;
 import frc.robot.generated.TunerConstants;
 import frc.robot.sensors.Camera;
+import frc.robot.sensors.DynamicCamera;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
@@ -168,6 +169,8 @@ public class Robot extends LoggedRobot {
             new Translation3d(Inches.of(-7.076), Inches.of(14.525), Inches.of(10.65)),
             new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(90 - 37.698))));
 
+    DynamicCamera turretCamera = new DynamicCamera("Turret Camera");
+
     m_vision = new Vision(
         (observation) -> m_drive.addVisionMeasurement(
             observation.pose().toPose2d(), observation.timestamp()),
@@ -175,7 +178,8 @@ public class Robot extends LoggedRobot {
         rearRight,
         rearLeft,
         rear,
-        frontLeft);
+        frontLeft,
+        turretCamera);
 
     m_controls = new XboxControls(0);
 
@@ -189,6 +193,8 @@ public class Robot extends LoggedRobot {
         m_indexer,
         m_shooter,
         m_hood);
+
+    turretCamera.addRobotToCameraSupplier(m_state::getRobotToTurretCamera);
 
     m_robotCommands = new RobotCommands(
         m_drive,

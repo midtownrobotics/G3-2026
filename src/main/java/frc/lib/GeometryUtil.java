@@ -20,6 +20,10 @@ public class GeometryUtil {
     return new Rotation3d(Degrees.zero(), Degrees.zero(), angle);
   }
 
+  public static Rotation3d rotation3dFromPitch(Angle angle) {
+    return new Rotation3d(Degrees.zero(), angle, Degrees.zero());
+  }
+
   public static Transform3d transform3dFromYaw(Angle angle) {
     return new Transform3d(Translation3d.kZero, rotation3dFromYaw(angle));
   }
