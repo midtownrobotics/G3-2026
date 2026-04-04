@@ -11,6 +11,8 @@ public interface Controls {
 
   public Trigger shoot();
 
+  public Trigger defense();
+
   public Trigger snowBlow();
 
   public Trigger unjam();

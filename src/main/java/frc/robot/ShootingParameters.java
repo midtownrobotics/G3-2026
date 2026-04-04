@@ -37,7 +37,7 @@ public class ShootingParameters {
   private static final int kMaximumIterations = 100;
   private static final double kToFTrimStep = 0.05;
   private static final double kFlywheelVelocityTrimStep = 0.05;
-  private static final Angle kHoodAngleTrimStep = Degrees.of(1);
+  private static final Angle kHoodAngleTrimStep = Degrees.of(0.5);
   private static final double kLatencyCompensationSeconds = 0.03;
 
   private ShootingParametersMode m_mode = ShootingParametersMode.kShoot;
@@ -49,10 +49,10 @@ public class ShootingParameters {
 
   // Takes in a distance in meters and outputs a time in seconds
   private final InterpolatingDoubleTreeMap m_scoringTimeOfFlightMap = InterpolatingDoubleTreeMap.ofEntries(
-      Map.entry(Feet.of(6.7).in(Meters), 1.1),
-      Map.entry(Feet.of(10.4).in(Meters), 1.6),
-      Map.entry(Feet.of(15.2).in(Meters), 1.6),
-      Map.entry(Feet.of(20).in(Meters), 1.8)
+      Map.entry(Feet.of(6.7).in(Meters), 0.9),
+      Map.entry(Feet.of(10.4).in(Meters), 1.4),
+      Map.entry(Feet.of(15.2).in(Meters), 1.4),
+      Map.entry(Feet.of(20).in(Meters), 1.6)
   // Map.entry(Feet.of(5).in(Meters), 0.7),
   // Map.entry(Feet.of(10).in(Meters), 1.0),
   // Map.entry(Feet.of(20).in(Meters), 1.5));
@@ -115,7 +115,8 @@ public class ShootingParameters {
       Map.entry(Feet.of(13).in(Meters), RPM.of(2300).in(RadiansPerSecond)), //
       Map.entry(Feet.of(14).in(Meters), RPM.of(2300).in(RadiansPerSecond)), //
       Map.entry(Feet.of(15).in(Meters), RPM.of(2350).in(RadiansPerSecond)), //
-      Map.entry(Feet.of(16).in(Meters), RPM.of(2300).in(RadiansPerSecond)) //
+      Map.entry(Feet.of(16).in(Meters), RPM.of(2300).in(RadiansPerSecond)), //
+      Map.entry(Feet.of(25).in(Meters), RPM.of(2600).in(RadiansPerSecond))
   // Map.entry(Feet.of(17).in(Meters), RPM.of(2300).in(RadiansPerSecond)),
   // Map.entry(Feet.of(18).in(Meters), RPM.of(2300).in(RadiansPerSecond)),
   // Map.entry(Feet.of(19).in(Meters), RPM.of(2300).in(RadiansPerSecond)),
@@ -124,23 +125,23 @@ public class ShootingParameters {
   );
 
   private final InterpolatingDoubleTreeMap m_feedingFlywheelVelocityMap = InterpolatingDoubleTreeMap.ofEntries(
-      Map.entry(Feet.of(4).in(Meters), RPM.of(1550).in(RadiansPerSecond)),
-      Map.entry(Feet.of(5).in(Meters), RPM.of(1550).in(RadiansPerSecond)),
-      Map.entry(Feet.of(6).in(Meters), RPM.of(1550).in(RadiansPerSecond)),
-      Map.entry(Feet.of(7).in(Meters), RPM.of(1550).in(RadiansPerSecond)),
-      Map.entry(Feet.of(8).in(Meters), RPM.of(1550).in(RadiansPerSecond)),
-      Map.entry(Feet.of(9).in(Meters), RPM.of(1650).in(RadiansPerSecond)),
-      Map.entry(Feet.of(10).in(Meters), RPM.of(1800).in(RadiansPerSecond)),
-      Map.entry(Feet.of(11).in(Meters), RPM.of(1850).in(RadiansPerSecond)),
-      Map.entry(Feet.of(12).in(Meters), RPM.of(1850).in(RadiansPerSecond)),
-      Map.entry(Feet.of(13).in(Meters), RPM.of(1850).in(RadiansPerSecond)),
-      Map.entry(Feet.of(14).in(Meters), RPM.of(1850).in(RadiansPerSecond)),
-      Map.entry(Feet.of(15).in(Meters), RPM.of(2100).in(RadiansPerSecond)),
-      Map.entry(Feet.of(26.875).in(Meters), RPM.of(3000).in(RadiansPerSecond)));
+      Map.entry(Feet.of(4).in(Meters), RPM.of(1250).in(RadiansPerSecond)),
+      Map.entry(Feet.of(5).in(Meters), RPM.of(1250).in(RadiansPerSecond)),
+      Map.entry(Feet.of(6).in(Meters), RPM.of(1250).in(RadiansPerSecond)),
+      Map.entry(Feet.of(7).in(Meters), RPM.of(1250).in(RadiansPerSecond)),
+      Map.entry(Feet.of(8).in(Meters), RPM.of(1250).in(RadiansPerSecond)),
+      Map.entry(Feet.of(9).in(Meters), RPM.of(1450).in(RadiansPerSecond)),
+      Map.entry(Feet.of(10).in(Meters), RPM.of(1600).in(RadiansPerSecond)),
+      Map.entry(Feet.of(11).in(Meters), RPM.of(1650).in(RadiansPerSecond)),
+      Map.entry(Feet.of(12).in(Meters), RPM.of(1650).in(RadiansPerSecond)),
+      Map.entry(Feet.of(13).in(Meters), RPM.of(1650).in(RadiansPerSecond)),
+      Map.entry(Feet.of(14).in(Meters), RPM.of(1650).in(RadiansPerSecond)),
+      Map.entry(Feet.of(15).in(Meters), RPM.of(1900).in(RadiansPerSecond)),
+      Map.entry(Feet.of(26.875).in(Meters), RPM.of(2800).in(RadiansPerSecond)));
 
   private double m_flywheelVelocityModifier = 1;
   private Angle m_hoodAngleModifier = Degrees.of(0);
-  private double m_ToFModifier = 1;
+  private double m_ToFModifier = 0.85;
   private Angle m_turretAngleModifier = Degrees.of(0);
 
   private final RobotState m_state;

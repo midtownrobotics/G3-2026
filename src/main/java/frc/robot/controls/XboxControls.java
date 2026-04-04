@@ -48,7 +48,7 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger unjam() {
-    return m_controller.povLeft();
+    return m_controller.povUp();
   }
 
   @Override
@@ -69,5 +69,10 @@ public class XboxControls implements Controls {
   @Override
   public Trigger feedFuel() {
     return m_controller.b();
+  }
+
+  @Override
+  public Trigger defense() {
+    return m_controller.povDown();
   }
 }

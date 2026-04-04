@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.LinearVelocity;
 import frc.robot.generated.TunerConstants;
 
 public class Constants {
@@ -22,9 +23,11 @@ public class Constants {
   public static final double kLinearSpeedMultiplier = 1;
   public static final double kAngluarSpeedMultiplier = 0.9;
 
+  public static final LinearVelocity kMaxLinearSpeed = MetersPerSecond.of(4.5);
+
   /** Calculated based on tuner constants. */
   public static final AngularVelocity kAngularMaxSpeed = RadiansPerSecond.of(
-      TunerConstants.kSpeedAt12Volts
+      kMaxLinearSpeed
           .div(
               Meters.of(
                   Math.hypot(

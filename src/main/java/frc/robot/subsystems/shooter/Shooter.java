@@ -38,7 +38,7 @@ public class Shooter extends SubsystemBase {
     m_io = io;
     m_watchdog = new Watchdawg(getClass());
     SmartDashboard.putData("TuningModes/Shooter", tuningMode());
-    m_isNearSetpointTrigger = new Trigger(() -> isNearSetpoint(RPM.of(15)));
+    m_isNearSetpointTrigger = new Trigger(() -> isNearSetpoint(RPM.of(50)));
   }
 
   @Override
@@ -85,6 +85,10 @@ public class Shooter extends SubsystemBase {
 
   public Command setSpeedCommand(Supplier<AngularVelocity> speedSupplier) {
     return run(() -> m_io.setSpeed(speedSupplier.get()));
+  }
+
+  public Command slowIdle() {
+    return run(() -> m_io.setSpeed(RPM.of(100)));
   }
 
   public Command stop() {

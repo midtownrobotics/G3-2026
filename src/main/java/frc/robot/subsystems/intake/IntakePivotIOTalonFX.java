@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -60,7 +61,7 @@ public class IntakePivotIOTalonFX implements IntakePivotIO {
     canCoderConfig.MagnetSensor = new MagnetSensorConfigs()
         .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)
         .withAbsoluteSensorDiscontinuityPoint(Degrees.of(350))
-        .withMagnetOffset(Degrees.of(8.1 * kSensorToMechanismRatio));
+        .withMagnetOffset(Rotations.of(0.123779296875));
 
     PhoenixUtil.tryUntilOk(5, () -> m_encoder.getConfigurator().apply(canCoderConfig));
 

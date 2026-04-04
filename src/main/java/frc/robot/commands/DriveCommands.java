@@ -9,14 +9,16 @@ import java.util.function.Supplier;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.Watchdawg;
+import frc.robot.RobotState;
+import frc.robot.RobotState.ShooterState;
 import frc.robot.constants.Constants;
-import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 public class DriveCommands {
@@ -24,15 +26,39 @@ public class DriveCommands {
   private final Supplier<Double> m_driveLeftSupplier;
   private final Supplier<Double> m_driveForwardSupplier;
   private final Supplier<Double> m_driveRotationSupplier;
+  private final RobotState m_state;
 
   public DriveCommands(CommandSwerveDrivetrain drive,
       Supplier<Double> driveLeftSupplier,
       Supplier<Double> driveForwardSupplier,
-      Supplier<Double> driveRotationSupplier) {
+      Supplier<Double> driveRotationSupplier,
+      RobotState state) {
     m_drive = drive;
-    m_driveLeftSupplier = driveLeftSupplier;
-    m_driveForwardSupplier = driveForwardSupplier;
+    m_state = state;
+
+    SlewRateLimiter m_forwardLimiter = new SlewRateLimiter(1.9);
+    SlewRateLimiter m_leftLimiter = new SlewRateLimiter(1.9);
+
+    m_driveLeftSupplier = () -> rateLimitInput(driveLeftSupplier.get(), m_leftLimiter);
+    m_driveForwardSupplier = () -> rateLimitInput(driveForwardSupplier.get(), m_forwardLimiter);
+    // m_driveForwardSupplier = driveForwardSupplier;
+    // m_driveLeftSupplier = driveLeftSupplier;
     m_driveRotationSupplier = driveRotationSupplier;
+
+  }
+
+  private double rateLimitInput(double input, SlewRateLimiter limiter) {
+    double magnitude = limiter.calculate(input);
+
+    if (input == 0.0) {
+      return 0.0;
+    }
+
+    if (isScoring()) {
+      return magnitude;
+    }
+
+    return input;
   }
 
   protected Command rotateRobot(Supplier<Rotation2d> rotation) {
@@ -45,10 +71,10 @@ public class DriveCommands {
 
           final var speeds = new ChassisSpeeds(
               m_driveForwardSupplier.get()
-                  * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                  * Constants.kMaxLinearSpeed.in(MetersPerSecond)
                   * Constants.kLinearSpeedMultiplier,
               m_driveLeftSupplier.get()
-                  * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                  * Constants.kMaxLinearSpeed.in(MetersPerSecond)
                   * Constants.kLinearSpeedMultiplier,
               0);
 
@@ -70,18 +96,21 @@ public class DriveCommands {
     return rotateRobot(rotation);
   }
 
+  private boolean isScoring() {
+    return m_state.inAllianceZone() && m_state.getShooterState() == ShooterState.kShoot;
+  }
+
   private Command joyStickDrive() {
     final Watchdawg watchdog = new Watchdawg(DriveCommands.class);
     return Commands.run(
         () -> {
           watchdog.start();
+          double shootingMultiplier = isScoring() ? 0.6 : 1.0;
+          double maxSpeed = Constants.kMaxLinearSpeed.in(MetersPerSecond)
+              * Constants.kLinearSpeedMultiplier * shootingMultiplier;
           ChassisSpeeds speeds = new ChassisSpeeds(
-              m_driveForwardSupplier.get()
-                  * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
-                  * Constants.kLinearSpeedMultiplier,
-              m_driveLeftSupplier.get()
-                  * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
-                  * Constants.kLinearSpeedMultiplier,
+              m_driveForwardSupplier.get() * maxSpeed,
+              m_driveLeftSupplier.get() * maxSpeed,
               Math.copySign(
                   m_driveRotationSupplier.get()
                       * m_driveRotationSupplier.get()
@@ -113,10 +142,10 @@ public class DriveCommands {
 
             speeds = new ChassisSpeeds(
                 m_driveForwardSupplier.get()
-                    * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                    * Constants.kMaxLinearSpeed.in(MetersPerSecond)
                     * Constants.kLinearSpeedMultiplier,
                 m_driveLeftSupplier.get()
-                    * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                    * Constants.kMaxLinearSpeed.in(MetersPerSecond)
                     * Constants.kLinearSpeedMultiplier,
                 0);
 
@@ -131,10 +160,10 @@ public class DriveCommands {
           } else {
             speeds = new ChassisSpeeds(
                 m_driveForwardSupplier.get()
-                    * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                    * Constants.kMaxLinearSpeed.in(MetersPerSecond)
                     * Constants.kLinearSpeedMultiplier,
                 m_driveLeftSupplier.get()
-                    * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)
+                    * Constants.kMaxLinearSpeed.in(MetersPerSecond)
                     * Constants.kLinearSpeedMultiplier,
                 Math.copySign(
                     m_driveRotationSupplier.get()

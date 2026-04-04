@@ -2,7 +2,6 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Seconds;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -28,6 +27,7 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.lib.LoggedCommandScheduler;
 import frc.lib.Watchdawg;
+import frc.robot.RobotState.ShooterState;
 import frc.robot.ShootingParameters.ShootingParametersMode;
 import frc.robot.commands.RobotCommands;
 import frc.robot.constants.FieldConstants;
@@ -256,6 +256,10 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addRoutine("Left Depot Shoot", m_autoRoutines::pickupDepotAndShoot);
     m_autoChooser.addRoutine("Depot And Middle Shoot", m_autoRoutines::depotAndMiddleShoot);
     m_autoChooser.addRoutine("Middle and Depot Shoot", m_autoRoutines::middleAndDepotShootLeft);
+    m_autoChooser.addRoutine("SOTM Depot", m_autoRoutines::SOTMDepot);
+    m_autoChooser.addRoutine("SOTM Left Center", m_autoRoutines::SOTMLeftCenter);
+    m_autoChooser.addRoutine("Right center and shoot twice", m_autoRoutines::SOTMRightTwice);
+    m_autoChooser.addRoutine("Left center and shoot twice", m_autoRoutines::SOTMLeftTwice);
 
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
     RobotModeTriggers.autonomous().whileTrue(m_autoChooser.selectedCommandScheduler());
@@ -266,9 +270,15 @@ public class Robot extends LoggedRobot {
 
     m_controls.intake().onTrue(m_robotCommands.fill());
 
+    m_controls.defense().onTrue(m_robotCommands.defense());
+
     m_controls.shoot().onTrue(m_robotCommands.autoAimAndPrepareShootTeleop());
+    m_controls.shoot().onTrue(m_state.setShooterStateCommand(ShooterState.kRev))
+        .onFalse(m_state.setShooterStateCommand(ShooterState.kShoot));
 
     m_controls.snowBlow().onTrue(m_robotCommands.snowBlow());
+    m_controls.snowBlow().onTrue(m_state.setShooterStateCommand(ShooterState.kRev))
+        .onFalse(m_state.setShooterStateCommand(ShooterState.kShoot));
 
     m_controls.setpointShoot().onTrue(m_robotCommands.setPointShoot());
 
@@ -286,6 +296,9 @@ public class Robot extends LoggedRobot {
 
     controls.increaseVelocityCompensation().onTrue(m_robotCommands.increaseVelocityCompensation());
     controls.decreaseVelocityCompensation().onTrue(m_robotCommands.decreaseVelocityCompensation());
+
+    controls.toggleShootOnTheMove()
+        .onTrue(m_state.setShootOnTheMoveEnabledCommand(() -> !m_state.isShootOnTheMoveEnabled()));
   }
 
   @Override

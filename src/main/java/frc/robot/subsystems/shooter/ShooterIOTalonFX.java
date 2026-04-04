@@ -126,6 +126,7 @@ public class ShooterIOTalonFX implements ShooterIO {
 
   @Override
   public void stop() {
+    m_setpoint = RPM.of(0);
     m_motor1.stopMotor();
   }
 

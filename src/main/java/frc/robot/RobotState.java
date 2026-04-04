@@ -1,7 +1,12 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+
+import java.util.Optional;
+import java.util.function.BooleanSupplier;
 
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
@@ -11,11 +16,15 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -44,12 +53,20 @@ public class RobotState {
   private final Hood m_hood;
   private final ShootingParameters m_shootingParameters;
 
-  private boolean m_holdFire = true;
-
   private final LoggedNetworkBoolean m_fixedTurretModeToggle = new LoggedNetworkBoolean("Toggles/FixedTurretMode",
       false);
   private final LoggedNetworkBoolean m_shootOnTheMoveToggle = new LoggedNetworkBoolean("Toggles/ShootOnTheMove", true);
   private final LoggedNetworkBoolean m_autoAimToggle = new LoggedNetworkBoolean("Toggles/AutoAim", false);
+
+  public enum ShooterState {
+    kIdle,
+    kRev,
+    kShoot
+  }
+
+  private ShooterState m_shooterState = ShooterState.kIdle;
+
+  private TimeInterpolatableBuffer<Pose2d> m_robotPoseBuffer = TimeInterpolatableBuffer.createBuffer(1.0);
 
   public RobotState(
       CommandSwerveDrivetrain drive,
@@ -76,9 +93,36 @@ public class RobotState {
   public void periodic() {
     m_shootingParameters.periodic();
 
+    double timestamp = Timer.getFPGATimestamp();
+    Pose2d robotPose = getRobotPose();
+
+    m_robotPoseBuffer.addSample(timestamp, robotPose);
+
+    double timeslice = 0.04;
+
+    Optional<Pose2d> oldPose = m_robotPoseBuffer.getSample(timestamp - timeslice);
+
+    if (oldPose.isPresent()) {
+      Twist2d robotTwist = oldPose.get().log(robotPose);
+
+      ChassisSpeeds speeds = new ChassisSpeeds(robotTwist.dx / timeslice, robotTwist.dy / timeslice,
+          robotTwist.dtheta / timeslice);
+      Logger.recordOutput("RobotState/PoseDerivedChassisSpeeds", speeds);
+    }
+
     Logger.recordOutput("RobotState/fixedTurretModeEnabled", isFixedTurretModeEnabled());
     Logger.recordOutput("RobotState/shootOnTheMoveEnabled", isShootOnTheMoveEnabled());
     Logger.recordOutput("RobotState/inAllianceZone", inAllianceZone());
+    Logger.recordOutput("RobotState/isPreparedToShootTrigger", isPreparedToShootTrigger().getAsBoolean());
+    Logger.recordOutput("RobotState/shooterMode", getShooterState());
+  }
+
+  public ShooterState getShooterState() {
+    return m_shooterState;
+  }
+
+  public Command setShooterStateCommand(ShooterState state) {
+    return Commands.runOnce(() -> m_shooterState = state);
   }
 
   public Pose2d getRobotPose() {
@@ -131,10 +175,11 @@ public class RobotState {
   }
 
   public Trigger isPreparedToShootTrigger() {
-    return m_shooter.isNearSetpointTrigger()
+    return m_shooter.isNearSetpointTrigger()//.debounce(0.2, DebounceType.kFalling)
+        .and(() -> m_shooterState == ShooterState.kShoot)
         .and(m_hood.isNearSetpointTrigger())
-        .and(m_turret.isNearSetpointTrigger())
-        .and(holdFireTrigger().negate())
+        .and(m_turret.isNearSetpointTrigger().debounce(0.3, DebounceType.kFalling))
+        .and(() -> m_shooter.getSetpointSpeed().gt(RPM.of(500)))
         .debounce(0.1, DebounceType.kFalling);
   }
 
@@ -159,15 +204,15 @@ public class RobotState {
         .debounce(0.2);
   }
 
-  public Trigger holdFireTrigger() {
-    return new Trigger(this::isHoldFireEnabled).debounce(0.2);
-  }
-
   public boolean inAllianceZone() {
-    return DriverStation.getAlliance()
-        .map(FieldConstants::getAllianceZone)
-        .map(r -> r.contains(m_drive.getPose().getTranslation()))
-        .orElse(false);
+    double hubX = FieldConstants.getHubPosition2d().getX();
+    double robotX = getRobotPose().getX();
+
+    if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) {
+      return robotX < hubX;
+    }
+
+    return robotX > hubX;
   }
 
   public Trigger fuelSensorTripped() {
@@ -190,21 +235,33 @@ public class RobotState {
     return m_shootOnTheMoveToggle.get();
   }
 
-  public boolean isHoldFireEnabled() {
-    return m_holdFire;
-  }
-
   public ShootingParameters getShootingParameters() {
     return m_shootingParameters;
   }
 
   public Translation2d calculateFeedTarget() {
-    if (GeometryUtil.flip(getTurretPose()).getMeasureY().lt(FieldConstants.kFieldWidth.div(2))) {
-      return GeometryUtil.flip(new Translation2d(FieldConstants.kAllianceZoneOffset.getMeasureX().div(2),
-          FieldConstants.kFieldWidth.div(4)));
+    // if (GeometryUtil.flip(getTurretPose()).getMeasureY().lt(FieldConstants.kFieldWidth.div(2))) {
+    //   return GeometryUtil.flip(new Translation2d(FieldConstants.kAllianceZoneOffset.getMeasureX().div(2),
+    //       FieldConstants.kFieldWidth.div(4)));
+    // }
+    // return GeometryUtil.flip(new Translation2d(FieldConstants.kAllianceZoneOffset.getMeasureX().div(2),
+    //     FieldConstants.kFieldWidth.div(4).times(3)));
+
+    Translation2d hubTranslation = FieldConstants.getHubPosition2d();
+    double robotY = getRobotPose().getY();
+    double hubX = hubTranslation.getX();
+    double hubY = hubTranslation.getY();
+
+    double targetX = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? 1.5
+        : FieldConstants.kFieldLength.in(Meters) - 1.5;
+
+    double targetY = hubY - 1.3;
+
+    if (robotY > hubY) {
+      targetY = hubY + 1.3;
     }
-    return GeometryUtil.flip(new Translation2d(FieldConstants.kAllianceZoneOffset.getMeasureX().div(2),
-        FieldConstants.kFieldWidth.div(4).times(3)));
+
+    return new Translation2d(targetX, targetY);
   }
 
   public Command setFixedTurretModeEnabledCommand(boolean enabled) {
@@ -215,7 +272,7 @@ public class RobotState {
     return Commands.runOnce(() -> m_shootOnTheMoveToggle.set(enabled));
   }
 
-  public Command setHoldFireCommand(boolean enabled) {
-    return Commands.runOnce(() -> m_holdFire = enabled);
+  public Command setShootOnTheMoveEnabledCommand(BooleanSupplier enabled) {
+    return Commands.runOnce(() -> m_shootOnTheMoveToggle.set(enabled.getAsBoolean()));
   }
 }
