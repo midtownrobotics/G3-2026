@@ -10,6 +10,7 @@ import java.util.function.Supplier;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.RobotState;
 import frc.robot.RobotState.ShooterState;
@@ -156,7 +157,7 @@ public class RobotCommands {
   }
 
   public Command defense() {
-    Supplier<Boolean> turretBlockingIntake = () -> m_state.getTurretAngle().gt(Degrees.of(90))
+    Supplier<Boolean> turretBlockingIntake = () -> m_state.getTurretAngle().gt(Degrees.of(94))
         || m_state.getHoodAngle().gt(Degrees.of(1));
     return Commands.parallel(
         m_turret.setAngleCommand(Degrees.of(90)),
@@ -164,7 +165,7 @@ public class RobotCommands {
         m_feeder.stop(), m_indexer.stop(),
         m_state.setShooterStateCommand(ShooterState.kIdle),
         m_intakeRoller.stop(),
-        m_intakePivot.setAngle(() -> Degrees.of(turretBlockingIntake.get() ? 40 : 65)));
+        m_intakePivot.setAngle(() -> Degrees.of(turretBlockingIntake.get() ? 40 : 65))).withName("defense");
   }
 
   public Command stopFeedingFuel() {

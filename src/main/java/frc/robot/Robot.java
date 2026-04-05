@@ -288,6 +288,8 @@ public class Robot extends LoggedRobot {
         .onFalse(m_state.setShooterStateCommand(ShooterState.kShoot));
 
     m_controls.setpointShoot().onTrue(m_robotCommands.setPointShoot());
+    m_controls.setpointShoot().onTrue(m_state.setShooterStateCommand(ShooterState.kRev))
+        .onFalse(m_state.setShooterStateCommand(ShooterState.kShoot));
 
     m_controls.feedFuel().onTrue(m_robotCommands.feedFuel()).onFalse(m_robotCommands.stopFeedingFuel());
 
