@@ -15,6 +15,7 @@ import com.ctre.phoenix6.SignalLogger;
 
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -169,11 +170,11 @@ public class Robot extends LoggedRobot {
             new Translation3d(Inches.of(-7.076), Inches.of(14.525), Inches.of(10.65)),
             new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(90 - 37.698))));
 
-    DynamicCamera turretCamera = new DynamicCamera("Turret Camera");
+    DynamicCamera turretCamera = new DynamicCamera("Turret", VecBuilder.fill(0.1, 0.1, 0.1));
 
     m_vision = new Vision(
         (observation) -> m_drive.addVisionMeasurement(
-            observation.pose().toPose2d(), observation.timestamp()),
+            observation.pose().toPose2d(), observation.timestamp(), observation.standardDevs()),
         m_drive::getPose,
         m_drive::resetPose,
         rearRight,
