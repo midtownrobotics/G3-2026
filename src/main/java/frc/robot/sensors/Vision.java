@@ -12,6 +12,7 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.Watchdawg;
@@ -22,17 +23,21 @@ public class Vision extends SubsystemBase {
   private final List<Camera> m_cameras;
   private final Consumer<PoseObservation> m_addVisionMeasurement;
   private final Supplier<Pose2d> m_poseSupplier;
+  private final Consumer<Pose2d> m_resetPoseConsumer;
   private VisionSystemSim m_visionSim;
   private final Watchdawg m_watchdog;
   private final TimeInterpolatableBuffer<Pose2d> m_observations;
+  private final TimeInterpolatableBuffer<Pose2d> m_acceptedObservations;
 
   public Vision(
       Consumer<PoseObservation> addVisionMeasurement,
       Supplier<Pose2d> poseSupplier,
+      Consumer<Pose2d> resetPoseConsumer,
       Camera... cameras) {
     m_cameras = List.of(cameras);
     m_addVisionMeasurement = addVisionMeasurement;
     m_poseSupplier = poseSupplier;
+    m_resetPoseConsumer = resetPoseConsumer;
 
     if (Robot.isSimulation()) {
       m_visionSim = new VisionSystemSim("main");
@@ -41,6 +46,7 @@ public class Vision extends SubsystemBase {
     }
 
     m_observations = TimeInterpolatableBuffer.createBuffer(0.1);
+    m_acceptedObservations = TimeInterpolatableBuffer.createBuffer(0.1);
 
     m_watchdog = new Watchdawg(getClass());
   }
@@ -48,36 +54,53 @@ public class Vision extends SubsystemBase {
   @Override
   public void periodic() {
     m_watchdog.start();
+
+    Pose3d robotPose = new Pose3d(m_poseSupplier.get());
+
+    for (var camera : m_cameras) {
+      camera.periodic();
+      Logger.recordOutput("Vision/" + camera.getName() + "/cameraPose",
+          robotPose.transformBy(camera.getRobotToCamera()));
+    }
+
     List<PoseObservation> observations = m_cameras.stream().flatMap(c -> c.getLatestObservations().stream()).toList();
 
     if (observations.isEmpty()) {
       m_watchdog.end("periodic");
       return;
     }
-
     observations.forEach(o -> m_observations.addSample(o.timestamp(), o.pose().toPose2d()));
 
     double meanX = m_observations.getInternalBuffer().values().stream().mapToDouble(p -> p.getX()).average().orElse(0);
     double meanY = m_observations.getInternalBuffer().values().stream().mapToDouble(p -> p.getY()).average().orElse(0);
 
-    for (var camera : m_cameras) {
-      camera.periodic();
-      Logger.recordOutput("Vision/cameraPoses/" + camera.getName(),
-          new Pose3d(m_poseSupplier.get()).transformBy(camera.getRobotToCamera()));
-    }
-
     for (var observation : observations) {
-      Logger.recordOutput("Vision/" + observation.cameraName() + "/observedPose", observation.pose());
+      Logger.recordOutput("Vision/" + observation.cameraName() + "/observedRobotPose", observation.pose());
       if (Math.abs(observation.pose().getX() - meanX) > 1 || Math.abs(observation.pose().getY() - meanY) > 1) {
         continue;
       }
+      m_acceptedObservations.addSample(observation.timestamp(), observation.pose().toPose2d());
       m_addVisionMeasurement.accept(observation);
     }
+
+    resetRobotPoseIfDiverged(robotPose.toPose2d());
+
     m_watchdog.end("periodic");
   }
 
+  private void resetRobotPoseIfDiverged(Pose2d robotPose) {
+    if (!m_acceptedObservations.getInternalBuffer().isEmpty()) {
+      Translation2d robotTranslation = robotPose.getTranslation();
+      Pose2d latestAcceptedObservationPose = m_acceptedObservations.getInternalBuffer().lastEntry().getValue();
+
+      if (robotTranslation.getDistance(latestAcceptedObservationPose.getTranslation()) > 0.5) {
+        m_resetPoseConsumer.accept(latestAcceptedObservationPose);
+      }
+    }
+  }
+
   public Optional<Pose2d> getPoseAtTime(double time) {
-    return m_observations.getSample(time);
+    return m_acceptedObservations.getSample(time);
   }
 
   @Override

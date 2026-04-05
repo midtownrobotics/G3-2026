@@ -54,6 +54,9 @@ public class RobotState {
   private final Hood m_hood;
   private final ShootingParameters m_shootingParameters;
 
+  private final Trigger m_isPreparedToShootTrigger;
+  private final Trigger m_inAllianceZoneTrigger;
+
   private final LoggedNetworkBoolean m_fixedTurretModeToggle = new LoggedNetworkBoolean("Toggles/FixedTurretMode",
       false);
   private final LoggedNetworkBoolean m_shootOnTheMoveToggle = new LoggedNetworkBoolean("Toggles/ShootOnTheMove", true);
@@ -89,6 +92,16 @@ public class RobotState {
     m_shooter = shooter;
     m_hood = hood;
     m_shootingParameters = new ShootingParameters(this);
+
+    m_isPreparedToShootTrigger = m_shooter.isNearSetpointTrigger()
+        .and(() -> m_shooterState == ShooterState.kShoot)
+        .and(m_hood.isNearSetpointTrigger())
+        .and(m_turret.isNearSetpointTrigger())
+        .and(() -> m_shooter.getSetpointSpeed().gt(RPM.of(500)))
+        .debounce(0.1, DebounceType.kFalling);
+
+    m_inAllianceZoneTrigger = new Trigger(this::inAllianceZone)
+        .debounce(0.2, DebounceType.kFalling);
   }
 
   public void periodic() {
@@ -113,7 +126,7 @@ public class RobotState {
 
     Logger.recordOutput("RobotState/fixedTurretModeEnabled", isFixedTurretModeEnabled());
     Logger.recordOutput("RobotState/shootOnTheMoveEnabled", isShootOnTheMoveEnabled());
-    Logger.recordOutput("RobotState/inAllianceZone", inAllianceZone());
+    Logger.recordOutput("RobotState/inAllianceZoneTrigger", inAllianceZoneTrigger().getAsBoolean());
     Logger.recordOutput("RobotState/isPreparedToShootTrigger", isPreparedToShootTrigger().getAsBoolean());
     Logger.recordOutput("RobotState/shooterMode", getShooterState());
   }
@@ -184,12 +197,7 @@ public class RobotState {
   }
 
   public Trigger isPreparedToShootTrigger() {
-    return m_shooter.isNearSetpointTrigger()//.debounce(0.2, DebounceType.kFalling)
-        .and(() -> m_shooterState == ShooterState.kShoot)
-        .and(m_hood.isNearSetpointTrigger())
-        .and(m_turret.isNearSetpointTrigger().debounce(0.3, DebounceType.kFalling))
-        .and(() -> m_shooter.getSetpointSpeed().gt(RPM.of(500)))
-        .debounce(0.1, DebounceType.kFalling);
+    return m_isPreparedToShootTrigger;
   }
 
   public Angle getIntakeAngle() {
@@ -209,8 +217,7 @@ public class RobotState {
   }
 
   public Trigger inAllianceZoneTrigger() {
-    return new Trigger(this::inAllianceZone)
-        .debounce(0.2);
+    return m_inAllianceZoneTrigger;
   }
 
   public boolean inAllianceZone() {
@@ -249,16 +256,8 @@ public class RobotState {
   }
 
   public Translation2d calculateFeedTarget() {
-    // if (GeometryUtil.flip(getTurretPose()).getMeasureY().lt(FieldConstants.kFieldWidth.div(2))) {
-    //   return GeometryUtil.flip(new Translation2d(FieldConstants.kAllianceZoneOffset.getMeasureX().div(2),
-    //       FieldConstants.kFieldWidth.div(4)));
-    // }
-    // return GeometryUtil.flip(new Translation2d(FieldConstants.kAllianceZoneOffset.getMeasureX().div(2),
-    //     FieldConstants.kFieldWidth.div(4).times(3)));
-
     Translation2d hubTranslation = FieldConstants.getHubPosition2d();
     double robotY = getRobotPose().getY();
-    double hubX = hubTranslation.getX();
     double hubY = hubTranslation.getY();
 
     double targetX = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? 1.5
