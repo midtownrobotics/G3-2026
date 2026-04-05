@@ -294,6 +294,8 @@ public class Robot extends LoggedRobot {
     m_controls.feedFuel().onTrue(m_robotCommands.feedFuel()).onFalse(m_robotCommands.stopFeedingFuel());
 
     m_controls.zeroHood().whileTrue(m_robotCommands.zeroTurretHood());
+
+    m_controls.zeroIntake().whileTrue(m_robotCommands.zeroIntake());
   }
 
   public void configureTrimControlBindings(TrimControls controls) {
