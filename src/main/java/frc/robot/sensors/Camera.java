@@ -12,8 +12,12 @@ import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.targeting.PhotonPipelineResult;
 
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.robot.constants.FieldConstants;
@@ -23,16 +27,22 @@ public class Camera {
   protected Transform3d m_robotToCamera;
   private String m_name;
   private final Alert m_connectionAlert;
+  private final Matrix<N3, N1> m_standardDevs;
 
   public static record PoseObservation(double timestamp, Pose3d pose, int tagCount, double averageDistanceMeters,
-      String cameraName) {
+      String cameraName, Matrix<N3, N1> standardDevs) {
   }
 
-  public Camera(String name, Transform3d robotToCamera) {
+  public Camera(String name, Transform3d robotToCamera, Matrix<N3, N1> standardDevs) {
     m_name = name;
     m_camera = new PhotonCamera(name);
     m_robotToCamera = robotToCamera;
     m_connectionAlert = new Alert("Camera " + name + " is not connected!", AlertType.kWarning);
+    m_standardDevs = standardDevs;
+  }
+
+  public Camera(String name, Transform3d robotToCamera) {
+    this(name, robotToCamera, VecBuilder.fill(0.3, 0.3, 0.3));
   }
 
   public void periodic() {
@@ -90,7 +100,8 @@ public class Camera {
                 robotPose,
                 multitagResult.fiducialIDsUsed.size(),
                 avgDistance,
-                m_name));
+                m_name,
+                m_standardDevs));
 
       }
     }
