@@ -23,7 +23,7 @@ import frc.lib.PhoenixUtil;
 import frc.robot.constants.Ports;
 
 public class ShooterIOTalonFX implements ShooterIO {
-  private static final double kGearRatio = 2.0 / 3.0;
+  private static final double kGearRatio = 1.0;
 
   private final TalonFX m_motor1;
   private final TalonFX m_motor2;
