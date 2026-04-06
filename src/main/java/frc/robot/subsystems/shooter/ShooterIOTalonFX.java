@@ -48,11 +48,11 @@ public class ShooterIOTalonFX implements ShooterIO {
     TalonFXConfiguration config = new TalonFXConfiguration();
 
     config.Slot0 = new Slot0Configs()
-        .withKP(0.37011998891830444)
+        .withKP(0.4)
         .withKI(0)
         .withKD(0)
-        .withKS(0.429)
-        .withKV(0.085)
+        .withKS(0.29)
+        .withKV(0.12)
         .withKA(0);
     config.MotorOutput
         .withNeutralMode(NeutralModeValue.Coast);

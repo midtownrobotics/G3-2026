@@ -19,6 +19,8 @@ public interface Controls {
 
   public Trigger zeroHood();
 
+  public Trigger zeroIntake();
+
   public Trigger setpointShoot();
 
   public Trigger fullFieldShoot();

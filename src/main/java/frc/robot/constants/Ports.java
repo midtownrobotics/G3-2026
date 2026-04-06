@@ -6,8 +6,7 @@ public class Ports {
   public record CANPort(int canId, CANBus canbus) {
   };
 
-  private static final CANBus drivetrain = new CANBus("staticBus");
-  private static final CANBus primaryCanBus = new CANBus("dynamicBus");
+  private static final CANBus primaryCanBus = new CANBus("mechs");
 
   public static final CANPort kIntakePivot = new CANPort(23, primaryCanBus);
   public static final CANPort kIntakeRoller = new CANPort(24, primaryCanBus);

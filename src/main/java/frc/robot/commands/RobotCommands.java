@@ -214,6 +214,15 @@ public class RobotCommands {
         }).withName("zeroTurretHood");
   }
 
+  public Command zeroIntake() {
+    return m_intakePivot.setLowerSoftLimitEnabledCommand(false)
+        .andThen(m_intakePivot.setVoltage(Volts.of(-3.5)).until(m_intakePivot.getCurrentSpikeTrigger()).withTimeout(Seconds.of(4)))
+        .finallyDo(() -> {
+          m_intakePivot.setLowerSoftLimitEnabled(true);
+          m_intakePivot.setEncoderPosition(Degrees.zero());
+        }).withName("zeroIntake");
+  }
+
   public Command increaseFlywheelVelocity() {
     return Commands.runOnce(m_state.getShootingParameters()::increaseFlywheelVelocity);
   }

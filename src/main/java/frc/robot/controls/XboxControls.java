@@ -52,8 +52,13 @@ public class XboxControls implements Controls {
   }
 
   @Override
+  public Trigger zeroIntake() {
+    return m_controller.povLeft();
+  }
+
+  @Override
   public Trigger zeroHood() {
-    return m_controller.a();
+    return m_controller.povRight();
   }
 
   @Override
@@ -73,6 +78,6 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger defense() {
-    return m_controller.povDown();
+    return new Trigger(() -> false);
   }
 }

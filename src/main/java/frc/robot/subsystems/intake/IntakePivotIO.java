@@ -42,4 +42,7 @@ public interface IntakePivotIO {
 
   default void setPID(double kP, double kI, double kD, double kG) {
   }
+
+  default void setLowerSoftLimitEnabled(boolean enabled) {
+  }
 }
