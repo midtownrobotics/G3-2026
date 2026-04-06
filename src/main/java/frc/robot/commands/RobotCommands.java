@@ -10,7 +10,6 @@ import java.util.function.Supplier;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.RobotState;
 import frc.robot.RobotState.ShooterState;
@@ -90,8 +89,7 @@ public class RobotCommands {
   }
 
   public Command shooterTrackShootingParamters() {
-    return Commands
-        .parallel(m_shooter.setSpeedCommand(() -> m_state.getShootingParameters().getParameters().flywheelVelocity()))
+    return m_shooter.setSpeedCommand(() -> m_state.getShootingParameters().getParameters().flywheelVelocity())
         .withName("shooterTrackShootingParamters");
   }
 
@@ -152,7 +150,7 @@ public class RobotCommands {
   }
 
   public Command feedFuel() {
-    return Commands.parallel(m_feeder.runForward(), m_indexer.runForward(), m_intakeRoller.feedStow())
+    return Commands.parallel(m_feeder.runForward(), m_indexer.runForward())
         .withName("feedFuel");
   }
 
@@ -216,7 +214,8 @@ public class RobotCommands {
 
   public Command zeroIntake() {
     return m_intakePivot.setLowerSoftLimitEnabledCommand(false)
-        .andThen(m_intakePivot.setVoltage(Volts.of(-3.5)).until(m_intakePivot.getCurrentSpikeTrigger()).withTimeout(Seconds.of(4)))
+        .andThen(m_intakePivot.setVoltage(Volts.of(-3.5)).until(m_intakePivot.getCurrentSpikeTrigger())
+            .withTimeout(Seconds.of(4)))
         .finallyDo(() -> {
           m_intakePivot.setLowerSoftLimitEnabled(true);
           m_intakePivot.setEncoderPosition(Degrees.zero());
