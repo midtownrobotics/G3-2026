@@ -19,7 +19,8 @@ public class AutoRoutines {
     AutoRoutine routine = m_autoFactory.newRoutine("TuneRadial");
     AutoTrajectory radialTrajectory = routine.trajectory("RadialTrajectory");
 
-    radialTrajectory.active().onTrue(m_robotCommands.shooterTrackShootingParamters().asProxy());
+    radialTrajectory.active().onTrue(m_robotCommands.shootShooterCommand().asProxy());
+    radialTrajectory.done().onTrue(m_robotCommands.stopShooterCommand());
 
     routine.active().onTrue(
         Commands.sequence(
@@ -33,7 +34,8 @@ public class AutoRoutines {
     AutoRoutine routine = m_autoFactory.newRoutine("TuneTangential");
     AutoTrajectory tangentialTrajectory = routine.trajectory("TangentialTrajectory");
 
-    tangentialTrajectory.active().onTrue(m_robotCommands.shooterTrackShootingParamters().asProxy());
+    tangentialTrajectory.active().onTrue(m_robotCommands.shootShooterCommand().asProxy());
+    tangentialTrajectory.done().onTrue(m_robotCommands.stopShooterCommand());
 
     routine.active().onTrue(
         Commands.sequence(
