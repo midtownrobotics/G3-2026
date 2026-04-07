@@ -14,6 +14,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.Watchdawg;
 import frc.robot.Robot;
@@ -92,11 +93,16 @@ public class Vision extends SubsystemBase {
     if (!m_acceptedObservations.getInternalBuffer().isEmpty()) {
       Translation2d robotTranslation = robotPose.getTranslation();
       Pose2d latestAcceptedObservationPose = m_acceptedObservations.getInternalBuffer().lastEntry().getValue();
+      Logger.recordOutput("Vision/acceptedObservationsLastEntry", latestAcceptedObservationPose);
 
-      if (robotTranslation.getDistance(latestAcceptedObservationPose.getTranslation()) > 0.5) {
+      if (robotTranslation.getDistance(latestAcceptedObservationPose.getTranslation()) > 0.5
+          && Timer.getFPGATimestamp() - m_acceptedObservations.getInternalBuffer().lastKey() < 0.1) {
+        Logger.recordOutput("Vision/resetPose", true);
         m_resetPoseConsumer.accept(latestAcceptedObservationPose);
+        return;
       }
     }
+    Logger.recordOutput("Vision/resetPose", false);
   }
 
   public Optional<Pose2d> getPoseAtTime(double time) {
