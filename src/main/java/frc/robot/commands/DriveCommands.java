@@ -6,6 +6,8 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import java.util.function.Supplier;
 
+import com.ctre.phoenix6.swerve.SwerveRequest;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -17,16 +19,16 @@ import frc.lib.Watchdawg;
 import frc.robot.RobotState;
 import frc.robot.RobotState.ShooterState;
 import frc.robot.constants.Constants;
-import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 public class DriveCommands {
-  private final Drive m_drive;
+  private final CommandSwerveDrivetrain m_drive;
   private final Supplier<Double> m_driveLeftSupplier;
   private final Supplier<Double> m_driveForwardSupplier;
   private final Supplier<Double> m_driveRotationSupplier;
   private final RobotState m_state;
 
-  public DriveCommands(Drive drive,
+  public DriveCommands(CommandSwerveDrivetrain drive,
       Supplier<Double> driveLeftSupplier,
       Supplier<Double> driveForwardSupplier,
       Supplier<Double> driveRotationSupplier,
@@ -39,6 +41,8 @@ public class DriveCommands {
 
     m_driveLeftSupplier = () -> rateLimitInput(driveLeftSupplier.get(), m_leftLimiter);
     m_driveForwardSupplier = () -> rateLimitInput(driveForwardSupplier.get(), m_forwardLimiter);
+    // m_driveForwardSupplier = driveForwardSupplier;
+    // m_driveLeftSupplier = driveLeftSupplier;
     m_driveRotationSupplier = driveRotationSupplier;
 
   }
@@ -65,7 +69,7 @@ public class DriveCommands {
           watchdog.start();
           headingController.enableContinuousInput(-Math.PI, Math.PI);
 
-          final var fieldRelativeSpeeds = new ChassisSpeeds(
+          final var speeds = new ChassisSpeeds(
               m_driveForwardSupplier.get()
                   * Constants.kMaxLinearSpeed.in(MetersPerSecond)
                   * Constants.kLinearSpeedMultiplier,
@@ -76,11 +80,14 @@ public class DriveCommands {
 
           double fieldRelativeAngle = m_drive.getPose().getRotation().getRadians();
 
-          fieldRelativeSpeeds.omegaRadiansPerSecond = headingController.calculate(
+          speeds.omegaRadiansPerSecond = headingController.calculate(
               fieldRelativeAngle, rotation.get().getMeasure().in(Radians));
 
-          m_drive.runVelocity(
-              ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, m_drive.getPose().getRotation()));
+          m_drive.setControl(
+              new SwerveRequest.FieldCentric()
+                  .withVelocityX(speeds.vxMetersPerSecond)
+                  .withVelocityY(speeds.vyMetersPerSecond)
+                  .withRotationalRate(speeds.omegaRadiansPerSecond));
           watchdog.end("rotateRobot");
         }, m_drive);
   }
@@ -101,7 +108,7 @@ public class DriveCommands {
           double shootingMultiplier = isScoring() ? 0.6 : 1.0;
           double maxSpeed = Constants.kMaxLinearSpeed.in(MetersPerSecond)
               * Constants.kLinearSpeedMultiplier * shootingMultiplier;
-          ChassisSpeeds fieldRelativeSpeeds = new ChassisSpeeds(
+          ChassisSpeeds speeds = new ChassisSpeeds(
               m_driveForwardSupplier.get() * maxSpeed,
               m_driveLeftSupplier.get() * maxSpeed,
               Math.copySign(
@@ -111,8 +118,11 @@ public class DriveCommands {
                       * Constants.kAngluarSpeedMultiplier,
                   m_driveRotationSupplier.get()));
 
-          m_drive.runVelocity(
-              ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, m_drive.getPose().getRotation()));
+          m_drive.setControl(
+              new SwerveRequest.FieldCentric()
+                  .withVelocityX(speeds.vxMetersPerSecond)
+                  .withVelocityY(speeds.vyMetersPerSecond)
+                  .withRotationalRate(speeds.omegaRadiansPerSecond));
           watchdog.end("joystickDrive");
         },
         m_drive);
@@ -126,11 +136,11 @@ public class DriveCommands {
           final PIDController headingController = new PIDController(100, 0, 0);
           final boolean snakeDriveActive = !(Math.abs(m_driveRotationSupplier.get()) > 0);
 
-          ChassisSpeeds fieldRelativeSpeeds;
+          ChassisSpeeds speeds;
           if (snakeDriveActive) {
             headingController.enableContinuousInput(-Math.PI, Math.PI);
 
-            fieldRelativeSpeeds = new ChassisSpeeds(
+            speeds = new ChassisSpeeds(
                 m_driveForwardSupplier.get()
                     * Constants.kMaxLinearSpeed.in(MetersPerSecond)
                     * Constants.kLinearSpeedMultiplier,
@@ -140,15 +150,15 @@ public class DriveCommands {
                 0);
 
             Angle headingAngle = Radians.of(
-                Math.atan2(fieldRelativeSpeeds.vyMetersPerSecond, fieldRelativeSpeeds.vxMetersPerSecond) + Math.PI);
+                Math.atan2(speeds.vyMetersPerSecond, speeds.vxMetersPerSecond) + Math.PI);
 
-            if (Math.abs(fieldRelativeSpeeds.vyMetersPerSecond) > 0.1
-                || Math.abs(fieldRelativeSpeeds.vxMetersPerSecond) > 0.1) {
-              fieldRelativeSpeeds.omegaRadiansPerSecond = headingController.calculate(
+            if (Math.abs(speeds.vyMetersPerSecond) > 0.1
+                || Math.abs(speeds.vxMetersPerSecond) > 0.1) {
+              speeds.omegaRadiansPerSecond = headingController.calculate(
                   m_drive.getPose().getRotation().getRadians(), headingAngle.in(Radians));
             }
           } else {
-            fieldRelativeSpeeds = new ChassisSpeeds(
+            speeds = new ChassisSpeeds(
                 m_driveForwardSupplier.get()
                     * Constants.kMaxLinearSpeed.in(MetersPerSecond)
                     * Constants.kLinearSpeedMultiplier,
@@ -163,8 +173,11 @@ public class DriveCommands {
                     m_driveRotationSupplier.get()));
           }
 
-          m_drive.runVelocity(
-              ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, m_drive.getPose().getRotation()));
+          m_drive.setControl(
+              new SwerveRequest.FieldCentric()
+                  .withVelocityX(speeds.vxMetersPerSecond)
+                  .withVelocityY(speeds.vyMetersPerSecond)
+                  .withRotationalRate(speeds.omegaRadiansPerSecond));
 
           headingController.close();
           watchdog.end("snakeDrive");

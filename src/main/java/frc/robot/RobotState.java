@@ -33,7 +33,7 @@ import frc.lib.GeometryUtil;
 import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
 import frc.robot.sensors.Vision;
-import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.intake.IntakePivot;
@@ -43,7 +43,7 @@ import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.Turret;
 
 public class RobotState {
-  private final Drive m_drive;
+  private final CommandSwerveDrivetrain m_drive;
   private final IntakePivot m_intakePivot;
   private final IntakeRoller m_intakeRoller;
   private final Turret m_turret;
@@ -73,7 +73,7 @@ public class RobotState {
   private TimeInterpolatableBuffer<Pose2d> m_robotPoseBuffer = TimeInterpolatableBuffer.createBuffer(1.0);
 
   public RobotState(
-      Drive drive,
+      CommandSwerveDrivetrain drive,
       IntakePivot intakePivot,
       IntakeRoller intakeRoller,
       Turret turret,
