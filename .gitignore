@@ -189,4 +189,4 @@ compile_commands.json
 .factorypath
 
 
-!photonvision/configs/*.zip
+!photonvision/configs/**/*.zip
