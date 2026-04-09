@@ -268,6 +268,7 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addRoutine("SOTM Left Center", m_autoRoutines::SOTMLeftCenter);
     m_autoChooser.addRoutine("Right center and shoot twice", m_autoRoutines::SOTMRightTwice);
     m_autoChooser.addRoutine("Left center and shoot twice", m_autoRoutines::SOTMLeftTwice);
+    m_autoChooser.addRoutine("Left center inverted and shoot twice", m_autoRoutines::SOTMLeftInverseTwice);
     m_autoChooser.addRoutine("Tune Tangential", m_autoRoutines::tuneTangential);
     m_autoChooser.addRoutine("Tune Radial", m_autoRoutines::tuneRadial);
 

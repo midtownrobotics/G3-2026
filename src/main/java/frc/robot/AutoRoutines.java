@@ -148,7 +148,7 @@ public class AutoRoutines {
 
     startToCenterShoot.atTime(2.0).onTrue(m_robotCommands.runIntake());
     startToCenterShoot.atTime(4.1).onTrue(m_robotCommands.stowIntake());
-    startToCenterShoot.atTime(6.2).onTrue(m_robotCommands.shootShooterCommand().asProxy());
+    startToCenterShoot.atTime(4.9).onTrue(m_robotCommands.shootShooterCommand().asProxy());
     startToCenterShoot.doneDelayed(3).onTrue(shootToDepotStraight.cmd());
 
     shootToDepotStraight.active().onTrue(m_robotCommands.runIntake());
@@ -162,15 +162,46 @@ public class AutoRoutines {
     return routine;
   }
 
+  public AutoRoutine SOTMLeftInverseTwice() {
+    AutoRoutine routine = m_autoFactory.newRoutine("SOTMLeftCenterInverse");
+    AutoTrajectory startToCenterShootInverse = routine.trajectory("LeftStartToCenterToShootPassive");
+    AutoTrajectory shootToDepotStraight = routine.trajectory("ShootStraightToDepotToShoot");
+    AutoTrajectory startToCenterReturn = routine.trajectory("LeftToCenterReturn");
+
+    startToCenterShootInverse.atTime("startintake").onTrue(m_robotCommands.runIntake());
+    startToCenterShootInverse.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
+    startToCenterShootInverse.atTime("startshoot").onTrue(m_robotCommands.shootShooterCommand().asProxy());
+    startToCenterShootInverse.doneDelayed(3).onTrue(shootToDepotStraight.cmd());
+
+    shootToDepotStraight.active().onTrue(m_robotCommands.runIntake());
+    shootToDepotStraight.done().onTrue(m_robotCommands.stowIntake());
+    shootToDepotStraight.doneDelayed(3).onTrue(startToCenterReturn.cmd());
+
+    startToCenterReturn.active().onTrue(m_robotCommands.stopShooterCommand());
+    startToCenterReturn.atTime("startintake").onTrue(m_robotCommands.runIntake());
+
+    routine.active().onTrue(
+        Commands.sequence(
+            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
+            startToCenterShootInverse.resetOdometry(),
+            startToCenterShootInverse.cmd()));
+    return routine;
+  }
+
   public AutoRoutine SOTMLeftTwice() {
     AutoRoutine routine = m_autoFactory.newRoutine("SOTMLeftCenter");
-    AutoTrajectory startToCenter = routine.trajectory("AlbanyCenterLeft");
-    AutoTrajectory startToCenterReturn = routine.trajectory("AlbanyReturnLeft");
+    AutoTrajectory startToCenter = routine.trajectory("LeftToCenterToShootAggressive");
+    AutoTrajectory shootToDepotStraight = routine.trajectory("ShootToDepotToShoot");
+    AutoTrajectory startToCenterReturn = routine.trajectory("LeftToCenterReturn");
 
     startToCenter.atTime("startintake").onTrue(m_robotCommands.runIntake());
     startToCenter.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
-    startToCenter.atTime("startshooting").onTrue(m_robotCommands.shootShooterCommand());
-    startToCenter.doneDelayed(8).onTrue(startToCenterReturn.cmd());
+    startToCenter.atTime("startshoot").onTrue(m_robotCommands.shootShooterCommand().asProxy());
+    startToCenter.doneDelayed(3).onTrue(shootToDepotStraight.cmd());
+
+    shootToDepotStraight.active().onTrue(m_robotCommands.runIntake());
+    shootToDepotStraight.done().onTrue(m_robotCommands.stowIntake());
+    shootToDepotStraight.doneDelayed(0.5).onTrue(startToCenterReturn.cmd());
 
     startToCenterReturn.active().onTrue(m_robotCommands.stopShooterCommand());
     startToCenterReturn.atTime("startintake").onTrue(m_robotCommands.runIntake());
@@ -185,8 +216,8 @@ public class AutoRoutines {
 
   public AutoRoutine SOTMRightTwice() {
     AutoRoutine routine = m_autoFactory.newRoutine("SOTMRightCenter");
-    AutoTrajectory startToCenter = routine.trajectory("AlbanyCenterRight");
-    AutoTrajectory startToCenterReturn = routine.trajectory("AlbanyReturnRight");
+    AutoTrajectory startToCenter = routine.trajectory("RightToCenterToShootAggressive");
+    AutoTrajectory startToCenterReturn = routine.trajectory("RightToCenterReturn");
 
     startToCenter.atTime("startintake").onTrue(m_robotCommands.runIntake());
     startToCenter.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
