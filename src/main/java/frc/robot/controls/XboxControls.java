@@ -78,6 +78,6 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger defense() {
-    return new Trigger(() -> false);
+    return m_controller.povDown();
   }
 }
