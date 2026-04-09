@@ -328,5 +328,5 @@
  "events":[
    {"name":"startintake", "from":{"target":2, "targetTimestamp":1.7299, "offset":{"exp":"0 s", "val":0.0}}, "event":null},
    {"name":"stopintake", "from":{"target":7, "targetTimestamp":5.25775, "offset":{"exp":"0 s", "val":0.0}}, "event":null},
-   {"name":"startshoot", "from":{"target":7, "targetTimestamp":5.25775, "offset":{"exp":"0 s", "val":0.0}}, "event":null}]
+   {"name":"startshoot", "from":{"target":8, "targetTimestamp":5.64947, "offset":{"exp":"0 s", "val":0.0}}, "event":null}]
 }

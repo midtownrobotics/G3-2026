@@ -196,7 +196,7 @@ public class AutoRoutines {
 
     startToCenter.atTime("startintake").onTrue(m_robotCommands.runIntake());
     startToCenter.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
-    startToCenter.atTime("startshoot").onTrue(m_robotCommands.shootShooterCommand());
+    startToCenter.atTime("startshoot").onTrue(m_robotCommands.shootShooterCommand().asProxy());
     startToCenter.doneDelayed(3).onTrue(shootToDepotStraight.cmd());
 
     shootToDepotStraight.active().onTrue(m_robotCommands.runIntake());
