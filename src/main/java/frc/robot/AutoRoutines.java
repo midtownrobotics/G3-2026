@@ -148,7 +148,7 @@ public class AutoRoutines {
 
     startToCenterShoot.atTime(2.0).onTrue(m_robotCommands.runIntake());
     startToCenterShoot.atTime(4.1).onTrue(m_robotCommands.stowIntake());
-    startToCenterShoot.atTime(6.2).onTrue(m_robotCommands.shootShooterCommand().asProxy());
+    startToCenterShoot.atTime(4.9).onTrue(m_robotCommands.shootShooterCommand().asProxy());
     startToCenterShoot.doneDelayed(3).onTrue(shootToDepotStraight.cmd());
 
     shootToDepotStraight.active().onTrue(m_robotCommands.runIntake());
@@ -162,15 +162,46 @@ public class AutoRoutines {
     return routine;
   }
 
+  public AutoRoutine SOTMLeftInverseTwice() {
+    AutoRoutine routine = m_autoFactory.newRoutine("SOTMLeftCenterInverse");
+    AutoTrajectory startToCenterShootInverse = routine.trajectory("LeftStartToCenterToShootInverse");
+    AutoTrajectory shootToDepotStraight = routine.trajectory("LeftShootToDepotStraightOn");
+    AutoTrajectory startToCenterReturn = routine.trajectory("AlbanyReturnLeft");
+
+    startToCenterShootInverse.atTime("startintake").onTrue(m_robotCommands.runIntake());
+    startToCenterShootInverse.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
+    startToCenterShootInverse.atTime("startshoot").onTrue(m_robotCommands.shootShooterCommand().asProxy());
+    startToCenterShootInverse.doneDelayed(3).onTrue(shootToDepotStraight.cmd());
+
+    shootToDepotStraight.active().onTrue(m_robotCommands.runIntake());
+    shootToDepotStraight.done().onTrue(m_robotCommands.stowIntake());
+    shootToDepotStraight.doneDelayed(3).onTrue(startToCenterReturn.cmd());
+
+    startToCenterReturn.active().onTrue(m_robotCommands.stopShooterCommand());
+    startToCenterReturn.atTime("startintake").onTrue(m_robotCommands.runIntake());
+
+    routine.active().onTrue(
+        Commands.sequence(
+            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
+            startToCenterShootInverse.resetOdometry(),
+            startToCenterShootInverse.cmd()));
+    return routine;
+  }
+
   public AutoRoutine SOTMLeftTwice() {
     AutoRoutine routine = m_autoFactory.newRoutine("SOTMLeftCenter");
     AutoTrajectory startToCenter = routine.trajectory("AlbanyCenterLeft");
+    AutoTrajectory shootToDepotStraight = routine.trajectory("AlbanyDepot");
     AutoTrajectory startToCenterReturn = routine.trajectory("AlbanyReturnLeft");
 
     startToCenter.atTime("startintake").onTrue(m_robotCommands.runIntake());
     startToCenter.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
-    startToCenter.atTime("startshooting").onTrue(m_robotCommands.shootShooterCommand());
-    startToCenter.doneDelayed(8).onTrue(startToCenterReturn.cmd());
+    startToCenter.atTime("startshoot").onTrue(m_robotCommands.shootShooterCommand());
+    startToCenter.doneDelayed(3).onTrue(shootToDepotStraight.cmd());
+
+    shootToDepotStraight.active().onTrue(m_robotCommands.runIntake());
+    shootToDepotStraight.done().onTrue(m_robotCommands.stowIntake());
+    shootToDepotStraight.doneDelayed(0.5).onTrue(startToCenterReturn.cmd());
 
     startToCenterReturn.active().onTrue(m_robotCommands.stopShooterCommand());
     startToCenterReturn.atTime("startintake").onTrue(m_robotCommands.runIntake());
