@@ -164,9 +164,9 @@ public class AutoRoutines {
 
   public AutoRoutine SOTMLeftInverseTwice() {
     AutoRoutine routine = m_autoFactory.newRoutine("SOTMLeftCenterInverse");
-    AutoTrajectory startToCenterShootInverse = routine.trajectory("LeftStartToCenterToShootInverse");
-    AutoTrajectory shootToDepotStraight = routine.trajectory("LeftShootToDepotStraightOn");
-    AutoTrajectory startToCenterReturn = routine.trajectory("AlbanyReturnLeft");
+    AutoTrajectory startToCenterShootInverse = routine.trajectory("LeftStartToCenterToShootPassive");
+    AutoTrajectory shootToDepotStraight = routine.trajectory("ShootStraightToDepotToShoot");
+    AutoTrajectory startToCenterReturn = routine.trajectory("LeftToCenterReturn");
 
     startToCenterShootInverse.atTime("startintake").onTrue(m_robotCommands.runIntake());
     startToCenterShootInverse.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
@@ -190,9 +190,9 @@ public class AutoRoutines {
 
   public AutoRoutine SOTMLeftTwice() {
     AutoRoutine routine = m_autoFactory.newRoutine("SOTMLeftCenter");
-    AutoTrajectory startToCenter = routine.trajectory("AlbanyCenterLeft");
-    AutoTrajectory shootToDepotStraight = routine.trajectory("AlbanyDepot");
-    AutoTrajectory startToCenterReturn = routine.trajectory("AlbanyReturnLeft");
+    AutoTrajectory startToCenter = routine.trajectory("LeftToCenterToShootAggressive");
+    AutoTrajectory shootToDepotStraight = routine.trajectory("ShootToDepotToShoot");
+    AutoTrajectory startToCenterReturn = routine.trajectory("LeftToCenterReturn");
 
     startToCenter.atTime("startintake").onTrue(m_robotCommands.runIntake());
     startToCenter.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
@@ -216,8 +216,8 @@ public class AutoRoutines {
 
   public AutoRoutine SOTMRightTwice() {
     AutoRoutine routine = m_autoFactory.newRoutine("SOTMRightCenter");
-    AutoTrajectory startToCenter = routine.trajectory("AlbanyCenterRight");
-    AutoTrajectory startToCenterReturn = routine.trajectory("AlbanyReturnRight");
+    AutoTrajectory startToCenter = routine.trajectory("RightToCenterToShootAggressive");
+    AutoTrajectory startToCenterReturn = routine.trajectory("RightToCenterReturn");
 
     startToCenter.atTime("startintake").onTrue(m_robotCommands.runIntake());
     startToCenter.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
