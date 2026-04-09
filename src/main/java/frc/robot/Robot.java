@@ -121,6 +121,7 @@ public class Robot extends LoggedRobot {
     // Set up data receivers & replay source
     if (isReal()) {
       Logger.addDataReceiver(new WPILOGWriter());
+      Logger.addDataReceiver(new WPILOGWriter("/home/lvuser/logs"));
       Logger.addDataReceiver(new NT4Publisher());
     } else {
       // Running a physics simulator, log to NT
