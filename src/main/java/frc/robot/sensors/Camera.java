@@ -46,6 +46,7 @@ public class Camera {
   }
 
   public void periodic() {
+    Logger.recordOutput("Vision/" + m_camera.getName() + "/connected", m_camera.isConnected());
     m_connectionAlert.set(!m_camera.isConnected());
   }
 
@@ -70,8 +71,7 @@ public class Camera {
     List<PoseObservation> observations = new LinkedList<>();
 
     for (var result : m_camera.getAllUnreadResults()) {
-      Logger.recordOutput(
-          "Vision/" + m_camera.getName() + "/timeStamp", result.getTimestampSeconds());
+      Logger.recordOutput("Vision/" + m_camera.getName() + "/timeStamp", result.getTimestampSeconds());
       if (result.multitagResult.isPresent()) {
         List<Pose3d> tagPoses = result.targets.stream().map(t -> t.getFiducialId())
             .map(d -> FieldConstants.kTagLayout.getTagPose(d).get()).toList();

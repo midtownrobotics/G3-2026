@@ -1,6 +1,12 @@
 package frc.robot.controls;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.IOProtectionXboxController;
 
@@ -79,5 +85,27 @@ public class XboxControls implements Controls {
   @Override
   public Trigger defense() {
     return m_controller.povDown();
+  }
+
+  public void setRumble(boolean enabled) {
+    m_controller.setRumble(RumbleType.kBothRumble, enabled ? 0.5 : 0);
+  }
+
+  public Command rumbleCommand() {
+    return Commands.run(() -> setRumble(true)).finallyDo(() -> setRumble(false));
+  }
+
+  public Command pulseRumbleCommand(int pulses, double pulseDuration) {
+    List<Command> commands = new ArrayList<>();
+
+    for (int i = 0; i < pulses; i++) {
+      commands.add(rumbleCommand().withTimeout(pulseDuration));
+      
+      if (i < pulses - 1) {
+        commands.add(Commands.waitSeconds(0.1));
+      }
+    }
+    
+    return Commands.sequence(commands.toArray(Command[]::new));
   }
 }

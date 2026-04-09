@@ -2,6 +2,7 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Seconds;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -16,6 +17,7 @@ import com.ctre.phoenix6.SignalLogger;
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -249,6 +251,12 @@ public class Robot extends LoggedRobot {
             m_state.getShootingParameters().setTargetCommand(m_state::calculateFeedTarget, ShootingParametersMode.kPass)
                 .withName("setTargetCommandFeed"));
 
+    m_vision.getHasVisionUpdateTrigger().negate().debounce(3)
+        .onTrue(m_controls.rumbleCommand().withTimeout(Seconds.of(1)));
+
+    m_vision.getHasVisionUpdateTrigger().debounce(6.0, DebounceType.kFalling)
+        .onTrue(m_controls.pulseRumbleCommand(3, 0.14));
+
     RobotModeTriggers.teleop().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement());
 
     SmartDashboard.putData("QuasistaticForward", m_drive.sysIdQuasistatic(Direction.kForward));
@@ -266,10 +274,10 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addRoutine("Depot And Middle Shoot", m_autoRoutines::depotAndMiddleShoot);
     m_autoChooser.addRoutine("Middle and Depot Shoot", m_autoRoutines::middleAndDepotShootLeft);
     m_autoChooser.addRoutine("SOTM Depot", m_autoRoutines::SOTMDepot);
-    m_autoChooser.addRoutine("SOTM Left Center", m_autoRoutines::SOTMLeftCenter);
+    m_autoChooser.addRoutine("SOTM Left center depot", m_autoRoutines::SOTMLeftCenter);
     m_autoChooser.addRoutine("Right center and shoot twice", m_autoRoutines::SOTMRightTwice);
-    m_autoChooser.addRoutine("Left center and shoot twice", m_autoRoutines::SOTMLeftTwice);
-    m_autoChooser.addRoutine("Left center inverted and shoot twice", m_autoRoutines::SOTMLeftInverseTwice);
+    m_autoChooser.addRoutine("Left center depot then back to center", m_autoRoutines::SOTMLeftTwice);
+    m_autoChooser.addRoutine("Left center inverted depot then back to center", m_autoRoutines::SOTMLeftInverseTwice);
     m_autoChooser.addRoutine("Tune Tangential", m_autoRoutines::tuneTangential);
     m_autoChooser.addRoutine("Tune Radial", m_autoRoutines::tuneRadial);
 

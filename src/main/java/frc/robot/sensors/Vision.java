@@ -16,6 +16,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.Watchdawg;
 import frc.robot.Robot;
 import frc.robot.sensors.Camera.PoseObservation;
@@ -30,6 +31,9 @@ public class Vision extends SubsystemBase {
   private final TimeInterpolatableBuffer<Pose2d> m_observations;
   private final TimeInterpolatableBuffer<Pose2d> m_acceptedObservations;
 
+  private boolean m_hasVisionUpdate;
+  private final Trigger m_hasVisionUpdateTrigger;
+
   public Vision(
       Consumer<PoseObservation> addVisionMeasurement,
       Supplier<Pose2d> poseSupplier,
@@ -43,11 +47,13 @@ public class Vision extends SubsystemBase {
     if (Robot.isSimulation()) {
       m_visionSim = new VisionSystemSim("main");
       m_visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded));
-      m_cameras.forEach(c -> m_visionSim.addCamera(c.getSimCamera(), c.getRobotToCamera()));
+      // m_cameras.forEach(c -> m_visionSim.addCamera(c.getSimCamera(), c.getRobotToCamera()));
     }
 
     m_observations = TimeInterpolatableBuffer.createBuffer(0.1);
     m_acceptedObservations = TimeInterpolatableBuffer.createBuffer(0.1);
+
+    m_hasVisionUpdateTrigger = new Trigger(this::hasVisionUpdate);
 
     m_watchdog = new Watchdawg(getClass());
   }
@@ -67,9 +73,13 @@ public class Vision extends SubsystemBase {
     List<PoseObservation> observations = m_cameras.stream().flatMap(c -> c.getLatestObservations().stream()).toList();
 
     if (observations.isEmpty()) {
+      m_hasVisionUpdate = false;
       m_watchdog.end("periodic");
       return;
     }
+
+    m_hasVisionUpdate = true;
+
     observations.forEach(o -> m_observations.addSample(o.timestamp(), o.pose().toPose2d()));
 
     double meanX = m_observations.getInternalBuffer().values().stream().mapToDouble(p -> p.getX()).average().orElse(0);
@@ -96,7 +106,7 @@ public class Vision extends SubsystemBase {
       Logger.recordOutput("Vision/acceptedObservationsLastEntry", latestAcceptedObservationPose);
 
       if (robotTranslation.getDistance(latestAcceptedObservationPose.getTranslation()) > 0.5
-          && Timer.getFPGATimestamp() - m_acceptedObservations.getInternalBuffer().lastKey() < 0.1) {
+          && Timer.getFPGATimestamp() - m_acceptedObservations.getInternalBuffer().lastKey() < 0.04) {
         Logger.recordOutput("Vision/resetPose", true);
         m_resetPoseConsumer.accept(latestAcceptedObservationPose);
         return;
@@ -112,5 +122,13 @@ public class Vision extends SubsystemBase {
   @Override
   public void simulationPeriodic() {
     m_visionSim.update(m_poseSupplier.get());
+  }
+
+  public boolean hasVisionUpdate() {
+    return m_hasVisionUpdate;
+  }
+
+  public Trigger getHasVisionUpdateTrigger() {
+    return m_hasVisionUpdateTrigger;
   }
 }
