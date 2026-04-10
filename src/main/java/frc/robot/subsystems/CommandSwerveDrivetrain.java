@@ -320,8 +320,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     Logger.recordOutput("Drive/targetModuleStates", getTargetModuleStates());
     Logger.recordOutput("Drive/modulePositions", getModulePositions());
 
-    Logger.recordOutput("Drive/maxModuleSlip", m_maxModuleSlip);
-    Logger.recordOutput("Drive/hasWheelSlip", m_maxModuleSlip > kSlipThreshold);
+    // Logger.recordOutput("Drive/maxModuleSlip", m_maxModuleSlip);
+    // Logger.recordOutput("Drive/hasWheelSlip", m_maxModuleSlip > kSlipThreshold);
 
     var modules = getModules();
     for (int i = 0; i < modules.length; i++) {

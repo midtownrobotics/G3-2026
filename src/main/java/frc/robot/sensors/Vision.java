@@ -2,8 +2,10 @@ package frc.robot.sensors;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.simulation.VisionSystemSim;
@@ -30,6 +32,13 @@ public class Vision extends SubsystemBase {
   private final Watchdawg m_watchdog;
   private final TimeInterpolatableBuffer<Pose2d> m_observations;
   private final TimeInterpolatableBuffer<Pose2d> m_acceptedObservations;
+
+  private final List<String> m_cameraHierarchy = List.of(
+      "Turret",
+      "Rear",
+      "Rear Left",
+      "Front Left",
+      "Rear Right");
 
   private boolean m_hasVisionUpdate;
   private final Trigger m_hasVisionUpdateTrigger;
@@ -72,6 +81,10 @@ public class Vision extends SubsystemBase {
 
     List<PoseObservation> observations = m_cameras.stream().flatMap(c -> c.getLatestObservations().stream()).toList();
 
+    String desiredCamera = getDesiredCameraName(observations);
+
+    observations = observations.stream().filter(o -> o.cameraName().equals(desiredCamera)).toList();
+
     Logger.recordOutput("Vision/observationsSize", observations.size());
 
     if (observations.isEmpty()) {
@@ -101,6 +114,18 @@ public class Vision extends SubsystemBase {
     Logger.recordOutput("Vision/hasVisionUpdate", m_hasVisionUpdateTrigger.getAsBoolean());
 
     m_watchdog.end("periodic");
+  }
+
+  private String getDesiredCameraName(List<PoseObservation> observations) {
+    Set<String> camerasWithObservations = observations.stream().map((o) -> o.cameraName()).collect(Collectors.toSet());
+
+    for (String cameraName : m_cameraHierarchy) {
+      if (camerasWithObservations.contains(cameraName)) {
+        return cameraName;
+      }
+    }
+
+    return null;
   }
 
   private void resetRobotPoseIfDiverged(Pose2d robotPose) {
