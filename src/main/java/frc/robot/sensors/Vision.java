@@ -11,6 +11,7 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.Watchdawg;
@@ -19,6 +20,7 @@ import frc.robot.sensors.Camera.PoseObservation;
 
 public class Vision extends SubsystemBase {
   private static final double kMaxDistanceFromFusedPose = 4.0; // meters
+  private static final double kVisionTimeoutSeconds = 1.0;
 
   private final List<Camera> m_cameras;
   private final Consumer<PoseObservation> m_addVisionMeasurement;
@@ -28,8 +30,10 @@ public class Vision extends SubsystemBase {
 
   private boolean m_hasVisionUpdate;
   private boolean m_hasAcceptedVisionUpdate;
+  private double m_lastAcceptedVisionTimestamp = 0.0;
   private final Trigger m_hasVisionUpdateTrigger;
   private final Trigger m_hasAcceptedVisionUpdateTrigger;
+  private final Trigger m_hasRecentAcceptedVisionTrigger;
 
   public Vision(
       Consumer<PoseObservation> addVisionMeasurement,
@@ -47,6 +51,7 @@ public class Vision extends SubsystemBase {
 
     m_hasVisionUpdateTrigger = new Trigger(this::hasVisionUpdate);
     m_hasAcceptedVisionUpdateTrigger = new Trigger(this::hasAcceptedVisionUpdate);
+    m_hasRecentAcceptedVisionTrigger = new Trigger(this::hasRecentAcceptedVision);
 
     m_watchdog = new Watchdawg(getClass());
   }
@@ -77,21 +82,24 @@ public class Vision extends SubsystemBase {
 
     m_hasVisionUpdate = true;
     m_hasAcceptedVisionUpdate = false;
+    boolean poseTrusted = hasRecentAcceptedVision();
 
     for (var observation : observations) {
       Logger.recordOutput("Vision/" + observation.cameraName() + "/observedRobotPose", observation.pose());
       double distFromFused = fusedPose.getTranslation()
           .getDistance(observation.pose().toPose2d().getTranslation());
       Logger.recordOutput("Vision/" + observation.cameraName() + "/distFromFusedPose", distFromFused);
-      if (distFromFused > kMaxDistanceFromFusedPose) {
+      if (poseTrusted && distFromFused > kMaxDistanceFromFusedPose) {
         continue;
       }
       m_addVisionMeasurement.accept(observation);
       m_hasAcceptedVisionUpdate = true;
+      m_lastAcceptedVisionTimestamp = Timer.getFPGATimestamp();
     }
 
     Logger.recordOutput("Vision/hasVisionUpdate", m_hasVisionUpdateTrigger.getAsBoolean());
     Logger.recordOutput("Vision/hasAcceptedVisionUpdate", m_hasAcceptedVisionUpdateTrigger.getAsBoolean());
+    Logger.recordOutput("Vision/hasRecentAcceptedVision", poseTrusted);
 
     m_watchdog.end("periodic");
   }
@@ -115,5 +123,13 @@ public class Vision extends SubsystemBase {
 
   public Trigger getHasAcceptedVisionUpdateTrigger() {
     return m_hasAcceptedVisionUpdateTrigger;
+  }
+
+  public boolean hasRecentAcceptedVision() {
+    return Timer.getFPGATimestamp() - m_lastAcceptedVisionTimestamp < kVisionTimeoutSeconds;
+  }
+
+  public Trigger getHasRecentAcceptedVisionTrigger() {
+    return m_hasRecentAcceptedVisionTrigger;
   }
 }

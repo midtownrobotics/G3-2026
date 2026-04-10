@@ -68,10 +68,7 @@ public class RobotState {
     kShoot
   }
 
-  private static final double kVisionTimeoutSeconds = 1.0;
-
   private ShooterState m_shooterState = ShooterState.kIdle;
-  private double m_lastAcceptedVisionTimestamp = 0.0;
 
   private TimeInterpolatableBuffer<Pose2d> m_robotPoseBuffer = TimeInterpolatableBuffer.createBuffer(1.0);
 
@@ -112,10 +109,6 @@ public class RobotState {
 
     double timestamp = Timer.getFPGATimestamp();
     Pose2d robotPose = getRobotPose();
-
-    if (m_vision.hasAcceptedVisionUpdate()) {
-      m_lastAcceptedVisionTimestamp = timestamp;
-    }
 
     m_robotPoseBuffer.addSample(timestamp, robotPose);
 
@@ -254,13 +247,9 @@ public class RobotState {
     return isAutoAimEnabled() && isFixedTurretModeEnabled();
   }
 
-  public boolean hasRecentAcceptedVision() {
-    return Timer.getFPGATimestamp() - m_lastAcceptedVisionTimestamp < kVisionTimeoutSeconds;
-  }
-
   public boolean isShootOnTheMoveEnabled() {
     return m_shootOnTheMoveToggle.get()
-        && hasRecentAcceptedVision()
+        && m_vision.hasRecentAcceptedVision()
         && !m_drive.hasWheelSlip();
   }
 
