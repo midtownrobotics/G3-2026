@@ -23,6 +23,8 @@ import frc.robot.sensors.Camera.PoseObservation;
 
 public class Vision extends SubsystemBase {
   private static final double kMaxDistanceFromFusedPose = 4.0; // meters
+  private static final double kCrossCameraAgreementThreshold = 1.0; // meters
+  private static final String kTurretCameraName = "Turret";
   private static final double kVisionTimeoutSeconds = 1.1; // extra 0.1s for pipeline latency (observation timestamps lag FPGA)
 
   private final List<Camera> m_cameras;
@@ -90,14 +92,63 @@ public class Vision extends SubsystemBase {
       m_hasAcceptedVisionUpdate = false;
       boolean poseTrusted = hasRecentAcceptedVision();
 
+      // Find turret observation if present
+      Translation2d turretTranslation = null;
+      for (var obs : observations) {
+        if (obs.cameraName().equals(kTurretCameraName)) {
+          turretTranslation = obs.pose().toPose2d().getTranslation();
+          break;
+        }
+      }
+
       for (var observation : observations) {
         Logger.recordOutput("Vision/" + observation.cameraName() + "/observedRobotPose", observation.pose());
-        double distFromFused = fusedPose.getTranslation()
-            .getDistance(observation.pose().toPose2d().getTranslation());
+        Translation2d obsTranslation = observation.pose().toPose2d().getTranslation();
+        double distFromFused = fusedPose.getTranslation().getDistance(obsTranslation);
         Logger.recordOutput("Vision/" + observation.cameraName() + "/distFromFusedPose", distFromFused);
+
+        // Gate 1: reject if far from fused pose (when pose is trusted)
         if (poseTrusted && distFromFused > kMaxDistanceFromFusedPose) {
+          Logger.recordOutput("Vision/" + observation.cameraName() + "/rejected", "fused");
           continue;
         }
+
+        // Gate 2: cross-camera rejection (only for non-turret cameras with 2+ observations)
+        if (!observation.cameraName().equals(kTurretCameraName) && observations.size() >= 2) {
+          boolean agreesWithFused = distFromFused <= kCrossCameraAgreementThreshold;
+
+          if (turretTranslation != null) {
+            // Turret available: reject if disagrees with both fused pose and turret
+            double distFromTurret = turretTranslation.getDistance(obsTranslation);
+            Logger.recordOutput("Vision/" + observation.cameraName() + "/distFromTurret", distFromTurret);
+            boolean agreesWithTurret = distFromTurret <= kCrossCameraAgreementThreshold;
+            if (!agreesWithFused && !agreesWithTurret) {
+              Logger.recordOutput("Vision/" + observation.cameraName() + "/rejected", "turret+fused");
+              continue;
+            }
+          } else {
+            // No turret: reject if disagrees with fused pose and not in majority
+            if (!agreesWithFused) {
+              int agreeing = 0;
+              int total = 0;
+              for (var other : observations) {
+                if (other.cameraName().equals(observation.cameraName())) continue;
+                total++;
+                if (obsTranslation.getDistance(other.pose().toPose2d().getTranslation())
+                    <= kCrossCameraAgreementThreshold) {
+                  agreeing++;
+                }
+              }
+              Logger.recordOutput("Vision/" + observation.cameraName() + "/agreeingCameras", agreeing);
+              if (agreeing < total / 2.0) {
+                Logger.recordOutput("Vision/" + observation.cameraName() + "/rejected", "minority");
+                continue;
+              }
+            }
+          }
+        }
+
+        Logger.recordOutput("Vision/" + observation.cameraName() + "/rejected", "none");
         m_addVisionMeasurement.accept(observation);
         m_acceptedObservations.addSample(observation.timestamp(), observation.pose().toPose2d());
         m_hasAcceptedVisionUpdate = true;
