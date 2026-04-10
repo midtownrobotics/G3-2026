@@ -28,8 +28,6 @@ public interface Controls {
 
   public Trigger feedFuel();
 
-  public Trigger toggleShootOnTheMove();
-
   public double getDriveForward();
 
   public double getDriveLeft();
