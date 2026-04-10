@@ -172,7 +172,7 @@ public class Robot extends LoggedRobot {
             new Translation3d(Inches.of(-7.076), Inches.of(14.525), Inches.of(10.65)),
             new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(90 - 37.698))));
 
-    DynamicCamera turretCamera = new DynamicCamera("Turret");
+    DynamicCamera turretCamera = new DynamicCamera("Turret", 0.05);
 
     m_vision = new Vision(
         (observation) -> m_drive.addVisionMeasurement(

@@ -27,15 +27,22 @@ public class Camera {
   protected Transform3d m_robotToCamera;
   private String m_name;
   private final Alert m_connectionAlert;
+  private final double m_stdDevMultiplier;
+
   public static record PoseObservation(double timestamp, Pose3d pose, int tagCount, double averageDistanceMeters,
       String cameraName, Matrix<N3, N1> standardDevs) {
   }
 
-  public Camera(String name, Transform3d robotToCamera) {
+  public Camera(String name, Transform3d robotToCamera, double stdDevMultiplier) {
     m_name = name;
     m_camera = new PhotonCamera(name);
     m_robotToCamera = robotToCamera;
     m_connectionAlert = new Alert("Camera " + name + " is not connected!", AlertType.kWarning);
+    m_stdDevMultiplier = stdDevMultiplier;
+  }
+
+  public Camera(String name, Transform3d robotToCamera) {
+    this(name, robotToCamera, 1.0);
   }
 
   public void periodic() {
@@ -60,24 +67,24 @@ public class Camera {
     return new PhotonCameraSim(this.getCamera(), properties);
   }
 
-  private static Matrix<N3, N1> calculateStandardDevs(int tagCount, double avgDistanceMeters) {
+  private Matrix<N3, N1> calculateStandardDevs(int tagCount, double avgDistanceMeters) {
     double base;
     switch (tagCount) {
       case 5:
-        base = 0.05;
+        base = 0.04;
         break;
       case 4:
-        base = 0.1;
+        base = 0.04;
         break;
       case 3:
-        base = 0.3;
+        base = 0.05;
         break;
       default:
-        base = 0.5;
+        base = 0.07;
         break;
     }
     double distanceMultiplier = Math.max(1.0, avgDistanceMeters / 3.0);
-    double stdDev = base * distanceMultiplier;
+    double stdDev = base * distanceMultiplier * m_stdDevMultiplier;
     return VecBuilder.fill(stdDev, stdDev, stdDev);
   }
 
