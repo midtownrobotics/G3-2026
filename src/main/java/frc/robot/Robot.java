@@ -160,14 +160,12 @@ public class Robot extends LoggedRobot {
         "Rear Right",
         new Transform3d(
             new Translation3d(Inches.of(-8.758), Inches.of(-14.541), Inches.of(8.022)),
-            new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(-33.26 - 90))),
-        () -> DriverStation.isAutonomous());
+            new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(-33.26 - 90))));
     Camera rearLeft = new Camera(
         "Rear Left",
         new Transform3d(
             new Translation3d(Inches.of(-7.692), Inches.of(14.396), Inches.of(14.217)),
-            new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(31.475 + 90))),
-        () -> DriverStation.isAutonomous());
+            new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(31.475 + 90))));
     Camera frontLeft = new Camera(
         "Front Left",
         new Transform3d(
