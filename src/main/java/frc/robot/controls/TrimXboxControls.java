@@ -49,9 +49,4 @@ public class TrimXboxControls implements TrimControls {
   public Trigger decreaseTurretAngle() {
     return m_controller.povLeft();
   }
-
-  @Override
-  public Trigger toggleShootOnTheMove() {
-    return m_controller.y();
-  }
 }
