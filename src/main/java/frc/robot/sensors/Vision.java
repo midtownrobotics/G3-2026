@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
+
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.simulation.VisionSystemSim;
 
@@ -25,8 +28,10 @@ public class Vision extends SubsystemBase {
   private final List<Camera> m_cameras;
   private final Consumer<PoseObservation> m_addVisionMeasurement;
   private final Supplier<Pose2d> m_poseSupplier;
+  private final Consumer<Pose2d> m_resetPoseConsumer;
   private VisionSystemSim m_visionSim;
   private final Watchdawg m_watchdog;
+  private final TimeInterpolatableBuffer<Pose2d> m_acceptedObservations;
 
   private boolean m_hasVisionUpdate;
   private boolean m_hasAcceptedVisionUpdate;
@@ -38,10 +43,14 @@ public class Vision extends SubsystemBase {
   public Vision(
       Consumer<PoseObservation> addVisionMeasurement,
       Supplier<Pose2d> poseSupplier,
+      Consumer<Pose2d> resetPoseConsumer,
       Camera... cameras) {
     m_cameras = List.of(cameras);
     m_addVisionMeasurement = addVisionMeasurement;
     m_poseSupplier = poseSupplier;
+    m_resetPoseConsumer = resetPoseConsumer;
+
+    m_acceptedObservations = TimeInterpolatableBuffer.createBuffer(0.1);
 
     if (Robot.isSimulation()) {
       m_visionSim = new VisionSystemSim("main");
@@ -90,9 +99,12 @@ public class Vision extends SubsystemBase {
           continue;
         }
         m_addVisionMeasurement.accept(observation);
+        m_acceptedObservations.addSample(observation.timestamp(), observation.pose().toPose2d());
         m_hasAcceptedVisionUpdate = true;
         m_lastAcceptedVisionTimestamp = Timer.getFPGATimestamp();
       }
+
+      resetRobotPoseIfDiverged(fusedPose);
     }
 
     Logger.recordOutput("Vision/hasVisionUpdate", m_hasVisionUpdate);
@@ -129,5 +141,20 @@ public class Vision extends SubsystemBase {
 
   public Trigger getHasRecentAcceptedVisionTrigger() {
     return m_hasRecentAcceptedVisionTrigger;
+  }
+
+  private void resetRobotPoseIfDiverged(Pose2d robotPose) {
+    if (!m_acceptedObservations.getInternalBuffer().isEmpty()) {
+      Translation2d robotTranslation = robotPose.getTranslation();
+      Pose2d latestAcceptedObservationPose = m_acceptedObservations.getInternalBuffer().lastEntry().getValue();
+      Logger.recordOutput("Vision/acceptedObservationsLastEntry", latestAcceptedObservationPose);
+      if (robotTranslation.getDistance(latestAcceptedObservationPose.getTranslation()) > 1.5
+          && Timer.getFPGATimestamp() - m_acceptedObservations.getInternalBuffer().lastKey() < 0.04) {
+        Logger.recordOutput("Vision/resetPose", true);
+        m_resetPoseConsumer.accept(latestAcceptedObservationPose);
+        return;
+      }
+    }
+    Logger.recordOutput("Vision/resetPose", false);
   }
 }
