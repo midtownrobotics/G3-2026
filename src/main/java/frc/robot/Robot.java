@@ -279,6 +279,7 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addRoutine("Left center inverted depot then back to center", m_autoRoutines::SOTMLeftInverseTwice);
     m_autoChooser.addRoutine("Tune Tangential", m_autoRoutines::tuneTangential);
     m_autoChooser.addRoutine("Tune Radial", m_autoRoutines::tuneRadial);
+    m_autoChooser.addRoutine("DCMP LeftDoubleSwipe", m_autoRoutines::LeftDoubleSwipe);
 
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
     RobotModeTriggers.autonomous().whileTrue(m_autoChooser.selectedCommandScheduler());

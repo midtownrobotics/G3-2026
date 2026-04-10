@@ -84,9 +84,9 @@ public class TurretIOTalonFX implements TurretIO {
 
     config.CurrentLimits = new CurrentLimitsConfigs()
         .withStatorCurrentLimitEnable(true)
-        .withStatorCurrentLimit(Amps.of(90))
+        .withStatorCurrentLimit(Amps.of(60))
         .withSupplyCurrentLimitEnable(true)
-        .withSupplyCurrentLimit(Amps.of(60));
+        .withSupplyCurrentLimit(Amps.of(40));
 
     config.OpenLoopRamps = new OpenLoopRampsConfigs().withVoltageOpenLoopRampPeriod(Seconds.of(0.25));
 

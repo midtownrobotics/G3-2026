@@ -19,12 +19,12 @@ public class AutoRoutines {
     AutoRoutine routine = m_autoFactory.newRoutine("TuneRadial");
     AutoTrajectory radialTrajectory = routine.trajectory("RadialTrajectory");
 
+    radialTrajectory.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
     radialTrajectory.active().onTrue(m_robotCommands.shootShooterCommand().asProxy());
     radialTrajectory.done().onTrue(m_robotCommands.stopShooterCommand());
 
     routine.active().onTrue(
         Commands.sequence(
-            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
             radialTrajectory.resetOdometry(),
             radialTrajectory.cmd()));
     return routine;
@@ -34,12 +34,12 @@ public class AutoRoutines {
     AutoRoutine routine = m_autoFactory.newRoutine("TuneTangential");
     AutoTrajectory tangentialTrajectory = routine.trajectory("TangentialTrajectory");
 
+    tangentialTrajectory.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
     tangentialTrajectory.active().onTrue(m_robotCommands.shootShooterCommand().asProxy());
     tangentialTrajectory.done().onTrue(m_robotCommands.stopShooterCommand());
 
     routine.active().onTrue(
         Commands.sequence(
-            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
             tangentialTrajectory.resetOdometry(),
             tangentialTrajectory.cmd()));
     return routine;
@@ -50,13 +50,13 @@ public class AutoRoutines {
     AutoTrajectory leftStartToDepot = routine.trajectory("LeftStartToDepot");
     AutoTrajectory depotToShoot = routine.trajectory("DepotToShoot");
 
+    leftStartToDepot.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
     leftStartToDepot.active().onTrue(m_robotCommands.runIntake());
     leftStartToDepot.doneDelayed(1).onTrue(depotToShoot.cmd());
     depotToShoot.doneDelayed(0.5).onTrue(m_robotCommands.shootShooterCommand());
 
     routine.active().onTrue(
         Commands.sequence(
-            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
             leftStartToDepot.resetOdometry(),
             leftStartToDepot.cmd()));
     return routine;
@@ -68,6 +68,7 @@ public class AutoRoutines {
     AutoTrajectory depotToShoot = routine.trajectory("DepotToShoot");
     AutoTrajectory shootToCenter = routine.trajectory("ShootToCenter");
 
+    leftStartToDepot.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
     leftStartToDepot.atTime(1).onTrue(m_robotCommands.runIntake());
     // leftStartToDepot.active().onTrue(m_robotCommands.zeroTurretHood());
     leftStartToDepot.doneDelayed(1).onTrue(depotToShoot.cmd());
@@ -80,7 +81,6 @@ public class AutoRoutines {
 
     routine.active().onTrue(
         Commands.sequence(
-            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
             leftStartToDepot.resetOdometry(),
             leftStartToDepot.cmd()));
     return routine;
@@ -91,6 +91,7 @@ public class AutoRoutines {
     AutoTrajectory startToCenterShoot = routine.trajectory("LeftStartToCenterToShoot");
     AutoTrajectory shootToDepotStraight = routine.trajectory("LeftShootToDepotStraightOn");
 
+    startToCenterShoot.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
     startToCenterShoot.atTime(2.0).onTrue(m_robotCommands.runIntake());
     startToCenterShoot.atTime(4.1).onTrue(m_robotCommands.stowIntake());
     startToCenterShoot.done().onTrue(m_robotCommands.shootShooterCommand());
@@ -103,7 +104,6 @@ public class AutoRoutines {
 
     routine.active().onTrue(
         Commands.sequence(
-            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
             startToCenterShoot.resetOdometry(),
             startToCenterShoot.cmd()));
     return routine;
@@ -113,13 +113,13 @@ public class AutoRoutines {
     AutoRoutine routine = m_autoFactory.newRoutine("Middle and Depot Shoot Right");
     AutoTrajectory startToCenterShoot = routine.trajectory("RightStartToCenterToShoot");
 
+    startToCenterShoot.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
     startToCenterShoot.atTime(2.8).onTrue(m_robotCommands.runIntake());
     startToCenterShoot.atTime(4.9).onTrue(m_robotCommands.stowIntake());
     startToCenterShoot.done().onTrue(m_robotCommands.shootShooterCommand());
 
     routine.active().onTrue(
         Commands.sequence(
-            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
             startToCenterShoot.resetOdometry(),
             startToCenterShoot.cmd()));
     return routine;
@@ -129,15 +129,40 @@ public class AutoRoutines {
     AutoRoutine routine = m_autoFactory.newRoutine("SOTMDepot");
     AutoTrajectory SOTMLeftStartToDepot = routine.trajectory("SOTMLeftStartToDepot");
 
+    SOTMLeftStartToDepot.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
     SOTMLeftStartToDepot.atTime(0.5).onTrue(m_robotCommands.shootShooterCommand().asProxy());
     SOTMLeftStartToDepot.atTime(0.67).onTrue(m_robotCommands.runIntake());
     SOTMLeftStartToDepot.atTime(4.0).onTrue(m_robotCommands.stowIntake());
 
     routine.active().onTrue(
         Commands.sequence(
-            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
             SOTMLeftStartToDepot.resetOdometry(),
             SOTMLeftStartToDepot.cmd()));
+    return routine;
+  }
+
+  public AutoRoutine LeftDoubleSwipe() {
+    AutoRoutine routine = m_autoFactory.newRoutine("LeftDoubleSwipe");
+    AutoTrajectory LeftToCenterToShootAggressive = routine.trajectory("LeftToCenterToShootAggressive");
+    AutoTrajectory LeftStartToDepot = routine.trajectory("LeftStartToDepot");
+    AutoTrajectory LeftStartCenterEnder = routine.trajectory("LeftStartCenterEnder");
+
+    LeftToCenterToShootAggressive.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
+    LeftToCenterToShootAggressive.atTime("startintake").onTrue(m_robotCommands.runIntake());
+    LeftToCenterToShootAggressive.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
+    LeftToCenterToShootAggressive.atTime("startshoot").onTrue(m_robotCommands.shootShooterCommand().asProxy());
+    LeftToCenterToShootAggressive.doneDelayed(4).onTrue(LeftStartToDepot.cmd());
+
+    LeftStartToDepot.active().onTrue(m_robotCommands.runIntake());
+    LeftStartToDepot.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
+    LeftStartToDepot.doneDelayed(1).onTrue(LeftStartCenterEnder.cmd());
+
+    LeftStartCenterEnder.atTime("startintake").onTrue(m_robotCommands.runIntake());
+
+    routine.active().onTrue(
+        Commands.sequence(
+            LeftToCenterToShootAggressive.resetOdometry(),
+            LeftToCenterToShootAggressive.cmd()));
     return routine;
   }
 
@@ -146,6 +171,7 @@ public class AutoRoutines {
     AutoTrajectory startToCenterShoot = routine.trajectory("LeftStartToCenterToShoot");
     AutoTrajectory shootToDepotStraight = routine.trajectory("LeftShootToDepotStraightOn");
 
+    startToCenterShoot.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
     startToCenterShoot.atTime(2.0).onTrue(m_robotCommands.runIntake());
     startToCenterShoot.atTime(4.1).onTrue(m_robotCommands.stowIntake());
     startToCenterShoot.atTime(4.9).onTrue(m_robotCommands.shootShooterCommand().asProxy());
@@ -156,7 +182,6 @@ public class AutoRoutines {
 
     routine.active().onTrue(
         Commands.sequence(
-            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
             startToCenterShoot.resetOdometry(),
             startToCenterShoot.cmd()));
     return routine;
@@ -168,6 +193,7 @@ public class AutoRoutines {
     AutoTrajectory shootToDepotStraight = routine.trajectory("ShootStraightToDepotToShoot");
     AutoTrajectory startToCenterReturn = routine.trajectory("LeftToCenterReturn");
 
+    startToCenterShootInverse.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
     startToCenterShootInverse.atTime("startintake").onTrue(m_robotCommands.runIntake());
     startToCenterShootInverse.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
     startToCenterShootInverse.atTime("startshoot").onTrue(m_robotCommands.shootShooterCommand().asProxy());
@@ -182,7 +208,6 @@ public class AutoRoutines {
 
     routine.active().onTrue(
         Commands.sequence(
-            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
             startToCenterShootInverse.resetOdometry(),
             startToCenterShootInverse.cmd()));
     return routine;
@@ -194,6 +219,7 @@ public class AutoRoutines {
     AutoTrajectory shootToDepotStraight = routine.trajectory("ShootToDepotToShoot");
     AutoTrajectory startToCenterReturn = routine.trajectory("LeftToCenterReturn");
 
+    startToCenter.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
     startToCenter.atTime("startintake").onTrue(m_robotCommands.runIntake());
     startToCenter.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
     startToCenter.atTime("startshoot").onTrue(m_robotCommands.shootShooterCommand().asProxy());
@@ -208,7 +234,6 @@ public class AutoRoutines {
 
     routine.active().onTrue(
         Commands.sequence(
-            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
             startToCenter.resetOdometry(),
             startToCenter.cmd()));
     return routine;
@@ -219,6 +244,7 @@ public class AutoRoutines {
     AutoTrajectory startToCenter = routine.trajectory("RightToCenterToShootAggressive");
     AutoTrajectory startToCenterReturn = routine.trajectory("RightToCenterReturn");
 
+    startToCenter.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
     startToCenter.atTime("startintake").onTrue(m_robotCommands.runIntake());
     startToCenter.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
     startToCenter.atTime("startshooting").onTrue(m_robotCommands.shootShooterCommand());
@@ -229,7 +255,6 @@ public class AutoRoutines {
 
     routine.active().onTrue(
         Commands.sequence(
-            m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy(),
             startToCenter.resetOdometry(),
             startToCenter.cmd()));
     return routine;
