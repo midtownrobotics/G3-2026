@@ -151,11 +151,11 @@ public class AutoRoutines {
     LeftToCenterToShootAggressive.atTime("startintake").onTrue(m_robotCommands.runIntake());
     LeftToCenterToShootAggressive.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
     LeftToCenterToShootAggressive.atTime("startshoot").onTrue(m_robotCommands.shootShooterCommand().asProxy());
-    LeftToCenterToShootAggressive.doneDelayed(5).onTrue(LeftStartToDepot.cmd());
+    LeftToCenterToShootAggressive.doneDelayed(4).onTrue(LeftStartToDepot.cmd());
 
     LeftStartToDepot.active().onTrue(m_robotCommands.runIntake());
     LeftStartToDepot.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
-    LeftStartToDepot.doneDelayed(3).onTrue(LeftStartCenterEnder.cmd());
+    LeftStartToDepot.doneDelayed(1).onTrue(LeftStartCenterEnder.cmd());
 
     LeftStartCenterEnder.atTime("startintake").onTrue(m_robotCommands.runIntake());
 
