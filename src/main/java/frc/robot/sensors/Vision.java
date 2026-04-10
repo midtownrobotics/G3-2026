@@ -78,7 +78,7 @@ public class Vision extends SubsystemBase {
           robotPose.transformBy(camera.getRobotToCamera()));
     }
 
-    List<PoseObservation> observations = m_cameras.stream().flatMap(c -> c.getLatestObservations().stream()).toList();
+    List<PoseObservation> observations = m_cameras.stream().filter(c -> c.isEnabled()).flatMap(c -> c.getLatestObservations().stream()).toList();
 
     Logger.recordOutput("Vision/observationsSize", observations.size());
 

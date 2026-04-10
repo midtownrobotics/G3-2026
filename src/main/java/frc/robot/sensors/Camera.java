@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.Meters;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.PhotonCamera;
@@ -28,24 +29,31 @@ public class Camera {
   private String m_name;
   private final Alert m_connectionAlert;
   private final double m_stdDevMultiplier;
+  private final Supplier<Boolean> m_enabledSupplier;
 
   public static record PoseObservation(double timestamp, Pose3d pose, int tagCount, double averageDistanceMeters,
       String cameraName, Matrix<N3, N1> standardDevs) {
   }
 
-  public Camera(String name, Transform3d robotToCamera, double stdDevMultiplier) {
+  public Camera(String name, Transform3d robotToCamera, double stdDevMultiplier, Supplier<Boolean> enabledSupplier) {
     m_name = name;
     m_camera = new PhotonCamera(name);
     m_robotToCamera = robotToCamera;
     m_connectionAlert = new Alert("Camera " + name + " is not connected!", AlertType.kWarning);
     m_stdDevMultiplier = stdDevMultiplier;
+    m_enabledSupplier = enabledSupplier;
+  }
+
+  public Camera(String name, Transform3d robotToCamera, Supplier<Boolean> enabledSupplier) {
+    this(name, robotToCamera, 4.0, enabledSupplier);
   }
 
   public Camera(String name, Transform3d robotToCamera) {
-    this(name, robotToCamera, 4.0);
+    this(name, robotToCamera, 4.0, () -> true);
   }
 
   public void periodic() {
+    Logger.recordOutput("Vision/" + m_camera.getName() +  "/enabled", m_enabledSupplier.get());
     Logger.recordOutput("Vision/" + m_camera.getName() + "/connected", m_camera.isConnected());
     m_connectionAlert.set(!m_camera.isConnected());
   }
@@ -137,6 +145,10 @@ public class Camera {
     PhotonPipelineResult result = m_camera.getLatestResult();
 
     return result.hasTargets();
+  }
+
+  public boolean isEnabled() {
+    return m_enabledSupplier.get();
   }
 
 }

@@ -7,8 +7,8 @@ import edu.wpi.first.math.geometry.Transform3d;
 public class DynamicCamera extends Camera {
   private Supplier<Transform3d> m_robotToCameraSupplier;
 
-  public DynamicCamera(String name, double stdDevMultiplier) {
-    super(name, new Transform3d(), stdDevMultiplier);
+  public DynamicCamera(String name, double stdDevMultiplier, Supplier<Boolean> enabledSupplier) {
+    super(name, new Transform3d(), stdDevMultiplier, enabledSupplier);
   }
 
   @Override

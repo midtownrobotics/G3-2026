@@ -160,19 +160,21 @@ public class Robot extends LoggedRobot {
         "Rear Right",
         new Transform3d(
             new Translation3d(Inches.of(-8.758), Inches.of(-14.541), Inches.of(8.022)),
-            new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(-33.26 - 90))));
+            new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(-33.26 - 90))),
+        () -> DriverStation.isAutonomous());
     Camera rearLeft = new Camera(
         "Rear Left",
         new Transform3d(
             new Translation3d(Inches.of(-7.692), Inches.of(14.396), Inches.of(14.217)),
-            new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(31.475 + 90))));
+            new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(31.475 + 90))),
+        () -> DriverStation.isAutonomous());
     Camera frontLeft = new Camera(
         "Front Left",
         new Transform3d(
             new Translation3d(Inches.of(-7.076), Inches.of(14.525), Inches.of(10.65)),
             new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(90 - 37.698))));
 
-    DynamicCamera turretCamera = new DynamicCamera("Turret", 0.4);
+    DynamicCamera turretCamera = new DynamicCamera("Turret", 0.4, () -> true);
 
     m_vision = new Vision(
         (observation) -> m_drive.addVisionMeasurement(
