@@ -23,7 +23,7 @@ import frc.robot.sensors.Camera.PoseObservation;
 
 public class Vision extends SubsystemBase {
   private static final double kMaxDistanceFromFusedPose = 4.0; // meters
-  private static final double kVisionTimeoutSeconds = 1.0;
+  private static final double kVisionTimeoutSeconds = 1.1; // extra 0.1s for pipeline latency (observation timestamps lag FPGA)
 
   private final List<Camera> m_cameras;
   private final Consumer<PoseObservation> m_addVisionMeasurement;
@@ -101,7 +101,7 @@ public class Vision extends SubsystemBase {
         m_addVisionMeasurement.accept(observation);
         m_acceptedObservations.addSample(observation.timestamp(), observation.pose().toPose2d());
         m_hasAcceptedVisionUpdate = true;
-        m_lastAcceptedVisionTimestamp = Timer.getFPGATimestamp();
+        m_lastAcceptedVisionTimestamp = observation.timestamp();
       }
 
       resetRobotPoseIfDiverged(fusedPose);
