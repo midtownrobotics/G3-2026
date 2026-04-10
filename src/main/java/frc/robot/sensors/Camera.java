@@ -27,22 +27,15 @@ public class Camera {
   protected Transform3d m_robotToCamera;
   private String m_name;
   private final Alert m_connectionAlert;
-  private final Matrix<N3, N1> m_standardDevs;
-
   public static record PoseObservation(double timestamp, Pose3d pose, int tagCount, double averageDistanceMeters,
       String cameraName, Matrix<N3, N1> standardDevs) {
   }
 
-  public Camera(String name, Transform3d robotToCamera, Matrix<N3, N1> standardDevs) {
+  public Camera(String name, Transform3d robotToCamera) {
     m_name = name;
     m_camera = new PhotonCamera(name);
     m_robotToCamera = robotToCamera;
     m_connectionAlert = new Alert("Camera " + name + " is not connected!", AlertType.kWarning);
-    m_standardDevs = standardDevs;
-  }
-
-  public Camera(String name, Transform3d robotToCamera) {
-    this(name, robotToCamera, VecBuilder.fill(0.3, 0.3, 0.3));
   }
 
   public void periodic() {
@@ -65,6 +58,27 @@ public class Camera {
   public PhotonCameraSim getSimCamera() {
     SimCameraProperties properties = new SimCameraProperties();
     return new PhotonCameraSim(this.getCamera(), properties);
+  }
+
+  private static Matrix<N3, N1> calculateStandardDevs(int tagCount, double avgDistanceMeters) {
+    double base;
+    switch (tagCount) {
+      case 5:
+        base = 0.05;
+        break;
+      case 4:
+        base = 0.1;
+        break;
+      case 3:
+        base = 0.3;
+        break;
+      default:
+        base = 0.5;
+        break;
+    }
+    double distanceMultiplier = Math.max(1.0, avgDistanceMeters / 3.0);
+    double stdDev = base * distanceMultiplier;
+    return VecBuilder.fill(stdDev, stdDev, stdDev);
   }
 
   public List<PoseObservation> getLatestObservations() {
@@ -94,14 +108,15 @@ public class Camera {
           continue;
         }
 
+        int tagCount = multitagResult.fiducialIDsUsed.size();
         observations.add(
             new PoseObservation(
                 result.getTimestampSeconds(),
                 robotPose,
-                multitagResult.fiducialIDsUsed.size(),
+                tagCount,
                 avgDistance,
                 m_name,
-                m_standardDevs));
+                calculateStandardDevs(tagCount, avgDistance)));
 
       }
     }

@@ -248,7 +248,9 @@ public class RobotState {
   }
 
   public boolean isShootOnTheMoveEnabled() {
-    return m_shootOnTheMoveToggle.get();
+    return m_shootOnTheMoveToggle.get()
+        && m_vision.hasVisionUpdate()
+        && !m_drive.hasWheelSlip();
   }
 
   public ShootingParameters getShootingParameters() {
