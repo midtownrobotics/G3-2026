@@ -99,7 +99,8 @@ public class ShootingParameters {
       Map.entry(Feet.of(10).in(Meters), Degrees.of(40).in(Radians)),
       Map.entry(Feet.of(11).in(Meters), Degrees.of(40).in(Radians)),
       Map.entry(Feet.of(15).in(Meters), Degrees.of(40).in(Radians)),
-      Map.entry(Feet.of(26.875).in(Meters), Degrees.of(40).in(Radians)));
+      Map.entry(Feet.of(26.875).in(Meters), Degrees.of(40).in(Radians)),
+      Map.entry(Feet.of(50).in(Meters), Degrees.of(35).in(Radians)));
   // Takes in a distance in meters and outputs an angular velocity in radians per
   // second
   private final InterpolatingDoubleTreeMap m_scoringFlywheelVelocityMap = InterpolatingDoubleTreeMap.ofEntries(
@@ -139,7 +140,7 @@ public class ShootingParameters {
       Map.entry(Feet.of(15).in(Meters), RPM.of(1900).in(RadiansPerSecond)),
       Map.entry(Feet.of(26.875).in(Meters), RPM.of(2800).in(RadiansPerSecond)),
       Map.entry(Feet.of(35).in(Meters), RPM.of(3400).in(RadiansPerSecond)),
-      Map.entry(Feet.of(50).in(Meters), RPM.of(4000).in(RadiansPerSecond))
+      Map.entry(Feet.of(50).in(Meters), RPM.of(3750).in(RadiansPerSecond))
       );
 
   private double m_flywheelVelocityModifier = 1;
