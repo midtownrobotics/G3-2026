@@ -37,4 +37,6 @@ public interface Controls {
   public Command rumbleCommand();
 
   public Command pulseRumbleCommand(int pulses, double pulseDuration);
+
+  public Trigger toggleShootOnTheMove();
 }

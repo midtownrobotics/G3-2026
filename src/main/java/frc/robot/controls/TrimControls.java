@@ -18,6 +18,4 @@ public interface TrimControls {
   public Trigger increaseTurretAngle();
 
   public Trigger decreaseTurretAngle();
-
-  public Trigger toggleShootOnTheMove();
 }
