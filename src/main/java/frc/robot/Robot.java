@@ -327,6 +327,9 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void robotPeriodic() {
+
+    Logger.recordOutput("Vision/isSOTMEnabled", m_state.isShootOnTheMoveEnabled());
+
     m_watchdog.start();
     CommandScheduler.getInstance().run();
     m_watchdog.end("commandScheduler");
