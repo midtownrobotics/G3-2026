@@ -46,8 +46,8 @@ import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Subsystem {
   private static final double kSimLoopPeriod = 0.004; // 4 ms
   private static final double kSlipThreshold = 0.1; // m/s
-  private static final Matrix<N3, N1> kDefaultOdometryStdDevs = VecBuilder.fill(0.1, 0.1, 0.1);
-  private static final Matrix<N3, N1> kSlipOdometryStdDevs = VecBuilder.fill(0.3, 0.3, 0.3);
+  private static final Matrix<N3, N1> kDefaultOdometryStdDevs = VecBuilder.fill(0.1, 0.1, 0.01);
+  private static final Matrix<N3, N1> kSlipOdometryStdDevs = VecBuilder.fill(0.3, 0.3, 0.03);
 
   private Notifier m_simNotifier = null;
   private double m_lastSimTime;

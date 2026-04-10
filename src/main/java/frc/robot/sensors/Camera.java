@@ -85,7 +85,7 @@ public class Camera {
     }
     double distanceMultiplier = Math.max(1.0, avgDistanceMeters / 3.0);
     double stdDev = base * distanceMultiplier * m_stdDevMultiplier;
-    return VecBuilder.fill(stdDev, stdDev, 5*stdDev);
+    return VecBuilder.fill(stdDev, stdDev, 0.5 * stdDev);
   }
 
   public List<PoseObservation> getLatestObservations() {
