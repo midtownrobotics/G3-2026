@@ -56,7 +56,7 @@ public class Vision extends SubsystemBase {
     if (Robot.isSimulation()) {
       m_visionSim = new VisionSystemSim("main");
       m_visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded));
-      m_cameras.forEach(c -> m_visionSim.addCamera(c.getSimCamera(), c.getRobotToCamera()));
+      // m_cameras.forEach(c -> m_visionSim.addCamera(c.getSimCamera(), c.getRobotToCamera()));
     }
 
     m_observations = TimeInterpolatableBuffer.createBuffer(0.1);
