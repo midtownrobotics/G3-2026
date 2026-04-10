@@ -151,4 +151,8 @@ public class Camera {
     return m_enabledSupplier.get();
   }
 
+  public boolean isConnected() {
+    return m_camera.isConnected();
+  }
+
 }
