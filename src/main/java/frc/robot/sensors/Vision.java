@@ -24,6 +24,7 @@ import frc.robot.sensors.Camera.PoseObservation;
 public class Vision extends SubsystemBase {
   private static final double kMaxDistanceFromFusedPose = 4.0; // meters
   private static final double kCrossCameraAgreementThreshold = 1.0; // meters
+  private static final double kMaxObservationAgeSeconds = 1.0;
   private static final String kTurretCameraName = "Turret";
   private static final double kVisionTimeoutSeconds = 1.1; // extra 0.1s for pipeline latency (observation timestamps lag FPGA)
 
@@ -92,10 +93,12 @@ public class Vision extends SubsystemBase {
       m_hasAcceptedVisionUpdate = false;
       boolean poseTrusted = hasRecentAcceptedVision();
 
-      // Find turret observation if present
+      // Find turret observation if present and fresh
+      double now = Timer.getFPGATimestamp();
       Translation2d turretTranslation = null;
       for (var obs : observations) {
-        if (obs.cameraName().equals(kTurretCameraName)) {
+        if (obs.cameraName().equals(kTurretCameraName)
+            && now - obs.timestamp() < kMaxObservationAgeSeconds) {
           turretTranslation = obs.pose().toPose2d().getTranslation();
           break;
         }
@@ -106,6 +109,13 @@ public class Vision extends SubsystemBase {
         Translation2d obsTranslation = observation.pose().toPose2d().getTranslation();
         double distFromFused = fusedPose.getTranslation().getDistance(obsTranslation);
         Logger.recordOutput("Vision/" + observation.cameraName() + "/distFromFusedPose", distFromFused);
+
+        // Gate 0: reject stale observations
+        double age = now - observation.timestamp();
+        if (age > kMaxObservationAgeSeconds) {
+          Logger.recordOutput("Vision/" + observation.cameraName() + "/rejected", "stale");
+          continue;
+        }
 
         // Gate 1: reject if far from fused pose (when pose is trusted)
         if (poseTrusted && distFromFused > kMaxDistanceFromFusedPose) {
