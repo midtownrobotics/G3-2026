@@ -178,6 +178,7 @@ public class Robot extends LoggedRobot {
         (observation) -> m_drive.addVisionMeasurement(
             observation.pose().toPose2d(), observation.timestamp(), observation.standardDevs()),
         m_drive::getPose,
+        m_drive::resetPose,
         rearRight,
         rearLeft,
         rear,
