@@ -83,6 +83,8 @@ public class Vision extends SubsystemBase {
 
     String desiredCamera = getDesiredCameraName(observations);
 
+    Logger.recordOutput("Vision/desiredCamera", desiredCamera);
+
     observations = observations.stream().filter(o -> o.cameraName().equals(desiredCamera)).toList();
 
     Logger.recordOutput("Vision/observationsSize", observations.size());
