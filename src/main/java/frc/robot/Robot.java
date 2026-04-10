@@ -249,10 +249,10 @@ public class Robot extends LoggedRobot {
             m_state.getShootingParameters().setTargetCommand(m_state::calculateFeedTarget, ShootingParametersMode.kPass)
                 .withName("setTargetCommandFeed"));
 
-    m_vision.getHasRecentAcceptedVisionTrigger().negate()
+    m_vision.getHasAcceptedVisionUpdateTrigger().negate().debounce(3.0)
         .onTrue(m_controls.rumbleCommand().withTimeout(Seconds.of(1)));
 
-    m_vision.getHasRecentAcceptedVisionTrigger().debounce(6.0, DebounceType.kFalling)
+    m_vision.getHasAcceptedVisionUpdateTrigger().debounce(6.0, DebounceType.kFalling)
         .onTrue(m_controls.pulseRumbleCommand(3, 0.14));
 
     RobotModeTriggers.teleop().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement());

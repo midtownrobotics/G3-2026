@@ -74,30 +74,28 @@ public class Vision extends SubsystemBase {
     if (observations.isEmpty()) {
       m_hasVisionUpdate = false;
       m_hasAcceptedVisionUpdate = false;
-      m_watchdog.end("periodic");
-      return;
-    }
+    } else {
+      m_hasVisionUpdate = true;
+      m_hasAcceptedVisionUpdate = false;
+      boolean poseTrusted = hasRecentAcceptedVision();
 
-    m_hasVisionUpdate = true;
-    m_hasAcceptedVisionUpdate = false;
-    boolean poseTrusted = hasRecentAcceptedVision();
-
-    for (var observation : observations) {
-      Logger.recordOutput("Vision/" + observation.cameraName() + "/observedRobotPose", observation.pose());
-      double distFromFused = fusedPose.getTranslation()
-          .getDistance(observation.pose().toPose2d().getTranslation());
-      Logger.recordOutput("Vision/" + observation.cameraName() + "/distFromFusedPose", distFromFused);
-      if (poseTrusted && distFromFused > kMaxDistanceFromFusedPose) {
-        continue;
+      for (var observation : observations) {
+        Logger.recordOutput("Vision/" + observation.cameraName() + "/observedRobotPose", observation.pose());
+        double distFromFused = fusedPose.getTranslation()
+            .getDistance(observation.pose().toPose2d().getTranslation());
+        Logger.recordOutput("Vision/" + observation.cameraName() + "/distFromFusedPose", distFromFused);
+        if (poseTrusted && distFromFused > kMaxDistanceFromFusedPose) {
+          continue;
+        }
+        m_addVisionMeasurement.accept(observation);
+        m_hasAcceptedVisionUpdate = true;
+        m_lastAcceptedVisionTimestamp = Timer.getFPGATimestamp();
       }
-      m_addVisionMeasurement.accept(observation);
-      m_hasAcceptedVisionUpdate = true;
-      m_lastAcceptedVisionTimestamp = Timer.getFPGATimestamp();
     }
 
-    Logger.recordOutput("Vision/hasVisionUpdate", m_hasVisionUpdateTrigger.getAsBoolean());
-    Logger.recordOutput("Vision/hasAcceptedVisionUpdate", m_hasAcceptedVisionUpdateTrigger.getAsBoolean());
-    Logger.recordOutput("Vision/hasRecentAcceptedVision", poseTrusted);
+    Logger.recordOutput("Vision/hasVisionUpdate", m_hasVisionUpdate);
+    Logger.recordOutput("Vision/hasAcceptedVisionUpdate", m_hasAcceptedVisionUpdate);
+    Logger.recordOutput("Vision/hasRecentAcceptedVision", hasRecentAcceptedVision());
 
     m_watchdog.end("periodic");
   }
