@@ -80,6 +80,8 @@ public class Vision extends SubsystemBase {
 
     List<PoseObservation> observations = m_cameras.stream().flatMap(c -> c.getLatestObservations().stream()).toList();
 
+    Logger.recordOutput("Vision/observationsSize", observations.size());
+
     if (observations.isEmpty()) {
       m_hasVisionUpdate = false;
       m_hasAcceptedVisionUpdate = false;
