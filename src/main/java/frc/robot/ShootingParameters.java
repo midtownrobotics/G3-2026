@@ -137,7 +137,10 @@ public class ShootingParameters {
       Map.entry(Feet.of(13).in(Meters), RPM.of(1650).in(RadiansPerSecond)),
       Map.entry(Feet.of(14).in(Meters), RPM.of(1650).in(RadiansPerSecond)),
       Map.entry(Feet.of(15).in(Meters), RPM.of(1900).in(RadiansPerSecond)),
-      Map.entry(Feet.of(26.875).in(Meters), RPM.of(2800).in(RadiansPerSecond)));
+      Map.entry(Feet.of(26.875).in(Meters), RPM.of(2800).in(RadiansPerSecond)),
+      Map.entry(Feet.of(35).in(Meters), RPM.of(3400).in(RadiansPerSecond)),
+      Map.entry(Feet.of(50).in(Meters), RPM.of(4000).in(RadiansPerSecond))
+      );
 
   private double m_flywheelVelocityModifier = 1;
   private Angle m_hoodAngleModifier = Degrees.of(0);
