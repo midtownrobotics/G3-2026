@@ -309,6 +309,9 @@ public class Robot extends LoggedRobot {
     m_controls.zeroHood().whileTrue(m_robotCommands.zeroTurretHood());
 
     m_controls.zeroIntake().whileTrue(m_robotCommands.zeroIntake());
+
+    m_controls.toggleShootOnTheMove()
+      .onTrue(m_state.setShootOnTheMoveEnabledCommand(() -> !m_state.isShootOnTheMoveEnabled()));
   }
 
   public void configureTrimControlBindings(TrimControls controls) {
@@ -320,9 +323,6 @@ public class Robot extends LoggedRobot {
 
     controls.increaseVelocityCompensation().onTrue(m_robotCommands.increaseVelocityCompensation());
     controls.decreaseVelocityCompensation().onTrue(m_robotCommands.decreaseVelocityCompensation());
-
-    controls.toggleShootOnTheMove()
-        .onTrue(m_state.setShootOnTheMoveEnabledCommand(() -> !m_state.isShootOnTheMoveEnabled()));
   }
 
   @Override

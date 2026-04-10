@@ -54,7 +54,7 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger unjam() {
-    return m_controller.povUp();
+    return m_controller.y();
   }
 
   @Override
@@ -69,7 +69,7 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger setpointShoot() {
-    return m_controller.y();
+    return m_controller.a();
   }
 
   @Override
@@ -84,7 +84,12 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger defense() {
-    return m_controller.povDown();
+    return m_controller.start();
+  }
+
+  @Override
+  public Trigger toggleShootOnTheMove() {
+    return m_controller.back();
   }
 
   public void setRumble(boolean enabled) {
