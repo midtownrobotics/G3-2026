@@ -42,7 +42,7 @@ public class Camera {
   }
 
   public Camera(String name, Transform3d robotToCamera) {
-    this(name, robotToCamera, 1.0);
+    this(name, robotToCamera, 4.0);
   }
 
   public void periodic() {
@@ -85,7 +85,7 @@ public class Camera {
     }
     double distanceMultiplier = Math.max(1.0, avgDistanceMeters / 3.0);
     double stdDev = base * distanceMultiplier * m_stdDevMultiplier;
-    return VecBuilder.fill(stdDev, stdDev, 5*stdDev);
+    return VecBuilder.fill(stdDev, stdDev, 5 * stdDev);
   }
 
   public List<PoseObservation> getLatestObservations() {
