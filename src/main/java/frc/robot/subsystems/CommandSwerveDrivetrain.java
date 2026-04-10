@@ -319,6 +319,18 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     Logger.recordOutput("Drive/moduleStates", getModuleStates());
     Logger.recordOutput("Drive/targetModuleStates", getTargetModuleStates());
     Logger.recordOutput("Drive/modulePositions", getModulePositions());
+
+    Logger.recordOutput("Drive/maxModuleSlip", m_maxModuleSlip);
+    Logger.recordOutput("Drive/hasWheelSlip", m_maxModuleSlip > kSlipThreshold);
+
+    var modules = getModules();
+    for (int i = 0; i < modules.length; i++) {
+      var module = modules[i];
+      Logger.recordOutput("Drive/ModuleLogs/" + i + "/Drive/Supply", module.getDriveMotor().getSupplyCurrent().getValueAsDouble());
+      Logger.recordOutput("Drive/ModuleLogs/" + i + "/Drive/Supply", module.getDriveMotor().getStatorCurrent().getValueAsDouble());
+      Logger.recordOutput("Drive/ModuleLogs/" + i + "/Steer/Supply", module.getSteerMotor().getSupplyCurrent().getValueAsDouble());
+      Logger.recordOutput("Drive/ModuleLogs/" + i + "/Steer/Supply", module.getSteerMotor().getStatorCurrent().getValueAsDouble());
+    }
   }
 
   private void startSimThread() {
