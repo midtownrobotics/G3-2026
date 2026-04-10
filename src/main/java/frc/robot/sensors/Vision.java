@@ -27,7 +27,9 @@ public class Vision extends SubsystemBase {
   private final Watchdawg m_watchdog;
 
   private boolean m_hasVisionUpdate;
+  private boolean m_hasAcceptedVisionUpdate;
   private final Trigger m_hasVisionUpdateTrigger;
+  private final Trigger m_hasAcceptedVisionUpdateTrigger;
 
   public Vision(
       Consumer<PoseObservation> addVisionMeasurement,
@@ -44,6 +46,7 @@ public class Vision extends SubsystemBase {
     }
 
     m_hasVisionUpdateTrigger = new Trigger(this::hasVisionUpdate);
+    m_hasAcceptedVisionUpdateTrigger = new Trigger(this::hasAcceptedVisionUpdate);
 
     m_watchdog = new Watchdawg(getClass());
   }
@@ -65,11 +68,13 @@ public class Vision extends SubsystemBase {
 
     if (observations.isEmpty()) {
       m_hasVisionUpdate = false;
+      m_hasAcceptedVisionUpdate = false;
       m_watchdog.end("periodic");
       return;
     }
 
     m_hasVisionUpdate = true;
+    m_hasAcceptedVisionUpdate = false;
 
     for (var observation : observations) {
       Logger.recordOutput("Vision/" + observation.cameraName() + "/observedRobotPose", observation.pose());
@@ -80,9 +85,11 @@ public class Vision extends SubsystemBase {
         continue;
       }
       m_addVisionMeasurement.accept(observation);
+      m_hasAcceptedVisionUpdate = true;
     }
 
     Logger.recordOutput("Vision/hasVisionUpdate", m_hasVisionUpdateTrigger.getAsBoolean());
+    Logger.recordOutput("Vision/hasAcceptedVisionUpdate", m_hasAcceptedVisionUpdateTrigger.getAsBoolean());
 
     m_watchdog.end("periodic");
   }
@@ -98,5 +105,13 @@ public class Vision extends SubsystemBase {
 
   public Trigger getHasVisionUpdateTrigger() {
     return m_hasVisionUpdateTrigger;
+  }
+
+  public boolean hasAcceptedVisionUpdate() {
+    return m_hasAcceptedVisionUpdate;
+  }
+
+  public Trigger getHasAcceptedVisionUpdateTrigger() {
+    return m_hasAcceptedVisionUpdateTrigger;
   }
 }
