@@ -93,6 +93,32 @@ public class Camera {
 
     for (var result : m_camera.getAllUnreadResults()) {
       Logger.recordOutput("Vision/" + m_camera.getName() + "/timeStamp", result.getTimestampSeconds());
+
+      if (!result.multitagResult.isPresent() && result.hasTargets()) {
+        var target = result.getBestTarget();
+        int tagId = target.getFiducialId();
+        var tagPoseOpt = FieldConstants.kTagLayout.getTagPose(tagId);
+        if (tagPoseOpt.isPresent()) {
+          Pose3d tagPose = tagPoseOpt.get();
+          Transform3d bestCamToTarget = target.getBestCameraToTarget();
+          Transform3d altCamToTarget = target.getAlternateCameraToTarget();
+          Pose3d bestRobotPose = tagPose.transformBy(bestCamToTarget.inverse())
+              .transformBy(getRobotToCamera().inverse());
+          Pose3d altRobotPose = tagPose.transformBy(altCamToTarget.inverse())
+              .transformBy(getRobotToCamera().inverse());
+          double distance = tagPose.getTranslation()
+              .getDistance(bestRobotPose.getTranslation());
+
+          Logger.recordOutput("Vision/" + m_camera.getName() + "/isSingleTagResult", true);
+          Logger.recordOutput("Vision/" + m_camera.getName() + "/singleTagId", tagId);
+          Logger.recordOutput("Vision/" + m_camera.getName() + "/singleTagAmbiguity", target.getPoseAmbiguity());
+          Logger.recordOutput("Vision/" + m_camera.getName() + "/singleTagBestPose", bestRobotPose);
+          Logger.recordOutput("Vision/" + m_camera.getName() + "/singleTagAltPose", altRobotPose);
+          Logger.recordOutput("Vision/" + m_camera.getName() + "/singleTagDistance", distance);
+        }
+        continue;
+      }
+
       if (result.multitagResult.isPresent()) {
         List<Pose3d> tagPoses = result.targets.stream().map(t -> t.getFiducialId())
             .map(d -> FieldConstants.kTagLayout.getTagPose(d).get()).toList();
