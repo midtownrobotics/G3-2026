@@ -91,7 +91,8 @@ public class AutoRoutines {
     AutoTrajectory startToCenterShoot = routine.trajectory("LeftStartToCenterToShoot");
     AutoTrajectory shootToDepotStraight = routine.trajectory("LeftShootToDepotStraightOn");
 
-    startToCenterShoot.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().andThen(m_robotCommands.haltTurretAndHoodMovement()).asProxy());
+    startToCenterShoot.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement()
+        .andThen(m_robotCommands.haltTurretAndHoodMovement()).asProxy());
     startToCenterShoot.atTime(2.0).onTrue(m_robotCommands.runIntake());
     startToCenterShoot.atTime(4.1).onTrue(m_robotCommands.stowIntake());
     startToCenterShoot.doneDelayed(1).onTrue(m_robotCommands.shootShooterCommand());
@@ -169,17 +170,17 @@ public class AutoRoutines {
     return routine;
   }
 
-  public AutoRoutine CenterStartDepotOutpost() {
+  public AutoRoutine CenterStartDepot() {
     AutoRoutine routine = m_autoFactory.newRoutine("CenterStartDepotOutpost");
     AutoTrajectory CenterStartToDepot = routine.trajectory("CenterStartToDepot");
+    AutoTrajectory LeftStartToBump = routine.trajectory("LeftStartToBump");
 
     CenterStartToDepot.active().onTrue(m_robotCommands.shootShooterCommand().asProxy());
     CenterStartToDepot.atTime("startintake").onTrue(m_robotCommands.runIntake());
     CenterStartToDepot.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
-    CenterStartToDepot.atTime("startintake2").onTrue(m_robotCommands.runIntake());
-    CenterStartToDepot.atTime("stopintake2").onTrue(m_robotCommands.stowIntake());
-    CenterStartToDepot.atTime("stopeverything").onTrue(m_robotCommands.stowIntake());
-    CenterStartToDepot.atTime("stopeverything").onTrue(m_robotCommands.stopShooterCommand());
+    CenterStartToDepot.doneDelayed(8).onTrue(LeftStartToBump.cmd());
+
+    LeftStartToBump.active().onTrue(m_robotCommands.stopShooterCommand());
 
     routine.active().onTrue(
         Commands.sequence(
