@@ -88,18 +88,18 @@ public class ShootingParameters {
   );
 
   private final InterpolatingDoubleTreeMap m_feedingHoodAngleMap = InterpolatingDoubleTreeMap.ofEntries(
-      Map.entry(Feet.of(4.25).in(Meters), Degrees.of(30).in(Radians)),
-      Map.entry(Feet.of(4.75).in(Meters), Degrees.of(30).in(Radians)),
-      Map.entry(Feet.of(5).in(Meters), Degrees.of(30).in(Radians)),
-      Map.entry(Feet.of(5.5).in(Meters), Degrees.of(30).in(Radians)),
-      Map.entry(Feet.of(6).in(Meters), Degrees.of(30).in(Radians)),
-      Map.entry(Feet.of(7).in(Meters), Degrees.of(32).in(Radians)),
-      Map.entry(Feet.of(8).in(Meters), Degrees.of(33).in(Radians)),
-      Map.entry(Feet.of(9).in(Meters), Degrees.of(38).in(Radians)),
-      Map.entry(Feet.of(10).in(Meters), Degrees.of(40).in(Radians)),
-      Map.entry(Feet.of(11).in(Meters), Degrees.of(40).in(Radians)),
-      Map.entry(Feet.of(15).in(Meters), Degrees.of(40).in(Radians)),
-      Map.entry(Feet.of(26.875).in(Meters), Degrees.of(40).in(Radians)),
+      Map.entry(Feet.of(4.25).in(Meters), Degrees.of(28).in(Radians)),
+      Map.entry(Feet.of(4.75).in(Meters), Degrees.of(28).in(Radians)),
+      Map.entry(Feet.of(5).in(Meters), Degrees.of(28).in(Radians)),
+      Map.entry(Feet.of(5.5).in(Meters), Degrees.of(28).in(Radians)),
+      Map.entry(Feet.of(6).in(Meters), Degrees.of(28).in(Radians)),
+      Map.entry(Feet.of(7).in(Meters), Degrees.of(30).in(Radians)),
+      Map.entry(Feet.of(8).in(Meters), Degrees.of(31).in(Radians)),
+      Map.entry(Feet.of(9).in(Meters), Degrees.of(32).in(Radians)),
+      Map.entry(Feet.of(10).in(Meters), Degrees.of(35).in(Radians)),
+      Map.entry(Feet.of(11).in(Meters), Degrees.of(35).in(Radians)),
+      Map.entry(Feet.of(15).in(Meters), Degrees.of(35).in(Radians)),
+      Map.entry(Feet.of(26.875).in(Meters), Degrees.of(35).in(Radians)),
       Map.entry(Feet.of(50).in(Meters), Degrees.of(35).in(Radians)));
   // Takes in a distance in meters and outputs an angular velocity in radians per
   // second
