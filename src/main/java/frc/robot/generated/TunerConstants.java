@@ -44,12 +44,12 @@ public class TunerConstants {
   // The steer motor uses any SwerveModule.SteerRequestType control request with the
   // output type specified by SwerveModuleConstants.SteerMotorClosedLoopOutput
   private static final Slot0Configs steerGains = new Slot0Configs()
-      .withKP(100)
+      .withKP(17.493)
       .withKI(0)
-      .withKD(1)
-      .withKS(0.1)
-      .withKV(2.05)
-      .withKA(0)
+      .withKD(0.19554)
+      .withKS(0.5627)
+      .withKV(2.1706)
+      .withKA(0.032277)
       .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseClosedLoopSign);
   // When using closed-loop control, the drive motor uses the control
   // output type specified by SwerveModuleConstants.DriveMotorClosedLoopOutput
