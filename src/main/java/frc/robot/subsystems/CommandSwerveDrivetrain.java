@@ -46,8 +46,8 @@ import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Subsystem {
   private static final double kSimLoopPeriod = 0.004; // 4 ms
   private static final double kSlipThreshold = 0.1; // m/s
-  private static final Matrix<N3, N1> kDefaultOdometryStdDevs = VecBuilder.fill(0.1, 0.1, 0.1);
-  private static final Matrix<N3, N1> kSlipOdometryStdDevs = VecBuilder.fill(0.3, 0.3, 0.3);
+  private static final Matrix<N3, N1> kDefaultOdometryStdDevs = VecBuilder.fill(0.1, 0.1, 0.002);
+  private static final Matrix<N3, N1> kSlipOdometryStdDevs = VecBuilder.fill(0.3, 0.3, 0.002);
 
   private Notifier m_simNotifier = null;
   private double m_lastSimTime;
@@ -63,8 +63,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
   /** Swerve request to apply during field-centric path following */
   private final SwerveRequest.ApplyFieldSpeeds m_pathApplyFieldSpeeds = new SwerveRequest.ApplyFieldSpeeds();
 
-  private final PIDController m_pathXController = new PIDController(10, 0, 0);
-  private final PIDController m_pathYController = new PIDController(10, 0, 0);
+  private final PIDController m_pathXController = new PIDController(8.8, 0, 0);
+  private final PIDController m_pathYController = new PIDController(8.8, 0, 0);
   private final PIDController m_pathThetaController = new PIDController(7, 0, 0);
 
   /* Swerve requests to apply during SysId characterization */
@@ -127,7 +127,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
           this));
 
   /* The SysId routine to test */
-  private SysIdRoutine m_sysIdRoutineToApply = m_sysIdRoutineTranslation;
+  private SysIdRoutine m_sysIdRoutineToApply = m_sysIdRoutineSteer;
 
   /**
    * Constructs a CTRE SwerveDrivetrain using the specified constants.
@@ -356,10 +356,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     var modules = getModules();
     for (int i = 0; i < modules.length; i++) {
       var module = modules[i];
-      Logger.recordOutput("Drive/ModuleLogs/" + i + "/Drive/Supply", module.getDriveMotor().getSupplyCurrent().getValueAsDouble());
-      Logger.recordOutput("Drive/ModuleLogs/" + i + "/Drive/Supply", module.getDriveMotor().getStatorCurrent().getValueAsDouble());
-      Logger.recordOutput("Drive/ModuleLogs/" + i + "/Steer/Supply", module.getSteerMotor().getSupplyCurrent().getValueAsDouble());
-      Logger.recordOutput("Drive/ModuleLogs/" + i + "/Steer/Supply", module.getSteerMotor().getStatorCurrent().getValueAsDouble());
+      Logger.recordOutput("Drive/ModuleLogs/" + i + "/Drive/Supply",
+          module.getDriveMotor().getSupplyCurrent().getValueAsDouble());
+      Logger.recordOutput("Drive/ModuleLogs/" + i + "/Drive/Supply",
+          module.getDriveMotor().getStatorCurrent().getValueAsDouble());
+      Logger.recordOutput("Drive/ModuleLogs/" + i + "/Steer/Supply",
+          module.getSteerMotor().getSupplyCurrent().getValueAsDouble());
+      Logger.recordOutput("Drive/ModuleLogs/" + i + "/Steer/Supply",
+          module.getSteerMotor().getStatorCurrent().getValueAsDouble());
     }
   }
 
