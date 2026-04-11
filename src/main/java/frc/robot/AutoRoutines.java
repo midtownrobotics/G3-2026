@@ -141,7 +141,7 @@ public class AutoRoutines {
     return routine;
   }
 
-  public AutoRoutine LeftDoubleSwipe() {
+  public AutoRoutine LeftDoubleSwipeDepot() {
     AutoRoutine routine = m_autoFactory.newRoutine("LeftDoubleSwipe");
     AutoTrajectory LeftToCenterToShootAggressive = routine.trajectory("LeftToCenterToShootAggressive");
     AutoTrajectory LeftStartToDepot = routine.trajectory("LeftStartToDepot");
@@ -158,6 +158,53 @@ public class AutoRoutines {
     LeftStartToDepot.doneDelayed(0.5).onTrue(LeftStartCenterEnder.cmd());
 
     LeftStartCenterEnder.atTime("startintake").onTrue(m_robotCommands.runIntake());
+
+    routine.active().onTrue(
+        Commands.sequence(
+            LeftToCenterToShootAggressive.resetOdometry(),
+            LeftToCenterToShootAggressive.cmd()));
+    return routine;
+  }
+
+  public AutoRoutine RightDoubleSwipe() {
+    AutoRoutine routine = m_autoFactory.newRoutine("LeftDoubleSwipe");
+    AutoTrajectory LeftToCenterToShootAggressive = routine.trajectory("LeftToCenterToShootAggressive").mirrorY();
+    AutoTrajectory LeftToCenterToShootAggressive2 = routine.trajectory("LeftToCenterToShootAggressive").mirrorY();
+
+    LeftToCenterToShootAggressive.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
+    LeftToCenterToShootAggressive.atTime("startintake").onTrue(m_robotCommands.runIntake());
+    LeftToCenterToShootAggressive.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
+    LeftToCenterToShootAggressive.atTime("startshoot").onTrue(m_robotCommands.shootShooterCommand().asProxy());
+    LeftToCenterToShootAggressive.doneDelayed(3).onTrue(LeftToCenterToShootAggressive2.cmd());
+
+    LeftToCenterToShootAggressive2.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
+    LeftToCenterToShootAggressive2.atTime("startintake").onTrue(m_robotCommands.runIntake());
+    LeftToCenterToShootAggressive2.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
+    LeftToCenterToShootAggressive2.atTime("startshoot").onTrue(m_robotCommands.shootShooterCommand().asProxy());
+
+    routine.active().onTrue(
+        Commands.sequence(
+            LeftToCenterToShootAggressive.resetOdometry(),
+            LeftToCenterToShootAggressive.cmd()));
+    return routine;
+  }
+
+  public AutoRoutine LeftDoubleSwipe() {
+    AutoRoutine routine = m_autoFactory.newRoutine("LeftDoubleSwipe");
+    AutoTrajectory LeftToCenterToShootAggressive = routine.trajectory("LeftToCenterToShootAggressive");
+    AutoTrajectory LeftToCenterToShootAggressive2 = routine.trajectory("LeftToCenterToShootAggressive");
+    //if you don't say 2 it cycles infinitely
+
+    LeftToCenterToShootAggressive.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
+    LeftToCenterToShootAggressive.atTime("startintake").onTrue(m_robotCommands.runIntake());
+    LeftToCenterToShootAggressive.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
+    LeftToCenterToShootAggressive.atTime("startshoot").onTrue(m_robotCommands.shootShooterCommand().asProxy());
+    LeftToCenterToShootAggressive.doneDelayed(3).onTrue(LeftToCenterToShootAggressive2.cmd());
+
+    LeftToCenterToShootAggressive2.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
+    LeftToCenterToShootAggressive2.atTime("startintake").onTrue(m_robotCommands.runIntake());
+    LeftToCenterToShootAggressive2.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
+    LeftToCenterToShootAggressive2.atTime("startshoot").onTrue(m_robotCommands.shootShooterCommand().asProxy());
 
     routine.active().onTrue(
         Commands.sequence(
