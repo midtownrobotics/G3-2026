@@ -84,12 +84,12 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger defense() {
-    return m_controller.start();
+    return m_controller.back();
   }
 
   @Override
   public Trigger toggleShootOnTheMove() {
-    return m_controller.back();
+    return m_controller.start();
   }
 
   public void setRumble(boolean enabled) {
