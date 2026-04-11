@@ -280,6 +280,8 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addRoutine("Left center inverted depot then back to center", m_autoRoutines::SOTMLeftInverseTwice);
     m_autoChooser.addRoutine("Tune Tangential", m_autoRoutines::tuneTangential);
     m_autoChooser.addRoutine("Tune Radial", m_autoRoutines::tuneRadial);
+    m_autoChooser.addRoutine("DCMP LeftDoubleSwipe + Depot", m_autoRoutines::LeftDoubleSwipeDepot);
+    m_autoChooser.addRoutine("DCMP RightDoubleSwipe", m_autoRoutines::RightDoubleSwipe);
     m_autoChooser.addRoutine("DCMP LeftDoubleSwipe", m_autoRoutines::LeftDoubleSwipe);
 
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
@@ -312,7 +314,7 @@ public class Robot extends LoggedRobot {
     m_controls.zeroIntake().whileTrue(m_robotCommands.zeroIntake());
 
     m_controls.toggleShootOnTheMove()
-      .onTrue(m_state.setShootOnTheMoveEnabledCommand(() -> !m_state.isShootOnTheMoveEnabled()));
+        .onTrue(m_state.setShootOnTheMoveEnabledCommand(() -> !m_state.isShootOnTheMoveEnabled()));
   }
 
   public void configureTrimControlBindings(TrimControls controls) {
