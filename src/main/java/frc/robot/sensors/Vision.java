@@ -90,11 +90,11 @@ public class Vision extends SubsystemBase {
 
     List<PoseObservation> observations = m_cameras.stream().filter(c -> c.isEnabled()).flatMap(c -> c.getLatestObservations().stream()).toList();
 
-    String desiredCamera = getDesiredCameraName(observations);
+    // String desiredCamera = getDesiredCameraName(observations);
 
-    Logger.recordOutput("Vision/desiredCamera", desiredCamera);
+    // Logger.recordOutput("Vision/desiredCamera", desiredCamera);
 
-    observations = observations.stream().filter(o -> o.cameraName().equals(desiredCamera)).toList();
+    // observations = observations.stream().filter(o -> o.cameraName().equals(desiredCamera)).toList();
 
     Logger.recordOutput("Vision/observationsSize", observations.size());
 

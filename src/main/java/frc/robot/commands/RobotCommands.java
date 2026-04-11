@@ -138,6 +138,10 @@ public class RobotCommands {
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming).withName("stowIntakeAndHaltTurretMovement");
   }
 
+  public Command haltTurretAndHoodMovement() {
+    return Commands.parallel(m_turret.stop(), m_hood.stop()).withInterruptBehavior(InterruptionBehavior.kCancelSelf);
+  }
+
   public Command fill() {
     return Commands
         .parallel(m_shooter.stop(), m_feeder.stop(), runIntake(), m_state.setShooterStateCommand(ShooterState.kIdle))

@@ -91,12 +91,12 @@ public class AutoRoutines {
     AutoTrajectory startToCenterShoot = routine.trajectory("LeftStartToCenterToShoot");
     AutoTrajectory shootToDepotStraight = routine.trajectory("LeftShootToDepotStraightOn");
 
-    startToCenterShoot.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
+    startToCenterShoot.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().andThen(m_robotCommands.haltTurretAndHoodMovement()).asProxy());
     startToCenterShoot.atTime(2.0).onTrue(m_robotCommands.runIntake());
     startToCenterShoot.atTime(4.1).onTrue(m_robotCommands.stowIntake());
-    startToCenterShoot.done().onTrue(m_robotCommands.shootShooterCommand());
-    startToCenterShoot.doneDelayed(5).onFalse(m_robotCommands.idle());
-    startToCenterShoot.doneDelayed(5).onTrue(shootToDepotStraight.cmd());
+    startToCenterShoot.doneDelayed(1).onTrue(m_robotCommands.shootShooterCommand());
+    startToCenterShoot.doneDelayed(4).onFalse(m_robotCommands.idle());
+    startToCenterShoot.doneDelayed(4).onTrue(shootToDepotStraight.cmd());
 
     shootToDepotStraight.active().onTrue(m_robotCommands.runIntake());
     shootToDepotStraight.done().onTrue(m_robotCommands.stowIntake());
