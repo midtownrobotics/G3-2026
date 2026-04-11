@@ -245,6 +245,7 @@ public class Robot extends LoggedRobot {
     LoggedCommandScheduler.init(CommandScheduler.getInstance());
 
     m_state.inAllianceZoneTrigger().and(RobotModeTriggers.disabled().negate())
+        .and(RobotModeTriggers.autonomous().negate())
         .whileTrue(m_state.getShootingParameters()
             .setTargetCommand(FieldConstants::getHubPosition2d, ShootingParametersMode.kShoot)
             .withName("setTargetCommandHubPosition"))
