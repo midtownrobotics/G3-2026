@@ -287,6 +287,7 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addRoutine("Left Feeding + Depot", m_autoRoutines::LeftStartFeedingDepot);
     m_autoChooser.addRoutine("Left Feeding", m_autoRoutines::LeftStartFeeding);
     m_autoChooser.addRoutine("Right Feeding", m_autoRoutines::RightStartFeeding);
+    m_autoChooser.addRoutine("Center Start Depot Outpost (DCMP ALLIANCE)", m_autoRoutines::CenterStartDepotOutpost);
 
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
     RobotModeTriggers.autonomous().whileTrue(m_autoChooser.selectedCommandScheduler());
@@ -350,7 +351,7 @@ public class Robot extends LoggedRobot {
     Logger.recordOutput("Pigeon2/accelerationX", m_drive.getPigeon2().getAccelerationX().getValue());
     Logger.recordOutput("Pigeon2/accelerationY", m_drive.getPigeon2().getAccelerationY().getValue());
     Logger.recordOutput("Pigeon2/accelerationZ", m_drive.getPigeon2().getAccelerationZ().getValue());
-    
+
     LoggedCommandScheduler.periodic();
   }
 

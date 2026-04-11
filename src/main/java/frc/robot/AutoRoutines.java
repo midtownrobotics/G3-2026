@@ -169,6 +169,25 @@ public class AutoRoutines {
     return routine;
   }
 
+  public AutoRoutine CenterStartDepotOutpost() {
+    AutoRoutine routine = m_autoFactory.newRoutine("CenterStartDepotOutpost");
+    AutoTrajectory CenterStartToDepot = routine.trajectory("CenterStartToDepot");
+
+    CenterStartToDepot.active().onTrue(m_robotCommands.shootShooterCommand().asProxy());
+    CenterStartToDepot.atTime("startintake").onTrue(m_robotCommands.runIntake());
+    CenterStartToDepot.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
+    CenterStartToDepot.atTime("startintake2").onTrue(m_robotCommands.runIntake());
+    CenterStartToDepot.atTime("stopintake2").onTrue(m_robotCommands.stowIntake());
+    CenterStartToDepot.atTime("stopeverything").onTrue(m_robotCommands.stowIntake());
+    CenterStartToDepot.atTime("stopeverything").onTrue(m_robotCommands.stopShooterCommand());
+
+    routine.active().onTrue(
+        Commands.sequence(
+            CenterStartToDepot.resetOdometry(),
+            CenterStartToDepot.cmd()));
+    return routine;
+  }
+
   public AutoRoutine RightDoubleSwipe() {
     AutoRoutine routine = m_autoFactory.newRoutine("RightDoubleSwipe");
     AutoTrajectory LeftToCenterToShootAggressive = routine.trajectory("LeftToCenterToShootAggressive").mirrorY();
