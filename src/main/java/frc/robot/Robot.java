@@ -344,6 +344,10 @@ public class Robot extends LoggedRobot {
 
     m_state.periodic();
 
+    Logger.recordOutput("Pigeon2/accelerationX", m_drive.getPigeon2().getAccelerationX().getValue());
+    Logger.recordOutput("Pigeon2/accelerationY", m_drive.getPigeon2().getAccelerationY().getValue());
+    Logger.recordOutput("Pigeon2/accelerationZ", m_drive.getPigeon2().getAccelerationZ().getValue());
+    
     LoggedCommandScheduler.periodic();
   }
 
