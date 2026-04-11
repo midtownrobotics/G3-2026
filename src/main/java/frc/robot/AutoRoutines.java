@@ -143,15 +143,18 @@ public class AutoRoutines {
 
   public AutoRoutine LeftDoubleSwipeDepot() {
     AutoRoutine routine = m_autoFactory.newRoutine("LeftDoubleSwipe");
-    AutoTrajectory LeftToCenterToShootAggressive = routine.trajectory("LeftToCenterToShootAggressive");
+    AutoTrajectory LeftStartToBump = routine.trajectory("LeftStartToBump");
+    AutoTrajectory CenterToShootAggressive = routine.trajectory("CenterToShootAggressive");
     AutoTrajectory LeftStartToDepot = routine.trajectory("LeftStartToDepot");
     AutoTrajectory LeftStartCenterEnder = routine.trajectory("LeftStartCenterEnder");
 
-    LeftToCenterToShootAggressive.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
-    LeftToCenterToShootAggressive.atTime("startintake").onTrue(m_robotCommands.runIntake());
-    LeftToCenterToShootAggressive.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
-    LeftToCenterToShootAggressive.atTime("startshoot").onTrue(m_robotCommands.shootShooterCommand().asProxy());
-    LeftToCenterToShootAggressive.doneDelayed(3).onTrue(LeftStartToDepot.cmd());
+    LeftStartToBump.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
+    LeftStartToBump.done().onTrue(CenterToShootAggressive.cmd());
+
+    CenterToShootAggressive.active().onTrue(m_robotCommands.runIntake());
+    CenterToShootAggressive.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
+    CenterToShootAggressive.atTime("startshoot").onTrue(m_robotCommands.shootShooterCommand().asProxy());
+    CenterToShootAggressive.doneDelayed(3).onTrue(LeftStartToDepot.cmd());
 
     LeftStartToDepot.active().onTrue(m_robotCommands.runIntake());
     LeftStartToDepot.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
@@ -161,8 +164,8 @@ public class AutoRoutines {
 
     routine.active().onTrue(
         Commands.sequence(
-            LeftToCenterToShootAggressive.resetOdometry(),
-            LeftToCenterToShootAggressive.cmd()));
+            LeftStartToBump.resetOdometry(),
+            LeftStartToBump.cmd()));
     return routine;
   }
 
