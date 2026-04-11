@@ -16,7 +16,6 @@ import com.ctre.phoenix6.SignalLogger;
 
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
-import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -152,6 +151,8 @@ public class Robot extends LoggedRobot {
       m_turret = new Turret(new TurretIOSim());
     }
 
+    DynamicCamera turretCamera = new DynamicCamera("Turret", 0.4, () -> true);
+
     Camera rear = new Camera(
         "Rear",
         new Transform3d(
@@ -161,19 +162,19 @@ public class Robot extends LoggedRobot {
         "Rear Right",
         new Transform3d(
             new Translation3d(Inches.of(-8.758), Inches.of(-14.541), Inches.of(8.022)),
-            new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(-33.26 - 90))));
+            new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(-33.26 - 90))),
+            () -> (DriverStation.isAutonomous() || !turretCamera.isConnected()));
     Camera rearLeft = new Camera(
         "Rear Left",
         new Transform3d(
             new Translation3d(Inches.of(-7.692), Inches.of(14.396), Inches.of(14.217)),
-            new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(31.475 + 90))));
+            new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(31.475 + 90))),  
+            () -> (DriverStation.isAutonomous() || !turretCamera.isConnected()));
     Camera frontLeft = new Camera(
         "Front Left",
         new Transform3d(
             new Translation3d(Inches.of(-7.076), Inches.of(14.525), Inches.of(10.65)),
             new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(90 - 37.698))));
-
-    DynamicCamera turretCamera = new DynamicCamera("Turret", VecBuilder.fill(0.1, 0.1, 0.1));
 
     m_vision = new Vision(
         (observation) -> m_drive.addVisionMeasurement(
@@ -251,10 +252,10 @@ public class Robot extends LoggedRobot {
             m_state.getShootingParameters().setTargetCommand(m_state::calculateFeedTarget, ShootingParametersMode.kPass)
                 .withName("setTargetCommandFeed"));
 
-    m_vision.getHasVisionUpdateTrigger().negate().debounce(3)
+    m_vision.getHasAcceptedVisionUpdateTrigger().negate().debounce(3.0)
         .onTrue(m_controls.rumbleCommand().withTimeout(Seconds.of(1)));
 
-    m_vision.getHasVisionUpdateTrigger().debounce(6.0, DebounceType.kFalling)
+    m_vision.getHasAcceptedVisionUpdateTrigger().debounce(6.0, DebounceType.kFalling)
         .onTrue(m_controls.pulseRumbleCommand(3, 0.14));
 
     RobotModeTriggers.teleop().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement());
@@ -312,7 +313,7 @@ public class Robot extends LoggedRobot {
     m_controls.zeroIntake().whileTrue(m_robotCommands.zeroIntake());
 
     m_controls.toggleShootOnTheMove()
-      .onTrue(m_state.setShootOnTheMoveEnabledCommand(() -> !m_state.isShootOnTheMoveEnabled()));
+        .onTrue(m_state.setShootOnTheMoveEnabledCommand(() -> !m_state.isShootOnTheMoveEnabled()));
   }
 
   public void configureTrimControlBindings(TrimControls controls) {
@@ -328,6 +329,9 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void robotPeriodic() {
+
+    Logger.recordOutput("Vision/isSOTMEnabled", m_state.isShootOnTheMoveEnabled());
+
     m_watchdog.start();
     CommandScheduler.getInstance().run();
     m_watchdog.end("commandScheduler");
