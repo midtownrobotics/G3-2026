@@ -58,7 +58,7 @@ public class HoodIOTalonFX implements HoodIO {
     TalonFXConfiguration config = new TalonFXConfiguration();
 
     config.Slot0 = new Slot0Configs()
-        .withKP(800)
+        .withKP(650)
         .withKI(0)
         .withKD(1)
         .withKS(0.4)
