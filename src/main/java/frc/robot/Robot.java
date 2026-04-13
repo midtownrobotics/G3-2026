@@ -224,7 +224,7 @@ public class Robot extends LoggedRobot {
 
     generateAutoChooser();
 
-    m_hood.setDefaultCommand(m_robotCommands.alignHood());
+    m_hood.setDefaultCommand(m_hood.setAngleCommand(Degrees.zero()));
 
     m_turret.setDefaultCommand(m_robotCommands.alignTurret());
 
