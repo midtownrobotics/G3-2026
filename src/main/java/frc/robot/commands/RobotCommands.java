@@ -89,8 +89,7 @@ public class RobotCommands {
   }
 
   public Command shooterTrackShootingParamters() {
-    return Commands
-        .parallel(m_shooter.setSpeedCommand(() -> m_state.getShootingParameters().getParameters().flywheelVelocity()))
+    return m_shooter.setSpeedCommand(() -> m_state.getShootingParameters().getParameters().flywheelVelocity())
         .withName("shooterTrackShootingParamters");
   }
 
@@ -139,6 +138,10 @@ public class RobotCommands {
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming).withName("stowIntakeAndHaltTurretMovement");
   }
 
+  public Command haltTurretAndHoodMovement() {
+    return Commands.parallel(m_turret.stop(), m_hood.stop()).withInterruptBehavior(InterruptionBehavior.kCancelSelf);
+  }
+
   public Command fill() {
     return Commands
         .parallel(m_shooter.stop(), m_feeder.stop(), runIntake(), m_state.setShooterStateCommand(ShooterState.kIdle))
@@ -151,19 +154,22 @@ public class RobotCommands {
   }
 
   public Command feedFuel() {
-    return Commands.parallel(m_feeder.runForward(), m_indexer.runForward(), m_intakeRoller.feedStow())
+    return Commands.parallel(m_feeder.runForward(), m_indexer.runForward())
         .withName("feedFuel");
   }
 
   public Command defense() {
-    Supplier<Boolean> turretBlockingIntake = () -> m_state.getTurretAngle().gt(Degrees.of(90))
+    Supplier<Boolean> turretBlockingIntake = () -> m_state.getTurretAngle().gt(Degrees.of(94))
         || m_state.getHoodAngle().gt(Degrees.of(1));
-    return Commands.parallel(m_turret.setAngleCommand(Degrees.of(90)), m_hood.setAngleCommand(Degrees.zero()),
-        m_feeder.stop(), m_indexer.stop(), m_state.setShooterStateCommand(ShooterState.kIdle), m_intakeRoller.stop(),
-        m_intakePivot.setAngle(() -> Degrees.of(turretBlockingIntake.get() ? 40 : 65)));
+    return Commands.parallel(
+        m_turret.setAngleCommand(Degrees.of(90)),
+        m_hood.setAngleCommand(Degrees.zero()),
+        m_feeder.stop(), m_indexer.stop(),
+        m_state.setShooterStateCommand(ShooterState.kIdle),
+        m_intakeRoller.stop(),
+        m_intakePivot.setAngle(() -> Degrees.of(turretBlockingIntake.get() ? 40 : 65))).withName("defense");
   }
 
-  
   public Command stopFeedingFuel() {
     return Commands.parallel(m_feeder.stop(), m_indexer.stop()).withName("stopFeedingFuel");
   }
@@ -208,6 +214,16 @@ public class RobotCommands {
           m_hood.setLowerSoftLimitEnabled(true);
           m_hood.setEncoderPosition(Degrees.zero());
         }).withName("zeroTurretHood");
+  }
+
+  public Command zeroIntake() {
+    return m_intakePivot.setLowerSoftLimitEnabledCommand(false)
+        .andThen(m_intakePivot.setVoltage(Volts.of(-3.5)).until(m_intakePivot.getCurrentSpikeTrigger())
+            .withTimeout(Seconds.of(4)))
+        .finallyDo(() -> {
+          m_intakePivot.setLowerSoftLimitEnabled(true);
+          m_intakePivot.setEncoderPosition(Degrees.zero());
+        }).withName("zeroIntake");
   }
 
   public Command increaseFlywheelVelocity() {

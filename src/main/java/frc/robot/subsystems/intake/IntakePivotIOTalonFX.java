@@ -96,7 +96,7 @@ public class IntakePivotIOTalonFX implements IntakePivotIO {
 
     config.SoftwareLimitSwitch = new SoftwareLimitSwitchConfigs()
         .withForwardSoftLimitEnable(true)
-        .withForwardSoftLimitThreshold(Degrees.of(60))
+        .withForwardSoftLimitThreshold(Degrees.of(70))
         .withReverseSoftLimitEnable(true)
         .withReverseSoftLimitThreshold(Degrees.of(0));
 
@@ -170,5 +170,16 @@ public class IntakePivotIOTalonFX implements IntakePivotIO {
         .withKG(kG)
         .withGravityType(GravityTypeValue.Arm_Cosine);
     m_motor.getConfigurator().apply(slot0);
+  }
+
+  @Override
+  public void setLowerSoftLimitEnabled(boolean enabled) {
+    SoftwareLimitSwitchConfigs config = new SoftwareLimitSwitchConfigs()
+        .withForwardSoftLimitEnable(true)
+        .withForwardSoftLimitThreshold(Degrees.of(70))
+        .withReverseSoftLimitEnable(enabled)
+        .withReverseSoftLimitThreshold(Degrees.of(0));
+
+    PhoenixUtil.tryUntilOk(5, () -> m_motor.getConfigurator().apply(config));
   }
 }

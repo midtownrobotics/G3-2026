@@ -1,5 +1,6 @@
 package frc.robot.controls;
 
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public interface Controls {
@@ -19,6 +20,8 @@ public interface Controls {
 
   public Trigger zeroHood();
 
+  public Trigger zeroIntake();
+
   public Trigger setpointShoot();
 
   public Trigger fullFieldShoot();
@@ -30,4 +33,10 @@ public interface Controls {
   public double getDriveLeft();
 
   public double getDriveRotation();
+
+  public Command rumbleCommand();
+
+  public Command pulseRumbleCommand(int pulses, double pulseDuration);
+
+  public Trigger toggleShootOnTheMove();
 }

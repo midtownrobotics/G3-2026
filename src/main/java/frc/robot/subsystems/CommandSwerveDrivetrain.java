@@ -6,7 +6,6 @@ import static edu.wpi.first.units.Units.Volts;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-
 import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.SignalLogger;
@@ -19,6 +18,7 @@ import choreo.Choreo.TrajectoryLogger;
 import choreo.auto.AutoFactory;
 import choreo.trajectory.SwerveSample;
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -45,8 +45,13 @@ import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
  */
 public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Subsystem {
   private static final double kSimLoopPeriod = 0.004; // 4 ms
+  private static final double kSlipThreshold = 0.1; // m/s
+  private static final Matrix<N3, N1> kDefaultOdometryStdDevs = VecBuilder.fill(0.1, 0.1, 0.002);
+  private static final Matrix<N3, N1> kSlipOdometryStdDevs = VecBuilder.fill(0.3, 0.3, 0.002);
+
   private Notifier m_simNotifier = null;
   private double m_lastSimTime;
+  private double m_maxModuleSlip = 0.0;
 
   /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
   private static final Rotation2d kBlueAlliancePerspectiveRotation = Rotation2d.kZero;
@@ -58,8 +63,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
   /** Swerve request to apply during field-centric path following */
   private final SwerveRequest.ApplyFieldSpeeds m_pathApplyFieldSpeeds = new SwerveRequest.ApplyFieldSpeeds();
 
-  private final PIDController m_pathXController = new PIDController(10, 0, 0);
-  private final PIDController m_pathYController = new PIDController(10, 0, 0);
+  private final PIDController m_pathXController = new PIDController(8.8, 0, 0);
+  private final PIDController m_pathYController = new PIDController(8.8, 0, 0);
   private final PIDController m_pathThetaController = new PIDController(7, 0, 0);
 
   /* Swerve requests to apply during SysId characterization */
@@ -122,7 +127,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
           this));
 
   /* The SysId routine to test */
-  private SysIdRoutine m_sysIdRoutineToApply = m_sysIdRoutineTranslation;
+  private SysIdRoutine m_sysIdRoutineToApply = m_sysIdRoutineSteer;
 
   /**
    * Constructs a CTRE SwerveDrivetrain using the specified constants.
@@ -245,6 +250,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     return getState().ModulePositions;
   }
 
+  public double getMaxModuleSlip() {
+    return m_maxModuleSlip;
+  }
+
+  public boolean hasWheelSlip() {
+    return m_maxModuleSlip > kSlipThreshold;
+  }
+
   /**
    * Follows the given field-centric path sample with PID.
    *
@@ -315,11 +328,43 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
               });
     }
 
+    // Compute wheel slip: max speed difference across all modules
+    SwerveModuleState[] measured = getModuleStates();
+    SwerveModuleState[] targets = getTargetModuleStates();
+    m_maxModuleSlip = 0.0;
+    for (int i = 0; i < measured.length; i++) {
+      double slip = Math.abs(measured[i].speedMetersPerSecond - targets[i].speedMetersPerSecond);
+      m_maxModuleSlip = Math.max(m_maxModuleSlip, slip);
+    }
+
+    // Inflate odometry std devs during wheel slip
+    if (m_maxModuleSlip > kSlipThreshold) {
+      setStateStdDevs(kSlipOdometryStdDevs);
+    } else {
+      setStateStdDevs(kDefaultOdometryStdDevs);
+    }
+
     Logger.recordOutput("Drive/pose", getPose());
     Logger.recordOutput("Drive/chassisSpeeds", getChassisSpeeds());
-    Logger.recordOutput("Drive/moduleStates", getModuleStates());
-    Logger.recordOutput("Drive/targetModuleStates", getTargetModuleStates());
+    Logger.recordOutput("Drive/moduleStates", measured);
+    Logger.recordOutput("Drive/targetModuleStates", targets);
     Logger.recordOutput("Drive/modulePositions", getModulePositions());
+
+    // Logger.recordOutput("Drive/maxModuleSlip", m_maxModuleSlip);
+    // Logger.recordOutput("Drive/hasWheelSlip", m_maxModuleSlip > kSlipThreshold);
+
+    var modules = getModules();
+    for (int i = 0; i < modules.length; i++) {
+      var module = modules[i];
+      Logger.recordOutput("Drive/ModuleLogs/" + i + "/Drive/Supply",
+          module.getDriveMotor().getSupplyCurrent().getValueAsDouble());
+      Logger.recordOutput("Drive/ModuleLogs/" + i + "/Drive/Supply",
+          module.getDriveMotor().getStatorCurrent().getValueAsDouble());
+      Logger.recordOutput("Drive/ModuleLogs/" + i + "/Steer/Supply",
+          module.getSteerMotor().getSupplyCurrent().getValueAsDouble());
+      Logger.recordOutput("Drive/ModuleLogs/" + i + "/Steer/Supply",
+          module.getSteerMotor().getStatorCurrent().getValueAsDouble());
+    }
   }
 
   private void startSimThread() {

@@ -50,7 +50,7 @@ public class Indexer extends SubsystemBase {
   }
 
   public Command runForward() {
-    return run(() -> m_io.setVoltage(Volts.of(10)));
+    return run(() -> m_io.setVoltage(Volts.of(8)));
   }
 
   public Command stop() {

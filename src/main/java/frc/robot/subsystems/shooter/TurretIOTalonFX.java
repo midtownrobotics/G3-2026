@@ -35,7 +35,7 @@ public class TurretIOTalonFX implements TurretIO {
   private static final double kRotorToSensorRatio = 60.0 / 12;
   private static final double kSensorToMechanismRatio = 82.0 / 10;
 
-  private static final Angle kLowSoftLimit = Degrees.of(45);
+  private static final Angle kLowSoftLimit = Degrees.of(-45);
   private static final Angle kHighSoftLimit = Degrees.of(330);
 
   private final TalonFX m_motor;
@@ -84,7 +84,9 @@ public class TurretIOTalonFX implements TurretIO {
 
     config.CurrentLimits = new CurrentLimitsConfigs()
         .withStatorCurrentLimitEnable(true)
-        .withStatorCurrentLimit(Amps.of(90));
+        .withStatorCurrentLimit(Amps.of(60))
+        .withSupplyCurrentLimitEnable(true)
+        .withSupplyCurrentLimit(Amps.of(40));
 
     config.OpenLoopRamps = new OpenLoopRampsConfigs().withVoltageOpenLoopRampPeriod(Seconds.of(0.25));
 

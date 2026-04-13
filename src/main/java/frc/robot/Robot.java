@@ -2,6 +2,7 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Seconds;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -15,6 +16,7 @@ import com.ctre.phoenix6.SignalLogger;
 
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -37,6 +39,7 @@ import frc.robot.controls.TrimXboxControls;
 import frc.robot.controls.XboxControls;
 import frc.robot.generated.TunerConstants;
 import frc.robot.sensors.Camera;
+import frc.robot.sensors.DynamicCamera;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.feeder.Feeder;
@@ -119,6 +122,7 @@ public class Robot extends LoggedRobot {
     // Set up data receivers & replay source
     if (isReal()) {
       Logger.addDataReceiver(new WPILOGWriter());
+      Logger.addDataReceiver(new WPILOGWriter("/home/lvuser/logs"));
       Logger.addDataReceiver(new NT4Publisher());
     } else {
       // Running a physics simulator, log to NT
@@ -147,6 +151,8 @@ public class Robot extends LoggedRobot {
       m_turret = new Turret(new TurretIOSim());
     }
 
+    DynamicCamera turretCamera = new DynamicCamera("Turret", 0.4, () -> true);
+
     Camera rear = new Camera(
         "Rear",
         new Transform3d(
@@ -156,12 +162,14 @@ public class Robot extends LoggedRobot {
         "Rear Right",
         new Transform3d(
             new Translation3d(Inches.of(-8.758), Inches.of(-14.541), Inches.of(8.022)),
-            new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(-33.26 - 90))));
+            new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(-33.26 - 90))),
+        () -> (DriverStation.isAutonomous() || !turretCamera.isConnected()));
     Camera rearLeft = new Camera(
         "Rear Left",
         new Transform3d(
             new Translation3d(Inches.of(-7.692), Inches.of(14.396), Inches.of(14.217)),
-            new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(31.475 + 90))));
+            new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(31.475 + 90))),
+        () -> (DriverStation.isAutonomous() || !turretCamera.isConnected()));
     Camera frontLeft = new Camera(
         "Front Left",
         new Transform3d(
@@ -170,12 +178,14 @@ public class Robot extends LoggedRobot {
 
     m_vision = new Vision(
         (observation) -> m_drive.addVisionMeasurement(
-            observation.pose().toPose2d(), observation.timestamp()),
+            observation.pose().toPose2d(), observation.timestamp(), observation.standardDevs()),
         m_drive::getPose,
+        m_drive::resetPose,
         rearRight,
         rearLeft,
         rear,
-        frontLeft);
+        frontLeft,
+        turretCamera);
 
     m_controls = new XboxControls(0);
 
@@ -189,6 +199,8 @@ public class Robot extends LoggedRobot {
         m_indexer,
         m_shooter,
         m_hood);
+
+    turretCamera.addRobotToCameraSupplier(m_state::getRobotToTurretCamera);
 
     m_robotCommands = new RobotCommands(
         m_drive,
@@ -233,12 +245,19 @@ public class Robot extends LoggedRobot {
     LoggedCommandScheduler.init(CommandScheduler.getInstance());
 
     m_state.inAllianceZoneTrigger().and(RobotModeTriggers.disabled().negate())
+        .and(RobotModeTriggers.autonomous().negate())
         .whileTrue(m_state.getShootingParameters()
             .setTargetCommand(FieldConstants::getHubPosition2d, ShootingParametersMode.kShoot)
             .withName("setTargetCommandHubPosition"))
         .whileFalse(
             m_state.getShootingParameters().setTargetCommand(m_state::calculateFeedTarget, ShootingParametersMode.kPass)
                 .withName("setTargetCommandFeed"));
+
+    m_vision.getHasAcceptedVisionUpdateTrigger().negate().debounce(3.0)
+        .onTrue(m_controls.rumbleCommand().withTimeout(Seconds.of(1)));
+
+    m_vision.getHasAcceptedVisionUpdateTrigger().debounce(6.0, DebounceType.kFalling)
+        .onTrue(m_controls.pulseRumbleCommand(3, 0.14));
 
     RobotModeTriggers.teleop().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement());
 
@@ -257,9 +276,19 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addRoutine("Depot And Middle Shoot", m_autoRoutines::depotAndMiddleShoot);
     m_autoChooser.addRoutine("Middle and Depot Shoot", m_autoRoutines::middleAndDepotShootLeft);
     m_autoChooser.addRoutine("SOTM Depot", m_autoRoutines::SOTMDepot);
-    m_autoChooser.addRoutine("SOTM Left Center", m_autoRoutines::SOTMLeftCenter);
+    m_autoChooser.addRoutine("SOTM Left center depot", m_autoRoutines::SOTMLeftCenter);
     m_autoChooser.addRoutine("Right center and shoot twice", m_autoRoutines::SOTMRightTwice);
-    m_autoChooser.addRoutine("Left center and shoot twice", m_autoRoutines::SOTMLeftTwice);
+    m_autoChooser.addRoutine("Left center depot then back to center", m_autoRoutines::SOTMLeftTwice);
+    m_autoChooser.addRoutine("Left center inverted depot then back to center", m_autoRoutines::SOTMLeftInverseTwice);
+    m_autoChooser.addRoutine("Tune Tangential", m_autoRoutines::tuneTangential);
+    m_autoChooser.addRoutine("Tune Radial", m_autoRoutines::tuneRadial);
+    m_autoChooser.addRoutine("DCMP LeftDoubleSwipe + Depot", m_autoRoutines::LeftDoubleSwipeDepot);
+    m_autoChooser.addRoutine("DCMP RightDoubleSwipe", m_autoRoutines::RightDoubleSwipe);
+    m_autoChooser.addRoutine("DCMP LeftDoubleSwipe", m_autoRoutines::LeftDoubleSwipe);
+    m_autoChooser.addRoutine("Left Feeding + Depot", m_autoRoutines::LeftStartFeedingDepot);
+    m_autoChooser.addRoutine("Left Feeding", m_autoRoutines::LeftStartFeeding);
+    m_autoChooser.addRoutine("Right Feeding", m_autoRoutines::RightStartFeeding);
+    m_autoChooser.addRoutine("Center Start Depot (DCMP ALLIANCE)", m_autoRoutines::CenterStartDepot);
 
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
     RobotModeTriggers.autonomous().whileTrue(m_autoChooser.selectedCommandScheduler());
@@ -281,10 +310,17 @@ public class Robot extends LoggedRobot {
         .onFalse(m_state.setShooterStateCommand(ShooterState.kShoot));
 
     m_controls.setpointShoot().onTrue(m_robotCommands.setPointShoot());
+    m_controls.setpointShoot().onTrue(m_state.setShooterStateCommand(ShooterState.kRev))
+        .onFalse(m_state.setShooterStateCommand(ShooterState.kShoot));
 
     m_controls.feedFuel().onTrue(m_robotCommands.feedFuel()).onFalse(m_robotCommands.stopFeedingFuel());
 
     m_controls.zeroHood().whileTrue(m_robotCommands.zeroTurretHood());
+
+    m_controls.zeroIntake().whileTrue(m_robotCommands.zeroIntake());
+
+    m_controls.toggleShootOnTheMove()
+        .onTrue(m_state.setShootOnTheMoveEnabledCommand(() -> !m_state.isShootOnTheMoveEnabled()));
   }
 
   public void configureTrimControlBindings(TrimControls controls) {
@@ -296,13 +332,13 @@ public class Robot extends LoggedRobot {
 
     controls.increaseVelocityCompensation().onTrue(m_robotCommands.increaseVelocityCompensation());
     controls.decreaseVelocityCompensation().onTrue(m_robotCommands.decreaseVelocityCompensation());
-
-    controls.toggleShootOnTheMove()
-        .onTrue(m_state.setShootOnTheMoveEnabledCommand(() -> !m_state.isShootOnTheMoveEnabled()));
   }
 
   @Override
   public void robotPeriodic() {
+
+    Logger.recordOutput("Vision/isSOTMEnabled", m_state.isShootOnTheMoveEnabled());
+
     m_watchdog.start();
     CommandScheduler.getInstance().run();
     m_watchdog.end("commandScheduler");
@@ -312,6 +348,10 @@ public class Robot extends LoggedRobot {
     m_watchdog.end("robotVizPeriodic");
 
     m_state.periodic();
+
+    Logger.recordOutput("Pigeon2/accelerationX", m_drive.getPigeon2().getAccelerationX().getValue());
+    Logger.recordOutput("Pigeon2/accelerationY", m_drive.getPigeon2().getAccelerationY().getValue());
+    Logger.recordOutput("Pigeon2/accelerationZ", m_drive.getPigeon2().getAccelerationZ().getValue());
 
     LoggedCommandScheduler.periodic();
   }

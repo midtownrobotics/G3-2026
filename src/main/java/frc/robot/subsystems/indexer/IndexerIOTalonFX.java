@@ -51,7 +51,9 @@ public class IndexerIOTalonFX implements InexerIO {
 
     config.CurrentLimits = new CurrentLimitsConfigs()
         .withStatorCurrentLimitEnable(true)
-        .withStatorCurrentLimit(Amps.of(90));
+        .withStatorCurrentLimit(Amps.of(60))
+        .withSupplyCurrentLimitEnable(true)
+        .withSupplyCurrentLimit(Amps.of(20));
 
     m_motor.getConfigurator().apply(config);
 

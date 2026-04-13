@@ -36,8 +36,8 @@ public class DriveCommands {
     m_drive = drive;
     m_state = state;
 
-    SlewRateLimiter m_forwardLimiter = new SlewRateLimiter(1.9);
-    SlewRateLimiter m_leftLimiter = new SlewRateLimiter(1.9);
+    SlewRateLimiter m_forwardLimiter = new SlewRateLimiter(1.3);
+    SlewRateLimiter m_leftLimiter = new SlewRateLimiter(1.3);
 
     m_driveLeftSupplier = () -> rateLimitInput(driveLeftSupplier.get(), m_leftLimiter);
     m_driveForwardSupplier = () -> rateLimitInput(driveForwardSupplier.get(), m_forwardLimiter);
@@ -105,7 +105,7 @@ public class DriveCommands {
     return Commands.run(
         () -> {
           watchdog.start();
-          double shootingMultiplier = isScoring() ? 0.6 : 1.0;
+          double shootingMultiplier = isScoring() ? 0.3 : 1.0;
           double maxSpeed = Constants.kMaxLinearSpeed.in(MetersPerSecond)
               * Constants.kLinearSpeedMultiplier * shootingMultiplier;
           ChassisSpeeds speeds = new ChassisSpeeds(
@@ -115,7 +115,8 @@ public class DriveCommands {
                   m_driveRotationSupplier.get()
                       * m_driveRotationSupplier.get()
                       * Constants.kAngularMaxSpeed.in(RadiansPerSecond)
-                      * Constants.kAngluarSpeedMultiplier,
+                      * Constants.kAngluarSpeedMultiplier
+                      * shootingMultiplier,
                   m_driveRotationSupplier.get()));
 
           m_drive.setControl(

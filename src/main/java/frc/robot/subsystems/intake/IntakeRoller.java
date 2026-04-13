@@ -48,10 +48,6 @@ public class IntakeRoller extends SubsystemBase {
     return run(() -> m_io.setVoltage(Volts.of(4)));
   }
 
-  public Command feedStow() {
-    return run(() -> m_io.setVoltage(Volts.of(4)));
-  }
-
   public Command stop() {
     return run(() -> m_io.stop());
   }

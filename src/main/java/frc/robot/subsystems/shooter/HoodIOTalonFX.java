@@ -58,11 +58,11 @@ public class HoodIOTalonFX implements HoodIO {
     TalonFXConfiguration config = new TalonFXConfiguration();
 
     config.Slot0 = new Slot0Configs()
-        .withKP(250)
+        .withKP(650)
         .withKI(0)
-        .withKD(3)
-        .withKS(0.01)
-        .withKG(0)
+        .withKD(1)
+        .withKS(0.4)
+        .withKV(30)
         .withGravityType(GravityTypeValue.Arm_Cosine);
 
     config.Feedback = new FeedbackConfigs()
@@ -78,8 +78,8 @@ public class HoodIOTalonFX implements HoodIO {
 
     // MotionMagic: CruiseVelocity = 300 RPM, Acceleration = 500 RPM/s
     config.MotionMagic = new MotionMagicConfigs()
-        .withMotionMagicCruiseVelocity(RPM.of(300))
-        .withMotionMagicAcceleration(RPM.per(Second).of(500));
+        .withMotionMagicCruiseVelocity(RPM.of(600))
+        .withMotionMagicAcceleration(RPM.per(Second).of(700));
 
     config.SoftwareLimitSwitch = new SoftwareLimitSwitchConfigs()
         .withForwardSoftLimitEnable(true)

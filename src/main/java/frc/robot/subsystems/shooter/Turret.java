@@ -33,7 +33,7 @@ public class Turret extends SubsystemBase {
     m_io = io;
     m_watchdog = new Watchdawg(getClass());
     SmartDashboard.putData("TuningModes/Turret", tuningMode());
-    m_isNearSetpointTrigger = new Trigger(() -> isNearSetpoint(Degrees.of(3)));
+    m_isNearSetpointTrigger = new Trigger(() -> isNearSetpoint(Degrees.of(5)));
   }
 
   @Override
