@@ -129,6 +129,7 @@ public class RobotState {
     Logger.recordOutput("RobotState/inAllianceZoneTrigger", inAllianceZoneTrigger().getAsBoolean());
     Logger.recordOutput("RobotState/isPreparedToShootTrigger", isPreparedToShootTrigger().getAsBoolean());
     Logger.recordOutput("RobotState/shooterMode", getShooterState());
+    Logger.recordOutput("ClampedChassisSpeeds", clampChassisSpeeds(getFieldRelativeSpeeds()));
   }
 
   public ShooterState getShooterState() {
@@ -196,6 +197,36 @@ public class RobotState {
     return robotSpeeds.plus(robotRelativeTurretSpeeds);
   }
 
+  private ChassisSpeeds clampChassisSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
+    Pose2d pose = getRobotPose();
+
+    double cosTheta = Math.abs(pose.getRotation().getCos());
+    double sinTheta = Math.abs(pose.getRotation().getSin());
+    double robotLength = Constants.kRobotLengthWithBumpers.in(Meters);
+    double robotWidth = Constants.kRobotWidthWithBumpers.in(Meters);
+
+    double offsetX = (robotLength * cosTheta + robotWidth * sinTheta) / 2.0 + 0.1;
+    double offsetY = (robotLength * sinTheta + robotWidth * cosTheta) / 2.0 + 0.1;
+
+    double vx = fieldRelativeSpeeds.vxMetersPerSecond;
+    double vy = fieldRelativeSpeeds.vyMetersPerSecond;
+
+    if (fieldRelativeSpeeds.vxMetersPerSecond < 0 && pose.getX() < offsetX) {
+      vx = 0;
+    } else if (fieldRelativeSpeeds.vxMetersPerSecond > 0
+        && pose.getX() > FieldConstants.kFieldLength.in(Meters) - offsetX) {
+      vx = 0;
+    }
+    if (fieldRelativeSpeeds.vyMetersPerSecond < 0 && pose.getY() < offsetY) {
+      vy = 0;
+    } else if (fieldRelativeSpeeds.vyMetersPerSecond > 0
+        && pose.getY() > FieldConstants.kFieldWidth.in(Meters) - offsetY) {
+      vy = 0;
+    }
+
+    return new ChassisSpeeds(vx, vy, fieldRelativeSpeeds.omegaRadiansPerSecond);
+  }
+
   public Trigger isPreparedToShootTrigger() {
     return m_isPreparedToShootTrigger;
   }
@@ -250,7 +281,7 @@ public class RobotState {
   public boolean isShootOnTheMoveEnabled() {
     return m_shootOnTheMoveToggle.get()
         && m_vision.hasRecentAcceptedVision();
-        // && !m_drive.hasWheelSlip();
+    // && !m_drive.hasWheelSlip();
   }
 
   public ShootingParameters getShootingParameters() {
