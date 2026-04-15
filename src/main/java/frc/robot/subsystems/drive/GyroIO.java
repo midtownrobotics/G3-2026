@@ -8,12 +8,20 @@ public interface GyroIO {
   @AutoLog
   public static class GyroIOInputs {
     public boolean connected = false;
-    public Rotation2d yawPosition = Rotation2d.kZero;
-    public double yawVelocityRadPerSec = 0.0;
-    public double[] odometryYawTimestamps = new double[] {};
+    public Rotation2d yawPosition = new Rotation2d();
+    public Rotation2d pitchPosition = new Rotation2d();
+    public Rotation2d rollPosition = new Rotation2d();
+    public double[] odometryTimestamps = new double[] {};
     public Rotation2d[] odometryYawPositions = new Rotation2d[] {};
+    public Rotation2d[] odometryPitchPositions = new Rotation2d[] {};
+    public Rotation2d[] odometryRollPositions = new Rotation2d[] {};
+    public double yawVelocityRadPerSec = 0.0;
+    public double pitchVelocityRadPerSec = 0.0;
+    public double rollVelocityRadPerSec = 0.0;
+    public double xAcceleration = 0.0;
+    public double yAcceleration = 0.0;
+    public double zAcceleration = 0.0;
   }
 
-  public default void updateInputs(GyroIOInputs inputs) {
-  }
+  public void updateInputs(GyroIOInputs inputs);
 }

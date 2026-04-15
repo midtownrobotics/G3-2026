@@ -3,6 +3,7 @@ package frc.robot.subsystems.drive;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -15,8 +16,8 @@ import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
@@ -29,11 +30,13 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.generated.TunerConstants;
+import frc.robot.util.PoseEstimator;
+import frc.robot.util.PoseEstimator.OdometryObservation;
+import frc.robot.util.PoseEstimator.VisionObservation;
 
 public class Drive extends SubsystemBase {
   // TunerConstants doesn't include these constants, so they are declared locally
@@ -64,15 +67,7 @@ public class Drive extends SubsystemBase {
       new SwerveModulePosition(),
       new SwerveModulePosition()
   };
-  private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(
-      kinematics, rawGyroRotation, lastModulePositions, Pose2d.kZero);
-
-  /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
-  private static final Rotation2d kBlueAlliancePerspectiveRotation = Rotation2d.kZero;
-  /* Red alliance sees forward as 180 degrees (toward blue alliance wall) */
-  private static final Rotation2d kRedAlliancePerspectiveRotation = Rotation2d.k180deg;
-  /* Keep track if we've ever applied the operator perspective before or not */
-  private boolean m_hasAppliedOperatorPerspective = false;
+  private PoseEstimator poseEstimator = new PoseEstimator(kinematics);
 
   /** PID controllers for Choreo path following */
   private final PIDController m_pathXController = new PIDController(10, 0, 0);
@@ -157,25 +152,23 @@ public class Drive extends SubsystemBase {
         rawGyroRotation = rawGyroRotation.plus(new Rotation2d(twist.dtheta));
       }
 
+      var odometryObservation = new OdometryObservation(
+          sampleTimestamps[i], modulePositions, gyroInputs.connected
+              ? Optional.of(gyroInputs.odometryRollPositions[i])
+              : Optional.empty(),
+          gyroInputs.connected
+              ? Optional.of(gyroInputs.odometryPitchPositions[i])
+              : Optional.empty(),
+          gyroInputs.connected
+              ? Optional.of(gyroInputs.odometryYawPositions[i])
+              : Optional.empty());
+
       // Apply update
-      poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
+      poseEstimator.addOdometryObservation(odometryObservation);
     }
 
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected && !DriverStation.isTest());
-
-    // Operator perspective handling
-    if (!m_hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
-      DriverStation.getAlliance()
-          .ifPresent(
-              allianceColor -> {
-                setOperatorPerspectiveForward(
-                    allianceColor == Alliance.Red
-                        ? kRedAlliancePerspectiveRotation
-                        : kBlueAlliancePerspectiveRotation);
-                m_hasAppliedOperatorPerspective = true;
-              });
-    }
 
     // Log drive state
     Logger.recordOutput("Drive/pose", getPose());
@@ -312,7 +305,7 @@ public class Drive extends SubsystemBase {
   /** Returns the current odometry pose. */
   @AutoLogOutput(key = "Odometry/Robot")
   public Pose2d getPose() {
-    return poseEstimator.getEstimatedPosition();
+    return poseEstimator.getEstimatedPose();
   }
 
   /** Returns the current odometry rotation. */
@@ -322,7 +315,7 @@ public class Drive extends SubsystemBase {
 
   /** Resets the current odometry pose. */
   public void setPose(Pose2d pose) {
-    poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
+    poseEstimator.resetPose(rawGyroRotation, getModulePositions(), pose);
   }
 
   /** Resets the current odometry pose. Alias for setPose for compatibility. */
@@ -330,23 +323,13 @@ public class Drive extends SubsystemBase {
     setPose(pose);
   }
 
-  /**
-   * Sets the operator perspective forward direction. This changes the perspective of the operator
-   * for field-centric drive controls.
-   */
-  public void setOperatorPerspectiveForward(Rotation2d rotation) {
-    // For the AK paradigm, operator perspective is handled in DriveCommands
-    // when converting field-centric to robot-centric, so this is a no-op
-    // that just stores the rotation for reference.
-  }
-
   /** Adds a new timestamped vision measurement. */
   public void addVisionMeasurement(
-      Pose2d visionRobotPoseMeters,
+      Pose3d visionRobotPoseMeters,
       double timestampSeconds,
       Matrix<N3, N1> visionMeasurementStdDevs) {
-    poseEstimator.addVisionMeasurement(
-        visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
+    var visionObservation = new VisionObservation(timestampSeconds, visionRobotPoseMeters, visionMeasurementStdDevs);
+    poseEstimator.addVisionObservation(visionObservation);
   }
 
   /** Returns the maximum linear speed in meters per sec. */

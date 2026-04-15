@@ -11,6 +11,8 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.Watchdawg;
@@ -41,6 +43,20 @@ public class DriveCommands {
     m_driveForwardSupplier = () -> rateLimitInput(driveForwardSupplier.get(), m_forwardLimiter);
     m_driveRotationSupplier = driveRotationSupplier;
 
+  }
+
+  /**
+   * Gets the robot heading adjusted for alliance perspective.
+   * On red alliance, rotates by 180° so that "forward" on the joystick
+   * always means "away from the driver" regardless of alliance color.
+   */
+  private Rotation2d getAllianceAdjustedRotation() {
+    Rotation2d rotation = m_drive.getPose().getRotation();
+    if (DriverStation.getAlliance().isPresent()
+        && DriverStation.getAlliance().get() == Alliance.Red) {
+      return rotation.plus(Rotation2d.kPi);
+    }
+    return rotation;
   }
 
   private double rateLimitInput(double input, SlewRateLimiter limiter) {
@@ -80,7 +96,7 @@ public class DriveCommands {
               fieldRelativeAngle, rotation.get().getMeasure().in(Radians));
 
           m_drive.runVelocity(
-              ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, m_drive.getPose().getRotation()));
+              ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAdjustedRotation()));
           watchdog.end("rotateRobot");
         }, m_drive);
   }
@@ -113,7 +129,7 @@ public class DriveCommands {
                   m_driveRotationSupplier.get()));
 
           m_drive.runVelocity(
-              ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, m_drive.getPose().getRotation()));
+              ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAdjustedRotation()));
           watchdog.end("joystickDrive");
         },
         m_drive);
@@ -165,7 +181,7 @@ public class DriveCommands {
           }
 
           m_drive.runVelocity(
-              ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, m_drive.getPose().getRotation()));
+              ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAdjustedRotation()));
 
           headingController.close();
           watchdog.end("snakeDrive");

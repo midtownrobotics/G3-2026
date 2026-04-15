@@ -42,8 +42,8 @@ import frc.robot.sensors.Camera;
 import frc.robot.sensors.DynamicCamera;
 import frc.robot.sensors.Vision;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
+import frc.robot.subsystems.drive.GyroIOSim;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.feeder.Feeder;
@@ -152,8 +152,7 @@ public class Robot extends LoggedRobot {
       m_turret = new Turret(new TurretIOTalonFX());
     } else {
       m_drive = new Drive(
-          new GyroIO() {
-          },
+          new GyroIOSim(),
           new ModuleIOSim(TunerConstants.FrontLeft),
           new ModuleIOSim(TunerConstants.FrontRight),
           new ModuleIOSim(TunerConstants.BackLeft),
@@ -195,7 +194,7 @@ public class Robot extends LoggedRobot {
 
     m_vision = new Vision(
         (observation) -> m_drive.addVisionMeasurement(
-            observation.pose().toPose2d(), observation.timestamp(), observation.standardDevs()),
+            observation.pose(), observation.timestamp(), observation.standardDevs()),
         m_drive::getPose,
         m_drive::resetPose,
         rearRight,
