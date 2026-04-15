@@ -20,6 +20,8 @@ public interface Controls {
 
   public Trigger zeroHood();
 
+  public Trigger zeroTurret();
+
   public Trigger zeroIntake();
 
   public Trigger setpointShoot();
@@ -38,5 +40,5 @@ public interface Controls {
 
   public Command pulseRumbleCommand(int pulses, double pulseDuration);
 
-  public Trigger toggleShootOnTheMove();
+  public Trigger SOTM();
 }

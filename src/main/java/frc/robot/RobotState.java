@@ -59,7 +59,7 @@ public class RobotState {
 
   private final LoggedNetworkBoolean m_fixedTurretModeToggle = new LoggedNetworkBoolean("Toggles/FixedTurretMode",
       false);
-  private final LoggedNetworkBoolean m_shootOnTheMoveToggle = new LoggedNetworkBoolean("Toggles/ShootOnTheMove", true);
+  private final LoggedNetworkBoolean m_shootOnTheMoveToggle = new LoggedNetworkBoolean("Toggles/ShootOnTheMove", false);
   private final LoggedNetworkBoolean m_autoAimToggle = new LoggedNetworkBoolean("Toggles/AutoAim", false);
 
   public enum ShooterState {
@@ -250,7 +250,7 @@ public class RobotState {
   public boolean isShootOnTheMoveEnabled() {
     return m_shootOnTheMoveToggle.get()
         && m_vision.hasRecentAcceptedVision();
-        // && !m_drive.hasWheelSlip();
+    // && !m_drive.hasWheelSlip();
   }
 
   public ShootingParameters getShootingParameters() {

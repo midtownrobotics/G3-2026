@@ -319,8 +319,9 @@ public class Robot extends LoggedRobot {
 
     m_controls.zeroIntake().whileTrue(m_robotCommands.zeroIntake());
 
-    m_controls.toggleShootOnTheMove()
-        .onTrue(m_state.setShootOnTheMoveEnabledCommand(() -> !m_state.isShootOnTheMoveEnabled()));
+    m_controls.SOTM()
+        .onTrue(m_state.setShootOnTheMoveEnabledCommand(() -> true))
+        .onFalse(m_state.setShootOnTheMoveEnabledCommand(() -> false));
   }
 
   public void configureTrimControlBindings(TrimControls controls) {
