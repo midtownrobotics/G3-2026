@@ -70,9 +70,9 @@ public class Drive extends SubsystemBase {
   private PoseEstimator poseEstimator = new PoseEstimator(kinematics);
 
   /** PID controllers for Choreo path following */
-  private final PIDController m_pathXController = new PIDController(10, 0, 0);
-  private final PIDController m_pathYController = new PIDController(10, 0, 0);
-  private final PIDController m_pathThetaController = new PIDController(7, 0, 0);
+  private final PIDController m_pathXController = new PIDController(5, 0, 0);
+  private final PIDController m_pathYController = new PIDController(5, 0, 0);
+  private final PIDController m_pathThetaController = new PIDController(3, 0, 0);
 
   public Drive(
       GyroIO gyroIO,
@@ -210,12 +210,19 @@ public class Drive extends SubsystemBase {
     m_pathThetaController.enableContinuousInput(-Math.PI, Math.PI);
 
     var pose = getPose();
+    var targetPose = sample.getPose();
 
     var targetSpeeds = sample.getChassisSpeeds();
     targetSpeeds.vxMetersPerSecond += m_pathXController.calculate(pose.getX(), sample.x);
     targetSpeeds.vyMetersPerSecond += m_pathYController.calculate(pose.getY(), sample.y);
     targetSpeeds.omegaRadiansPerSecond += m_pathThetaController.calculate(pose.getRotation().getRadians(),
         sample.heading);
+
+    Logger.recordOutput("Drive/PathFollower/TargetPose", targetPose);
+    Logger.recordOutput("Drive/PathFollower/Error/X", targetPose.getMeasureX().minus(pose.getMeasureX()));
+    Logger.recordOutput("Drive/PathFollower/Error/Y", targetPose.getMeasureY().minus(pose.getMeasureY()));
+    Logger.recordOutput("Drive/PathFollower/Error/Rotation",
+        targetPose.getRotation().minus(pose.getRotation()).getMeasure());
 
     // Convert field-relative speeds to robot-relative and run
     ChassisSpeeds robotRelativeSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(targetSpeeds, pose.getRotation());
