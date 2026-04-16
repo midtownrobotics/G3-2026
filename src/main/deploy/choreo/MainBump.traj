@@ -1,5 +1,5 @@
 {
- "name":"EndOfShootToLeftStart",
+ "name":"MainBump",
  "version":3,
  "snapshot":{
   "waypoints":[],
@@ -7,8 +7,7 @@
   "targetDt":0.05
  },
  "params":{
-  "waypoints":[
-    {"x":{"exp":"1.8410102128982544 m", "val":1.8410102128982544}, "y":{"exp":"5.564929962158203 m", "val":5.564929962158203}, "heading":{"exp":"2.661642598476675 rad", "val":2.661642598476675}, "intervals":40, "split":false, "fixTranslation":true, "fixHeading":true, "overrideIntervals":false}],
+  "waypoints":[],
   "constraints":[
     {"from":"first", "to":null, "data":{"type":"StopPoint", "props":{}}, "enabled":true},
     {"from":"last", "to":null, "data":{"type":"StopPoint", "props":{}}, "enabled":true},
