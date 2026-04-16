@@ -36,22 +36,30 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger idle() {
-    return m_controller.leftBumper();
+    return m_controller.leftBumper()
+        .and(m_controller.rightBumper().negate())
+        .and(m_controller.leftTrigger().negate());
   }
 
   @Override
   public Trigger intake() {
-    return m_controller.leftTrigger().and(m_controller.rightTrigger().negate());
+    return m_controller.leftTrigger()
+        .and(m_controller.rightTrigger().negate())
+        .and(m_controller.leftBumper().negate());
   }
 
   @Override
   public Trigger shoot() {
-    return m_controller.rightBumper();
+    return m_controller.rightBumper()
+        .and(m_controller.leftBumper().negate())
+        .and(m_controller.rightTrigger().negate());
   }
 
   @Override
   public Trigger snowBlow() {
-    return m_controller.rightTrigger().and(m_controller.leftTrigger().negate());
+    return m_controller.rightTrigger()
+        .and(m_controller.leftTrigger().negate())
+        .and(m_controller.rightBumper().negate());
   }
 
   @Override
@@ -66,7 +74,7 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger zeroHood() {
-    return m_controller.povRight();
+    return m_controller.leftBumper().and(m_controller.rightBumper());
   }
 
   @Override
@@ -81,22 +89,28 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger fullFieldShoot() {
-    return m_controller.x().and(m_controller.rightBumper().negate());
+    return m_controller.x().and(m_controller.rightBumper())
+        .and(m_controller.leftBumper().negate())
+        .and(m_controller.rightTrigger().negate());
   }
 
   @Override
   public Trigger feedFuel() {
-    return m_controller.b();
+    return m_controller.x().and(m_controller.rightBumper().negate());
   }
 
   @Override
   public Trigger defense() {
-    return m_controller.back();
+    return m_controller.leftBumper().and(m_controller.leftTrigger())
+        .and(m_controller.rightBumper().negate())
+        .and(m_controller.rightTrigger().negate());
   }
 
   @Override
   public Trigger SOTM() {
-    return m_controller.x().and(m_controller.rightBumper());
+    return m_controller.rightBumper().and(m_controller.rightTrigger())
+        .and(m_controller.leftBumper().negate())
+        .and(m_controller.leftTrigger().negate());
   }
 
   public void setRumble(boolean enabled) {
