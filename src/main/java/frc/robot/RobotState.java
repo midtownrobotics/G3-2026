@@ -190,7 +190,7 @@ public class RobotState {
     double h = Constants.kRobotToTurret.getNorm();
     double theta = robotPose.getRotation().getRadians()
         + Constants.kRobotToTurret.getAngle().getRadians();
-    double omega = getFieldRelativeSpeeds().omegaRadiansPerSecond;
+    double omega = robotSpeeds.omegaRadiansPerSecond;
     LinearVelocity xDt = MetersPerSecond.of(-h * Math.sin(theta) * omega);
     LinearVelocity yDt = MetersPerSecond.of(h * Math.cos(theta) * omega);
     ChassisSpeeds robotRelativeTurretSpeeds = new ChassisSpeeds(xDt, yDt, RadiansPerSecond.zero());
