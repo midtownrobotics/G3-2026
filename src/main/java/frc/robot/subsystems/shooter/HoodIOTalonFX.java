@@ -61,8 +61,10 @@ public class HoodIOTalonFX implements HoodIO {
         .withKP(800)
         .withKI(0)
         .withKD(18)
-        .withKS(0.5)
+        .withKS(0.395)
         .withKV(30)
+        .withKG(0.015)
+        .withGravityArmPositionOffset(Degrees.of(11))
         .withGravityType(GravityTypeValue.Arm_Cosine);
 
     config.Feedback = new FeedbackConfigs()
