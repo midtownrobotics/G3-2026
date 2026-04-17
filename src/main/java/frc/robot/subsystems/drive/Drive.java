@@ -58,6 +58,7 @@ public class Drive extends SubsystemBase {
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
   private final Module[] modules = new Module[4]; // FL, FR, BL, BR
   private final SysIdRoutine sysId;
+  private final SysIdRoutine sysIdRotation;
   private final Alert gyroDisconnectedAlert = new Alert("Disconnected gyro, using kinematics as fallback.",
       AlertType.kError);
 
@@ -100,9 +101,18 @@ public class Drive extends SubsystemBase {
             null,
             null,
             null,
-            (state) -> SignalLogger.writeString("Drive/SysIdState", state.toString())),
+            (state) -> SignalLogger.writeString("Drive/Translation/SysIdState", state.toString())),
         new SysIdRoutine.Mechanism(
             (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
+
+  sysIdRotation = new SysIdRoutine(
+        new SysIdRoutine.Config(
+            null,
+            Volts.of(6),
+            null,
+            (state) -> SignalLogger.writeString("Drive/Rotation/SysIdState", state.toString())),
+        new SysIdRoutine.Mechanism(
+            (voltage) -> runCharacterizationRotation(voltage.in(Volts)), null, this));
   }
 
   @Override
@@ -191,6 +201,7 @@ public class Drive extends SubsystemBase {
     SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, TunerConstants.kSpeedAt12Volts);
 
     // Log unoptimized setpoints and setpoint speeds
+    Logger.recordOutput("Drive/moduleSetpointStates", setpointStates);
     Logger.recordOutput("SwerveStates/Setpoints", setpointStates);
     Logger.recordOutput("SwerveChassisSpeeds/Setpoints", discreteSpeeds);
 
@@ -238,6 +249,12 @@ public class Drive extends SubsystemBase {
     }
   }
 
+  public void runCharacterizationRotation(double output) {
+    for (int i = 0; i < 4; i++) {
+      modules[i].runCharacterizationRotation(output);
+    }
+  }
+
   /** Stops the drive. */
   public void stop() {
     runVelocity(new ChassisSpeeds());
@@ -266,6 +283,16 @@ public class Drive extends SubsystemBase {
   /** Returns a command to run a dynamic test in the specified direction. */
   public Command sysIdDynamic(SysIdRoutine.Direction direction) {
     return run(() -> runCharacterization(0.0)).withTimeout(1.0).andThen(sysId.dynamic(direction));
+  }
+
+  public Command sysIdQuasistaticRotation(SysIdRoutine.Direction direction) {
+    return run(() -> runCharacterizationRotation(0.0))
+        .withTimeout(1.0)
+        .andThen(sysIdRotation.quasistatic(direction));
+  }
+
+  public Command sysIdDynamicRotation(SysIdRoutine.Direction direction) {
+    return run(() -> runCharacterizationRotation(0.0)).withTimeout(1.0).andThen(sysIdRotation.dynamic(direction));
   }
 
   /** Returns the module states (turn angles and drive velocities) for all of the modules. */

@@ -277,10 +277,15 @@ public class Robot extends LoggedRobot {
 
     RobotModeTriggers.teleop().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement());
 
-    SmartDashboard.putData("QuasistaticForward", m_drive.sysIdQuasistatic(Direction.kForward));
-    SmartDashboard.putData("QuasistaticReverse", m_drive.sysIdQuasistatic(Direction.kReverse));
-    SmartDashboard.putData("DynamicForward", m_drive.sysIdDynamic(Direction.kForward));
-    SmartDashboard.putData("DynamicReverse", m_drive.sysIdDynamic(Direction.kReverse));
+    SmartDashboard.putData("DriveSysid/Translation/QuasistaticForward", m_drive.sysIdQuasistatic(Direction.kForward));
+    SmartDashboard.putData("DriveSysid/Translation/QuasistaticReverse", m_drive.sysIdQuasistatic(Direction.kReverse));
+    SmartDashboard.putData("DriveSysid/Translation/DynamicForward", m_drive.sysIdDynamic(Direction.kForward));
+    SmartDashboard.putData("DriveSysid/Translation/DynamicReverse", m_drive.sysIdDynamic(Direction.kReverse));
+
+    SmartDashboard.putData("DriveSysid/Rotation/QuasistaticForward", m_drive.sysIdQuasistaticRotation(Direction.kForward));
+    SmartDashboard.putData("DriveSysid/Rotation/QuasistaticReverse", m_drive.sysIdQuasistaticRotation(Direction.kReverse));
+    SmartDashboard.putData("DriveSysid/Rotation/DynamicForward", m_drive.sysIdDynamicRotation(Direction.kForward));
+    SmartDashboard.putData("DriveSysid/Rotation/DynamicReverse", m_drive.sysIdDynamicRotation(Direction.kReverse));
 
     SmartDashboard.putData("StartSignalLogger", Commands.runOnce(() -> SignalLogger.start()));
     SmartDashboard.putData("StopSignalLogger", Commands.runOnce(() -> SignalLogger.stop()));
