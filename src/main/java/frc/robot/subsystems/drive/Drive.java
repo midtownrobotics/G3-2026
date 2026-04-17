@@ -10,6 +10,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
+import com.ctre.phoenix6.SignalLogger;
+
 import choreo.trajectory.SwerveSample;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
@@ -98,7 +100,7 @@ public class Drive extends SubsystemBase {
             null,
             null,
             null,
-            (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
+            (state) -> SignalLogger.writeString("Drive/SysIdState", state.toString())),
         new SysIdRoutine.Mechanism(
             (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
   }
