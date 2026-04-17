@@ -6,29 +6,29 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import java.util.function.Supplier;
 
-import com.ctre.phoenix6.swerve.SwerveRequest;
-
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.Watchdawg;
 import frc.robot.RobotState;
 import frc.robot.RobotState.ShooterState;
 import frc.robot.constants.Constants;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.drive.Drive;
 
 public class DriveCommands {
-  private final CommandSwerveDrivetrain m_drive;
+  private final Drive m_drive;
   private final Supplier<Double> m_driveLeftSupplier;
   private final Supplier<Double> m_driveForwardSupplier;
   private final Supplier<Double> m_driveRotationSupplier;
   private final RobotState m_state;
 
-  public DriveCommands(CommandSwerveDrivetrain drive,
+  public DriveCommands(Drive drive,
       Supplier<Double> driveLeftSupplier,
       Supplier<Double> driveForwardSupplier,
       Supplier<Double> driveRotationSupplier,
@@ -41,10 +41,22 @@ public class DriveCommands {
 
     m_driveLeftSupplier = () -> rateLimitInput(driveLeftSupplier.get(), m_leftLimiter);
     m_driveForwardSupplier = () -> rateLimitInput(driveForwardSupplier.get(), m_forwardLimiter);
-    // m_driveForwardSupplier = driveForwardSupplier;
-    // m_driveLeftSupplier = driveLeftSupplier;
     m_driveRotationSupplier = driveRotationSupplier;
 
+  }
+
+  /**
+   * Gets the robot heading adjusted for alliance perspective.
+   * On red alliance, rotates by 180° so that "forward" on the joystick
+   * always means "away from the driver" regardless of alliance color.
+   */
+  private Rotation2d getAllianceAdjustedRotation() {
+    Rotation2d rotation = m_drive.getPose().getRotation();
+    if (DriverStation.getAlliance().isPresent()
+        && DriverStation.getAlliance().get() == Alliance.Red) {
+      return rotation.plus(Rotation2d.kPi);
+    }
+    return rotation;
   }
 
   private double rateLimitInput(double input, SlewRateLimiter limiter) {
@@ -69,7 +81,7 @@ public class DriveCommands {
           watchdog.start();
           headingController.enableContinuousInput(-Math.PI, Math.PI);
 
-          final var speeds = new ChassisSpeeds(
+          final var fieldRelativeSpeeds = new ChassisSpeeds(
               m_driveForwardSupplier.get()
                   * Constants.kMaxLinearSpeed.in(MetersPerSecond)
                   * Constants.kLinearSpeedMultiplier,
@@ -80,14 +92,11 @@ public class DriveCommands {
 
           double fieldRelativeAngle = m_drive.getPose().getRotation().getRadians();
 
-          speeds.omegaRadiansPerSecond = headingController.calculate(
+          fieldRelativeSpeeds.omegaRadiansPerSecond = headingController.calculate(
               fieldRelativeAngle, rotation.get().getMeasure().in(Radians));
 
-          m_drive.setControl(
-              new SwerveRequest.FieldCentric()
-                  .withVelocityX(speeds.vxMetersPerSecond)
-                  .withVelocityY(speeds.vyMetersPerSecond)
-                  .withRotationalRate(speeds.omegaRadiansPerSecond));
+          m_drive.runVelocity(
+              ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAdjustedRotation()));
           watchdog.end("rotateRobot");
         }, m_drive);
   }
@@ -108,7 +117,7 @@ public class DriveCommands {
           double shootingMultiplier = isScoring() ? 0.3 : 1.0;
           double maxSpeed = Constants.kMaxLinearSpeed.in(MetersPerSecond)
               * Constants.kLinearSpeedMultiplier * shootingMultiplier;
-          ChassisSpeeds speeds = new ChassisSpeeds(
+          ChassisSpeeds fieldRelativeSpeeds = new ChassisSpeeds(
               m_driveForwardSupplier.get() * maxSpeed,
               m_driveLeftSupplier.get() * maxSpeed,
               Math.copySign(
@@ -119,11 +128,8 @@ public class DriveCommands {
                       * shootingMultiplier,
                   m_driveRotationSupplier.get()));
 
-          m_drive.setControl(
-              new SwerveRequest.FieldCentric()
-                  .withVelocityX(speeds.vxMetersPerSecond)
-                  .withVelocityY(speeds.vyMetersPerSecond)
-                  .withRotationalRate(speeds.omegaRadiansPerSecond));
+          m_drive.runVelocity(
+              ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAdjustedRotation()));
           watchdog.end("joystickDrive");
         },
         m_drive);
@@ -137,11 +143,11 @@ public class DriveCommands {
           final PIDController headingController = new PIDController(100, 0, 0);
           final boolean snakeDriveActive = !(Math.abs(m_driveRotationSupplier.get()) > 0);
 
-          ChassisSpeeds speeds;
+          ChassisSpeeds fieldRelativeSpeeds;
           if (snakeDriveActive) {
             headingController.enableContinuousInput(-Math.PI, Math.PI);
 
-            speeds = new ChassisSpeeds(
+            fieldRelativeSpeeds = new ChassisSpeeds(
                 m_driveForwardSupplier.get()
                     * Constants.kMaxLinearSpeed.in(MetersPerSecond)
                     * Constants.kLinearSpeedMultiplier,
@@ -151,15 +157,15 @@ public class DriveCommands {
                 0);
 
             Angle headingAngle = Radians.of(
-                Math.atan2(speeds.vyMetersPerSecond, speeds.vxMetersPerSecond) + Math.PI);
+                Math.atan2(fieldRelativeSpeeds.vyMetersPerSecond, fieldRelativeSpeeds.vxMetersPerSecond) + Math.PI);
 
-            if (Math.abs(speeds.vyMetersPerSecond) > 0.1
-                || Math.abs(speeds.vxMetersPerSecond) > 0.1) {
-              speeds.omegaRadiansPerSecond = headingController.calculate(
+            if (Math.abs(fieldRelativeSpeeds.vyMetersPerSecond) > 0.1
+                || Math.abs(fieldRelativeSpeeds.vxMetersPerSecond) > 0.1) {
+              fieldRelativeSpeeds.omegaRadiansPerSecond = headingController.calculate(
                   m_drive.getPose().getRotation().getRadians(), headingAngle.in(Radians));
             }
           } else {
-            speeds = new ChassisSpeeds(
+            fieldRelativeSpeeds = new ChassisSpeeds(
                 m_driveForwardSupplier.get()
                     * Constants.kMaxLinearSpeed.in(MetersPerSecond)
                     * Constants.kLinearSpeedMultiplier,
@@ -174,11 +180,8 @@ public class DriveCommands {
                     m_driveRotationSupplier.get()));
           }
 
-          m_drive.setControl(
-              new SwerveRequest.FieldCentric()
-                  .withVelocityX(speeds.vxMetersPerSecond)
-                  .withVelocityY(speeds.vyMetersPerSecond)
-                  .withRotationalRate(speeds.omegaRadiansPerSecond));
+          m_drive.runVelocity(
+              ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAdjustedRotation()));
 
           headingController.close();
           watchdog.end("snakeDrive");

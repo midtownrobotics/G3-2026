@@ -16,7 +16,7 @@ import frc.robot.RobotState.ShooterState;
 import frc.robot.constants.Constants;
 import frc.robot.controls.Controls;
 import frc.robot.sensors.Vision;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.intake.IntakePivot;
@@ -37,7 +37,7 @@ public class RobotCommands {
   private final DriveCommands m_driveCommands;
 
   public RobotCommands(
-      CommandSwerveDrivetrain drive,
+      Drive drive,
       IntakePivot intakePivot,
       IntakeRoller intakeRoller,
       Turret turret,
