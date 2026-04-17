@@ -6,6 +6,8 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -128,6 +130,7 @@ public class DriveCommands {
                       * shootingMultiplier,
                   m_driveRotationSupplier.get()));
 
+          Logger.recordOutput("DriveCommands/joystickDriveCommandedChassisSpeeds", ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAdjustedRotation()));
           m_drive.runVelocity(
               ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAdjustedRotation()));
           watchdog.end("joystickDrive");
