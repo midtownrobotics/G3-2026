@@ -282,8 +282,10 @@ public class Robot extends LoggedRobot {
     SmartDashboard.putData("DriveSysid/Translation/DynamicForward", m_drive.sysIdDynamic(Direction.kForward));
     SmartDashboard.putData("DriveSysid/Translation/DynamicReverse", m_drive.sysIdDynamic(Direction.kReverse));
 
-    SmartDashboard.putData("DriveSysid/Rotation/QuasistaticForward", m_drive.sysIdQuasistaticRotation(Direction.kForward));
-    SmartDashboard.putData("DriveSysid/Rotation/QuasistaticReverse", m_drive.sysIdQuasistaticRotation(Direction.kReverse));
+    SmartDashboard.putData("DriveSysid/Rotation/QuasistaticForward",
+        m_drive.sysIdQuasistaticRotation(Direction.kForward));
+    SmartDashboard.putData("DriveSysid/Rotation/QuasistaticReverse",
+        m_drive.sysIdQuasistaticRotation(Direction.kReverse));
     SmartDashboard.putData("DriveSysid/Rotation/DynamicForward", m_drive.sysIdDynamicRotation(Direction.kForward));
     SmartDashboard.putData("DriveSysid/Rotation/DynamicReverse", m_drive.sysIdDynamicRotation(Direction.kReverse));
 

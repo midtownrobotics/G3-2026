@@ -66,7 +66,7 @@ public class RobotCommands {
 
   public Command snowBlow() {
     return Commands
-        .parallel(
+        .parallel(shakeIntake(),
             Commands.either(autoAimWithDrivetrainForTeleop(), driveCommand(),
                 m_state::isAutoAimAndFixedTurretModeEnabled),
             shooterTrackShootingParamters(), runIntake())
@@ -75,7 +75,7 @@ public class RobotCommands {
 
   public Command autoAimAndPrepareShootTeleop() {
     return Commands
-        .parallel(prepareShoot(),
+        .parallel(prepareShoot(), shakeIntake(),
             Commands.either(autoAimWithDrivetrainForTeleop(), driveCommand(),
                 m_state::isAutoAimAndFixedTurretModeEnabled))
         .withName("autoAimAndPrepareShootTeleop");
@@ -113,6 +113,10 @@ public class RobotCommands {
 
   public Command stopShooterCommand() {
     return Commands.parallel(m_shooter.stop(), m_state.setShooterStateCommand(ShooterState.kIdle));
+  }
+
+  public Command shakeIntake() {
+    return Commands.repeatingSequence(m_intakePivot.setAngle(Degrees.of(10)), m_intakePivot.setAngle(Degrees.of(25)));
   }
 
   public Command runIntake() {
