@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 import org.photonvision.simulation.VisionSystemSim;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
@@ -34,6 +35,11 @@ public class Vision extends SubsystemBase {
   private VisionSystemSim m_visionSim;
   private final Watchdawg m_watchdog;
   private final TimeInterpolatableBuffer<Pose2d> m_acceptedObservations;
+
+  private final LoggedNetworkBoolean m_enableVisionObservations = new LoggedNetworkBoolean(
+      "Toggles/UseVisionObservations", false);
+  private final LoggedNetworkBoolean m_enableRobotPoseReset = new LoggedNetworkBoolean(
+      "Toggles/EnableRobotPoseReset", false);
 
   private final List<String> m_cameraHierarchy = List.of(
       "Turret",
@@ -111,16 +117,23 @@ public class Vision extends SubsystemBase {
         double distFromFused = fusedPose.getTranslation()
             .getDistance(observation.pose().toPose2d().getTranslation());
         Logger.recordOutput("Vision/" + observation.cameraName() + "/distFromFusedPose", distFromFused);
+
         if (poseTrusted && distFromFused > kMaxDistanceFromFusedPose) {
           continue;
         }
-        // m_addVisionMeasurement.accept(observation);
+
         m_acceptedObservations.addSample(observation.timestamp(), observation.pose().toPose2d());
         m_hasAcceptedVisionUpdate = true;
         m_lastAcceptedVisionTimestamp = Timer.getFPGATimestamp();
+
+        if (m_enableVisionObservations.get()) {
+          m_addVisionMeasurement.accept(observation);
+        }
       }
 
-      // resetRobotPoseIfDiverged(fusedPose);
+      if (m_enableRobotPoseReset.get()) {
+        resetRobotPoseIfDiverged(fusedPose);
+      }
     }
 
     Logger.recordOutput("Vision/hasVisionUpdate", m_hasVisionUpdate);
