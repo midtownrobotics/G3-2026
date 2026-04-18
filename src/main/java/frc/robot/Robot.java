@@ -238,8 +238,6 @@ public class Robot extends LoggedRobot {
     m_autoRoutines = new AutoRoutines(m_autoFactory, this, m_robotCommands);
     m_autoChooser = new AutoChooser("Do Nothing");
 
-    generateAutoChooser();
-
     m_hood.setDefaultCommand(m_robotCommands.alignHood());
 
     m_turret.setDefaultCommand(m_robotCommands.alignTurret());
@@ -293,34 +291,6 @@ public class Robot extends LoggedRobot {
     SmartDashboard.putData("StopSignalLogger", Commands.runOnce(() -> SignalLogger.stop()));
 
     SmartDashboard.putData("Drive/DriveStraightRobotRelative", m_robotCommands.driveStrightRobotRelative());
-  }
-
-  private void generateAutoChooser() {
-    for (int i = 1; i <= 4; ++i) {
-      final int pathId = i;
-      m_autoChooser.addRoutine("Test Path " + i + " Slow", () -> m_autoRoutines.testPath(pathId, true));
-      m_autoChooser.addRoutine("Test Path " + i + " Fast", () -> m_autoRoutines.testPath(pathId, false));
-    }
-    m_autoChooser.addRoutine("Left Depot Shoot", m_autoRoutines::pickupDepotAndShoot);
-    m_autoChooser.addRoutine("Depot And Middle Shoot", m_autoRoutines::depotAndMiddleShoot);
-    m_autoChooser.addRoutine("Middle and Depot Shoot", m_autoRoutines::middleAndDepotShootLeft);
-    m_autoChooser.addRoutine("SOTM Depot", m_autoRoutines::SOTMDepot);
-    m_autoChooser.addRoutine("SOTM Left center depot", m_autoRoutines::SOTMLeftCenter);
-    m_autoChooser.addRoutine("Right center and shoot twice", m_autoRoutines::SOTMRightTwice);
-    m_autoChooser.addRoutine("Left center depot then back to center", m_autoRoutines::SOTMLeftTwice);
-    m_autoChooser.addRoutine("Left center inverted depot then back to center", m_autoRoutines::SOTMLeftInverseTwice);
-    m_autoChooser.addRoutine("Tune Tangential", m_autoRoutines::tuneTangential);
-    m_autoChooser.addRoutine("Tune Radial", m_autoRoutines::tuneRadial);
-    m_autoChooser.addRoutine("DCMP LeftDoubleSwipe + Depot", m_autoRoutines::LeftDoubleSwipeDepot);
-    m_autoChooser.addRoutine("DCMP RightDoubleSwipe", m_autoRoutines::RightDoubleSwipe);
-    m_autoChooser.addRoutine("DCMP LeftDoubleSwipe", m_autoRoutines::LeftDoubleSwipe);
-    m_autoChooser.addRoutine("Left Feeding + Depot", m_autoRoutines::LeftStartFeedingDepot);
-    m_autoChooser.addRoutine("Left Feeding", m_autoRoutines::LeftStartFeeding);
-    m_autoChooser.addRoutine("Right Feeding", m_autoRoutines::RightStartFeeding);
-    m_autoChooser.addRoutine("Center Start Depot (DCMP ALLIANCE)", m_autoRoutines::CenterStartDepot);
-
-    SmartDashboard.putData("Auto Chooser", m_autoChooser);
-    RobotModeTriggers.autonomous().whileTrue(m_autoChooser.selectedCommandScheduler());
   }
 
   public void configureBindings() {
