@@ -39,6 +39,7 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.util.PoseEstimator;
 import frc.robot.util.PoseEstimator.OdometryObservation;
 import frc.robot.util.PoseEstimator.VisionObservation;
+import lombok.Getter;
 
 public class Drive extends SubsystemBase {
   // TunerConstants doesn't include these constants, so they are declared locally
@@ -52,6 +53,15 @@ public class Drive extends SubsystemBase {
           Math.hypot(TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
           Math.hypot(
               TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)));
+
+  /** Minimum translational speed (m/s) below which skid ratio is not computed (noise-dominated). */
+  private static final double kSkidMinSpeedMetersPerSec = 0.1;
+  /** Skid ratio threshold above which we consider the robot to be skidding. */
+  private static final double kSkidRatioThreshold = 1.5;
+  /** Duration (seconds) after a skid event during which vision trust is boosted. */
+  private static final double kSkidVisionBoostDurationSec = 2.5;
+  /** Factor by which vision std devs are scaled down during the post-skid boost window. */
+  private static final double kSkidVisionStdDevScale = 0.5;
 
   static final Lock odometryLock = new ReentrantLock();
   private final GyroIO gyroIO;
@@ -71,6 +81,10 @@ public class Drive extends SubsystemBase {
       new SwerveModulePosition()
   };
   private PoseEstimator poseEstimator = new PoseEstimator(kinematics);
+
+  @Getter
+  private double skidRatio = 1.0;
+  private double lastSkidTimestamp = -100.0; // large negative so boost is inactive at startup
 
   /** PID controllers for Choreo path following */
   private final PIDController m_pathXController = new PIDController(7, 0, 0);
@@ -138,6 +152,12 @@ public class Drive extends SubsystemBase {
       Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
     }
 
+    // Compute skid ratio using Orbit's method (based on latest module states)
+    skidRatio = calculateSkiddingRatio(getModuleStates());
+    if (isSkidding()) {
+      lastSkidTimestamp = Logger.getTimestamp() / 1e6; // convert microseconds to seconds
+    }
+
     // Update odometry
     double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together
     int sampleCount = sampleTimestamps.length;
@@ -173,7 +193,8 @@ public class Drive extends SubsystemBase {
               : Optional.empty(),
           gyroInputs.connected
               ? Optional.of(gyroInputs.odometryYawPositions[i])
-              : Optional.empty());
+              : Optional.empty(),
+          skidRatio);
 
       // Apply update
       poseEstimator.addOdometryObservation(odometryObservation);
@@ -187,6 +208,9 @@ public class Drive extends SubsystemBase {
     Logger.recordOutput("Drive/chassisSpeeds", getChassisSpeeds());
     Logger.recordOutput("Drive/moduleStates", getModuleStates());
     Logger.recordOutput("Drive/modulePositions", getModulePositions());
+    Logger.recordOutput("Drive/skidRatio", skidRatio);
+    Logger.recordOutput("Drive/isSkidding", isSkidding());
+    Logger.recordOutput("Drive/skidVisionBoostActive", isSkidVisionBoostActive());
   }
 
   /**
@@ -364,6 +388,10 @@ public class Drive extends SubsystemBase {
       Pose3d visionRobotPoseMeters,
       double timestampSeconds,
       Matrix<N3, N1> visionMeasurementStdDevs) {
+    // Boost vision trust for a window after skid is detected
+    if (isSkidVisionBoostActive()) {
+      visionMeasurementStdDevs = visionMeasurementStdDevs.times(kSkidVisionStdDevScale);
+    }
     var visionObservation = new VisionObservation(timestampSeconds, visionRobotPoseMeters, visionMeasurementStdDevs);
     poseEstimator.addVisionObservation(visionObservation);
   }
@@ -376,6 +404,60 @@ public class Drive extends SubsystemBase {
   /** Returns the maximum angular speed in radians per sec. */
   public double getMaxAngularSpeedRadPerSec() {
     return getMaxLinearSpeedMetersPerSec() / DRIVE_BASE_RADIUS;
+  }
+
+  /** Returns whether the robot is currently skidding based on the Orbit skid ratio. */
+  public boolean isSkidding() {
+    return skidRatio > kSkidRatioThreshold;
+  }
+
+  /** Returns whether we are within the post-skid window where vision trust is boosted. */
+  public boolean isSkidVisionBoostActive() {
+    double now = Logger.getTimestamp() / 1e6;
+    return (now - lastSkidTimestamp) < kSkidVisionBoostDurationSec;
+  }
+
+  /**
+   * Calculates the skidding ratio using 1690 Orbit's method.
+   *
+   * <p>The idea: decompose each module's measured velocity vector into a rotational component
+   * (from chassis ω) and a translational component (the remainder). If no wheel is skidding,
+   * all translational components should have the same magnitude. The ratio of max/min
+   * translational magnitudes indicates how much disagreement there is — a ratio significantly
+   * above 1.0 means at least one wheel is slipping.
+   * 
+   * https://www.chiefdelphi.com/t/has-anyone-successfully-implemented-orbits-odometry-skid-detection/468257
+   *
+   * @param measuredStates the current measured swerve module states
+   * @return the skidding ratio, in the range [1, ∞). Returns 1.0 if speeds are too low to measure.
+   */
+  private double calculateSkiddingRatio(SwerveModuleState[] measuredStates) {
+    // Extract the chassis angular velocity from the measured module states
+    double omega = kinematics.toChassisSpeeds(measuredStates).omegaRadiansPerSecond;
+
+    // Compute what each module's state would be for pure rotation at that ω
+    SwerveModuleState[] rotationalStates = kinematics.toSwerveModuleStates(new ChassisSpeeds(0, 0, omega));
+
+    // For each module, vector-subtract the rotational component to isolate translation
+    double maxTranslational = 0.0;
+    double minTranslational = Double.POSITIVE_INFINITY;
+    for (int i = 0; i < measuredStates.length; i++) {
+      Translation2d measuredVec = new Translation2d(
+          measuredStates[i].speedMetersPerSecond, measuredStates[i].angle);
+      Translation2d rotationalVec = new Translation2d(
+          rotationalStates[i].speedMetersPerSecond, rotationalStates[i].angle);
+      double translationalMagnitude = measuredVec.minus(rotationalVec).getNorm();
+
+      maxTranslational = Math.max(maxTranslational, translationalMagnitude);
+      minTranslational = Math.min(minTranslational, translationalMagnitude);
+    }
+
+    // Guard against division by zero / noise at low speeds
+    if (maxTranslational < kSkidMinSpeedMetersPerSec) {
+      return 1.0;
+    }
+
+    return maxTranslational / Math.max(minTranslational, 1e-6);
   }
 
   /** Returns the swerve drive kinematics. */

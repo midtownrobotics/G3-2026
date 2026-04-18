@@ -91,6 +91,15 @@ public class PoseEstimator {
 
     Twist2d twist = kinematics.toTwist2d(lastWheelPositions, observation.wheelPositions());
     twist = new Twist2d(twist.dx * tiltScale, twist.dy * tiltScale, twist.dtheta * tiltScale);
+
+    // Scale down translational odometry when skidding is detected.
+    // The gyro still provides reliable heading, so dtheta is preserved.
+    // We use 1/skidRatio to proportionally reduce trust in wheel translation.
+    if (observation.skidRatio() > 1.0) {
+      double skidScale = 1.0 / observation.skidRatio();
+      twist = new Twist2d(twist.dx * skidScale, twist.dy * skidScale, twist.dtheta);
+    }
+
     lastWheelPositions = observation.wheelPositions();
     Pose2d lastOdometryPose = odometryPose;
     odometryPose = odometryPose.exp(twist);
@@ -212,7 +221,8 @@ public class PoseEstimator {
       SwerveModulePosition[] wheelPositions,
       Optional<Rotation2d> pitch,
       Optional<Rotation2d> roll,
-      Optional<Rotation2d> yaw) {
+      Optional<Rotation2d> yaw,
+      double skidRatio) {
   }
 
   public record VisionObservation(
