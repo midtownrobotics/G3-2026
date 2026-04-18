@@ -94,12 +94,12 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger lineUpToWall() {
-    return m_controller.leftStick();
+    return m_controller.rightStick();
   }
 
   @Override
   public Trigger trenchSupport() {
-    return m_controller.rightStick();
+    return m_controller.leftStick();
   }
 
   public void setRumble(boolean enabled) {
