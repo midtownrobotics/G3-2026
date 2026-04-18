@@ -39,7 +39,6 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.util.PoseEstimator;
 import frc.robot.util.PoseEstimator.OdometryObservation;
 import frc.robot.util.PoseEstimator.VisionObservation;
-import lombok.Getter;
 
 public class Drive extends SubsystemBase {
   // TunerConstants doesn't include these constants, so they are declared locally
@@ -80,11 +79,10 @@ public class Drive extends SubsystemBase {
       new SwerveModulePosition(),
       new SwerveModulePosition()
   };
-  private PoseEstimator poseEstimator = new PoseEstimator(kinematics);
+  private PoseEstimator m_poseEstimator = new PoseEstimator(kinematics);
 
-  @Getter
-  private double skidRatio = 1.0;
-  private double lastSkidTimestamp = -100.0; // large negative so boost is inactive at startup
+  private double m_skidRatio = 1.0;
+  private double m_lastSkidTimestamp = -100.0; // large negative so boost is inactive at startup
 
   /** PID controllers for Choreo path following */
   private final PIDController m_pathXController = new PIDController(7, 0, 0);
@@ -153,9 +151,9 @@ public class Drive extends SubsystemBase {
     }
 
     // Compute skid ratio using Orbit's method (based on latest module states)
-    skidRatio = calculateSkiddingRatio(getModuleStates());
+    m_skidRatio = calculateSkiddingRatio(getModuleStates());
     if (isSkidding()) {
-      lastSkidTimestamp = Logger.getTimestamp() / 1e6; // convert microseconds to seconds
+      m_lastSkidTimestamp = Logger.getTimestamp() / 1e6; // convert microseconds to seconds
     }
 
     // Update odometry
@@ -194,10 +192,10 @@ public class Drive extends SubsystemBase {
           gyroInputs.connected
               ? Optional.of(gyroInputs.odometryYawPositions[i])
               : Optional.empty(),
-          skidRatio);
+          m_skidRatio);
 
       // Apply update
-      poseEstimator.addOdometryObservation(odometryObservation);
+      m_poseEstimator.addOdometryObservation(odometryObservation);
     }
 
     // Update gyro alert
@@ -208,7 +206,7 @@ public class Drive extends SubsystemBase {
     Logger.recordOutput("Drive/chassisSpeeds", getChassisSpeeds());
     Logger.recordOutput("Drive/moduleStates", getModuleStates());
     Logger.recordOutput("Drive/modulePositions", getModulePositions());
-    Logger.recordOutput("Drive/skidRatio", skidRatio);
+    Logger.recordOutput("Drive/skidRatio", getSkidRatio());
     Logger.recordOutput("Drive/isSkidding", isSkidding());
     Logger.recordOutput("Drive/skidVisionBoostActive", isSkidVisionBoostActive());
   }
@@ -365,7 +363,7 @@ public class Drive extends SubsystemBase {
   /** Returns the current odometry pose. */
   @AutoLogOutput(key = "Odometry/Robot")
   public Pose2d getPose() {
-    return poseEstimator.getEstimatedPose();
+    return m_poseEstimator.getEstimatedPose();
   }
 
   /** Returns the current odometry rotation. */
@@ -375,7 +373,7 @@ public class Drive extends SubsystemBase {
 
   /** Resets the current odometry pose. */
   public void setPose(Pose2d pose) {
-    poseEstimator.resetPose(rawGyroRotation, getModulePositions(), pose);
+    m_poseEstimator.resetPose(rawGyroRotation, getModulePositions(), pose);
   }
 
   /** Resets the current odometry pose. Alias for setPose for compatibility. */
@@ -393,7 +391,7 @@ public class Drive extends SubsystemBase {
       visionMeasurementStdDevs = visionMeasurementStdDevs.times(kSkidVisionStdDevScale);
     }
     var visionObservation = new VisionObservation(timestampSeconds, visionRobotPoseMeters, visionMeasurementStdDevs);
-    poseEstimator.addVisionObservation(visionObservation);
+    m_poseEstimator.addVisionObservation(visionObservation);
   }
 
   /** Returns the maximum linear speed in meters per sec. */
@@ -406,15 +404,19 @@ public class Drive extends SubsystemBase {
     return getMaxLinearSpeedMetersPerSec() / DRIVE_BASE_RADIUS;
   }
 
+  public double getSkidRatio() {
+    return m_skidRatio;
+  }
+
   /** Returns whether the robot is currently skidding based on the Orbit skid ratio. */
   public boolean isSkidding() {
-    return skidRatio > kSkidRatioThreshold;
+    return getSkidRatio() > kSkidRatioThreshold;
   }
 
   /** Returns whether we are within the post-skid window where vision trust is boosted. */
   public boolean isSkidVisionBoostActive() {
     double now = Logger.getTimestamp() / 1e6;
-    return (now - lastSkidTimestamp) < kSkidVisionBoostDurationSec;
+    return (now - m_lastSkidTimestamp) < kSkidVisionBoostDurationSec;
   }
 
   /**
