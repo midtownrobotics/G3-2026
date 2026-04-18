@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.lib.GeometryUtil;
 import frc.robot.commands.RobotCommands;
 import frc.robot.constants.FieldConstants;
 import frc.robot.lib.BLine.FollowPath;
@@ -23,17 +24,12 @@ public class AutoRoutines {
   private final FollowPath.Builder pathBuilder;
   private final CommandSwerveDrivetrain m_drive;
 
-  private static final double kTrenchHeadingRad = 0.0907;
+  private static final double kTrenchHeadingRad = 0;
   private static final Rotation2d kTrenchHeading = Rotation2d.fromRadians(kTrenchHeadingRad);
   private static final Rotation2d kTrenchHeadingMirrored = Rotation2d.fromRadians(-kTrenchHeadingRad);
 
   private static final Pose2d kTrenchEntryRight = new Pose2d(4.334, 0.585, kTrenchHeading);
   private static final Pose2d kTrenchExitRight = new Pose2d(6.589, 0.795, kTrenchHeading);
-
-  private static final Pose2d kTrenchEntryLeft = new Pose2d(
-      4.334, FieldConstants.kFieldWidth.in(edu.wpi.first.units.Units.Meters) - 0.585, kTrenchHeadingMirrored);
-  private static final Pose2d kTrenchExitLeft = new Pose2d(
-      6.589, FieldConstants.kFieldWidth.in(edu.wpi.first.units.Units.Meters) - 0.795, kTrenchHeadingMirrored);
 
   public AutoRoutines(AutoFactory autoFactory, Robot robot, RobotCommands robotCommands,
       CommandSwerveDrivetrain drive) {
@@ -42,13 +38,13 @@ public class AutoRoutines {
     m_drive = drive;
 
     Path.setDefaultGlobalConstraints(new Path.DefaultGlobalConstraints(
-        4.729,
-        12.044,
-        682.5,
-        2945.6,
-        0.05,
-        2.0,
-        0.3));
+        4.729,   // maxVelocityMetersPerSec
+        12.044,  // maxAccelerationMetersPerSec2
+        682.5,   // maxVelocityDegPerSec
+        2945.6,  // maxAccelerationDegPerSec2
+        0.05,    // endTranslationToleranceMeters (5 cm)
+        2.0,     // endRotationToleranceDeg
+        0.3));   // intermediateHandoffRadiusMeters
 
     pathBuilder = new FollowPath.Builder(
         drive,
@@ -67,16 +63,14 @@ public class AutoRoutines {
   public Command trenchSupport() {
     return Commands.defer(() -> {
       Pose2d current = m_drive.getPose();
-      double fieldMidY = FieldConstants.kFieldWidth.in(edu.wpi.first.units.Units.Meters) / 2.0;
-      boolean useRightTrench = current.getY() < fieldMidY;
 
-      Pose2d entry = useRightTrench ? kTrenchEntryRight : kTrenchEntryLeft;
-      Pose2d exit = useRightTrench ? kTrenchExitRight : kTrenchExitLeft;
+      Pose2d entry = GeometryUtil.flip(kTrenchEntryRight);
+      Pose2d exit = GeometryUtil.flip(kTrenchExitRight);
 
       Path path = new Path(
           new PathConstraints()
-              .setMaxVelocityMetersPerSec(3.0)
-              .setMaxAccelerationMetersPerSec2(5.0),
+              .setMaxVelocityMetersPerSec(0.5)
+              .setMaxAccelerationMetersPerSec2(1.0),
           new Path.Waypoint(current),
           new Path.Waypoint(entry, 0.4),
           new Path.Waypoint(exit));
