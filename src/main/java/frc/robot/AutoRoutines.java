@@ -376,4 +376,15 @@ public class AutoRoutines {
             startToCenter.cmd()));
     return routine;
   }
+
+  public AutoRoutine testPath(int id, boolean slow) {
+    AutoRoutine routine = m_autoFactory.newRoutine("TestPath" + id);
+    AutoTrajectory trajectory = routine.trajectory("Test" + id + (slow ? "_Slow" : ""));
+
+    routine.active().onTrue(
+        Commands.sequence(
+            trajectory.resetOdometry(),
+            trajectory.cmd()));
+    return routine;
+  }
 }

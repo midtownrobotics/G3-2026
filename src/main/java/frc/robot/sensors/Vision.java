@@ -7,9 +7,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
-
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.simulation.VisionSystemSim;
 
@@ -17,6 +14,8 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -88,7 +87,8 @@ public class Vision extends SubsystemBase {
           robotPose.transformBy(camera.getRobotToCamera()));
     }
 
-    List<PoseObservation> observations = m_cameras.stream().filter(c -> c.isEnabled()).flatMap(c -> c.getLatestObservations().stream()).toList();
+    List<PoseObservation> observations = m_cameras.stream().filter(c -> c.isEnabled())
+        .flatMap(c -> c.getLatestObservations().stream()).toList();
 
     // String desiredCamera = getDesiredCameraName(observations);
 
@@ -114,13 +114,13 @@ public class Vision extends SubsystemBase {
         if (poseTrusted && distFromFused > kMaxDistanceFromFusedPose) {
           continue;
         }
-        m_addVisionMeasurement.accept(observation);
+        // m_addVisionMeasurement.accept(observation);
         m_acceptedObservations.addSample(observation.timestamp(), observation.pose().toPose2d());
         m_hasAcceptedVisionUpdate = true;
         m_lastAcceptedVisionTimestamp = Timer.getFPGATimestamp();
       }
 
-      resetRobotPoseIfDiverged(fusedPose);
+      // resetRobotPoseIfDiverged(fusedPose);
     }
 
     Logger.recordOutput("Vision/hasVisionUpdate", m_hasVisionUpdate);

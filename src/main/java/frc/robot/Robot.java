@@ -288,6 +288,11 @@ public class Robot extends LoggedRobot {
   }
 
   private void generateAutoChooser() {
+    for (int i = 1; i <= 4; ++i) {
+      final int pathId = i;
+      m_autoChooser.addRoutine("Test Path " + i + " Slow", () -> m_autoRoutines.testPath(pathId, true));
+      m_autoChooser.addRoutine("Test Path " + i + " Fast", () -> m_autoRoutines.testPath(pathId, false));
+    }
     m_autoChooser.addRoutine("Left Depot Shoot", m_autoRoutines::pickupDepotAndShoot);
     m_autoChooser.addRoutine("Depot And Middle Shoot", m_autoRoutines::depotAndMiddleShoot);
     m_autoChooser.addRoutine("Middle and Depot Shoot", m_autoRoutines::middleAndDepotShootLeft);
