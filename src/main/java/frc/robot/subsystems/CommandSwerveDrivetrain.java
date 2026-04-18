@@ -72,6 +72,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
   private final SwerveRequest.SysIdSwerveSteerGains m_steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
   private final SwerveRequest.SysIdSwerveRotation m_rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
 
+  private final SwerveRequest.ApplyRobotSpeeds m_robotSpeedsRequest = new SwerveRequest.ApplyRobotSpeeds();
+
   /*
    * SysId routine for characterizing translation. This is used to find PID gains
    * for the drive motors.
@@ -232,6 +234,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
   public Pose2d getPose() {
     return getState().Pose;
+  }
+
+  public void drive(ChassisSpeeds speeds) {
+    setControl(m_robotSpeedsRequest.withSpeeds(speeds));
   }
 
   public ChassisSpeeds getChassisSpeeds() {

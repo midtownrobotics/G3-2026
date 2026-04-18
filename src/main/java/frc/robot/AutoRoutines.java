@@ -3,16 +3,46 @@ package frc.robot;
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.commands.RobotCommands;
+import frc.robot.lib.BLine.FollowPath;
+import frc.robot.lib.BLine.Path;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 public class AutoRoutines {
   private final AutoFactory m_autoFactory;
   private final RobotCommands m_robotCommands;
+  private final FollowPath.Builder pathBuilder;
 
-  public AutoRoutines(AutoFactory autoFactory, Robot robot, RobotCommands robotCommands) {
+  public AutoRoutines(AutoFactory autoFactory, Robot robot, RobotCommands robotCommands,
+      CommandSwerveDrivetrain drive) {
     m_autoFactory = autoFactory;
     m_robotCommands = robotCommands;
+
+    Path.setDefaultGlobalConstraints(new Path.DefaultGlobalConstraints(
+        4.729,
+        12.044,
+        682.5,
+        2945.6,
+        0.05,
+        2.0,
+        0.3));
+
+    pathBuilder = new FollowPath.Builder(
+        drive,
+        drive::getPose,
+        drive::getChassisSpeeds,
+        drive::drive,
+        new PIDController(5.0, 0.0, 0.0),
+        new PIDController(3.0, 0.0, 0.0),
+        new PIDController(2.0, 0.0, 0.0)).withDefaultShouldFlip();
+  }
+
+  public Command driveToPose(Pose2d target) {
+    return pathBuilder.build(new Path(new Path.Waypoint(target)));
   }
 
   public AutoRoutine MadtownLeft() {

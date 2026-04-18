@@ -28,6 +28,8 @@ public interface Controls {
 
   public Trigger feedFuel();
 
+  public Trigger lineUpToWall();
+
   public double getDriveForward();
 
   public double getDriveLeft();

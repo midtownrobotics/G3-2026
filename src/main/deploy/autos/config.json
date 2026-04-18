@@ -5,10 +5,10 @@
       "width_meters": 0.4232
     },
     "protrusions": {
-      "enabled": true,
+      "enabled": false,
       "distance_meters": 0.0,
       "side": "none",
-      "default_state": "shown",
+      "default_state": "",
       "show_on_event_keys": [],
       "hide_on_event_keys": []
     }

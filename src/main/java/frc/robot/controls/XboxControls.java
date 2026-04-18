@@ -92,6 +92,11 @@ public class XboxControls implements Controls {
     return m_controller.start();
   }
 
+  @Override
+  public Trigger lineUpToWall() {
+    return m_controller.leftStick();
+  }
+
   public void setRumble(boolean enabled) {
     m_controller.setRumble(RumbleType.kBothRumble, enabled ? 0.5 : 0);
   }
@@ -105,12 +110,12 @@ public class XboxControls implements Controls {
 
     for (int i = 0; i < pulses; i++) {
       commands.add(rumbleCommand().withTimeout(pulseDuration));
-      
+
       if (i < pulses - 1) {
         commands.add(Commands.waitSeconds(0.1));
       }
     }
-    
+
     return Commands.sequence(commands.toArray(Command[]::new));
   }
 }
