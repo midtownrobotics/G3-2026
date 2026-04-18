@@ -38,7 +38,7 @@ public class AutoRoutines {
         drive::drive,
         new PIDController(5.0, 0.0, 0.0),
         new PIDController(3.0, 0.0, 0.0),
-        new PIDController(2.0, 0.0, 0.0)).withDefaultShouldFlip();
+        new PIDController(2.0, 0.0, 0.0));
   }
 
   public Command driveToPose(Pose2d target) {

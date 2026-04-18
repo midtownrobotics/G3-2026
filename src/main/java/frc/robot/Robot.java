@@ -6,7 +6,6 @@ import static edu.wpi.first.units.Units.Seconds;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.List;
 import java.util.Set;
 
 import org.littletonrobotics.junction.LoggedRobot;
@@ -316,10 +315,9 @@ public class Robot extends LoggedRobot {
     m_controls.lineUpToWall().whileTrue(
         Commands.defer(() -> {
           Pose2d current = m_drive.getPose();
+          double nearestY = current.getY() < (0.58 + 7.49) / 2 ? 0.58 : 7.49;
           return m_autoRoutines.driveToPose(
-              current.nearest(List.of(
-                  new Pose2d(current.getX(), 0.58, Rotation2d.fromDegrees(180)),
-                  new Pose2d(current.getX(), 7.49, Rotation2d.fromDegrees(180)))));
+              new Pose2d(current.getX(), nearestY, Rotation2d.fromDegrees(180)));
         }, Set.of(m_drive)));
   }
 
