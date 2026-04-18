@@ -282,8 +282,10 @@ public class Robot extends LoggedRobot {
     SmartDashboard.putData("DriveSysid/Translation/DynamicForward", m_drive.sysIdDynamic(Direction.kForward));
     SmartDashboard.putData("DriveSysid/Translation/DynamicReverse", m_drive.sysIdDynamic(Direction.kReverse));
 
-    SmartDashboard.putData("DriveSysid/Rotation/QuasistaticForward", m_drive.sysIdQuasistaticRotation(Direction.kForward));
-    SmartDashboard.putData("DriveSysid/Rotation/QuasistaticReverse", m_drive.sysIdQuasistaticRotation(Direction.kReverse));
+    SmartDashboard.putData("DriveSysid/Rotation/QuasistaticForward",
+        m_drive.sysIdQuasistaticRotation(Direction.kForward));
+    SmartDashboard.putData("DriveSysid/Rotation/QuasistaticReverse",
+        m_drive.sysIdQuasistaticRotation(Direction.kReverse));
     SmartDashboard.putData("DriveSysid/Rotation/DynamicForward", m_drive.sysIdDynamicRotation(Direction.kForward));
     SmartDashboard.putData("DriveSysid/Rotation/DynamicReverse", m_drive.sysIdDynamicRotation(Direction.kReverse));
 
@@ -326,6 +328,12 @@ public class Robot extends LoggedRobot {
 
     m_controls.intake().onTrue(m_robotCommands.fill());
 
+    m_controls.intake().debounce(0.5).onTrue(m_robotCommands.reverseIntake());
+
+    m_controls.fixedShooter().debounce(0.25)
+        .whileTrue(Commands.runOnce(() -> m_state.setFixedTurretMode(true)))
+        .onFalse(Commands.runOnce(() -> m_state.setFixedTurretMode(false)));
+
     m_controls.defense().onTrue(m_robotCommands.defense());
 
     m_controls.shoot().onTrue(m_robotCommands.autoAimAndPrepareShootTeleop());
@@ -348,6 +356,12 @@ public class Robot extends LoggedRobot {
 
     m_controls.toggleShootOnTheMove()
         .onTrue(m_state.setShootOnTheMoveEnabledCommand(() -> !m_state.isShootOnTheMoveEnabled()));
+
+    m_controls.disableShooting().whileTrue(
+        Commands.parallel(
+            m_state.setShootOnTheMoveEnabledCommand(() -> false),
+            m_robotCommands.shootShooterCommand()))
+        .onFalse(m_state.setShootOnTheMoveEnabledCommand(() -> true));
   }
 
   public void configureTrimControlBindings(TrimControls controls) {

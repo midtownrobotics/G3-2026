@@ -59,12 +59,12 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger zeroIntake() {
-    return m_controller.povLeft();
+    return m_controller.leftTrigger().and(m_controller.rightTrigger());
   }
 
   @Override
   public Trigger zeroHood() {
-    return m_controller.povRight();
+    return m_controller.leftBumper().and(m_controller.rightBumper());
   }
 
   @Override
@@ -84,12 +84,23 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger defense() {
-    return m_controller.back();
+    return m_controller.leftTrigger().and(m_controller.leftBumper());
   }
 
   @Override
   public Trigger toggleShootOnTheMove() {
     return m_controller.start();
+  }
+
+  @Override
+  public Trigger fixedShooter() {
+    return m_controller.rightBumper()
+        .and(m_controller.rightTrigger().and(m_controller.leftTrigger()).and(m_controller.leftBumper()));
+  }
+
+  @Override
+  public Trigger disableShooting() {
+    return m_controller.rightBumper().and(m_controller.rightTrigger());
   }
 
   public void setRumble(boolean enabled) {
@@ -105,12 +116,12 @@ public class XboxControls implements Controls {
 
     for (int i = 0; i < pulses; i++) {
       commands.add(rumbleCommand().withTimeout(pulseDuration));
-      
+
       if (i < pulses - 1) {
         commands.add(Commands.waitSeconds(0.1));
       }
     }
-    
+
     return Commands.sequence(commands.toArray(Command[]::new));
   }
 }

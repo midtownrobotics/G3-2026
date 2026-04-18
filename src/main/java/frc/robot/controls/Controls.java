@@ -28,6 +28,10 @@ public interface Controls {
 
   public Trigger feedFuel();
 
+  public Trigger fixedShooter();
+
+  public Trigger disableShooting();
+
   public double getDriveForward();
 
   public double getDriveLeft();

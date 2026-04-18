@@ -121,6 +121,12 @@ public class RobotCommands {
         m_intakeRoller.intake()).withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("runIntake");
   }
 
+  public Command reverseIntake() {
+    return Commands.parallel(
+        m_intakePivot.intake(),
+        m_intakeRoller.reverseIntake()).withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("runIntake");
+  }
+
   public Command stowIntake() {
     return Commands.parallel(m_intakePivot.stow(), m_intakeRoller.stow())
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("stowIntake");
