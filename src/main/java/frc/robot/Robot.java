@@ -319,6 +319,8 @@ public class Robot extends LoggedRobot {
           return m_autoRoutines.driveToPose(
               new Pose2d(current.getX(), nearestY, Rotation2d.fromDegrees(180)));
         }, Set.of(m_drive)));
+
+    m_controls.trenchSupport().whileTrue(m_autoRoutines.trenchSupport());
   }
 
   public void configureTrimControlBindings(TrimControls controls) {

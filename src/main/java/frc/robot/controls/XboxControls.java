@@ -97,6 +97,11 @@ public class XboxControls implements Controls {
     return m_controller.leftStick();
   }
 
+  @Override
+  public Trigger trenchSupport() {
+    return m_controller.rightStick();
+  }
+
   public void setRumble(boolean enabled) {
     m_controller.setRumble(RumbleType.kBothRumble, enabled ? 0.5 : 0);
   }

@@ -1,26 +1,45 @@
 package frc.robot;
 
+import java.util.Set;
+
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.commands.RobotCommands;
+import frc.robot.constants.FieldConstants;
 import frc.robot.lib.BLine.FollowPath;
 import frc.robot.lib.BLine.Path;
+import frc.robot.lib.BLine.Path.PathConstraints;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 public class AutoRoutines {
   private final AutoFactory m_autoFactory;
   private final RobotCommands m_robotCommands;
   private final FollowPath.Builder pathBuilder;
+  private final CommandSwerveDrivetrain m_drive;
+
+  private static final double kTrenchHeadingRad = 0.0907;
+  private static final Rotation2d kTrenchHeading = Rotation2d.fromRadians(kTrenchHeadingRad);
+  private static final Rotation2d kTrenchHeadingMirrored = Rotation2d.fromRadians(-kTrenchHeadingRad);
+
+  private static final Pose2d kTrenchEntryRight = new Pose2d(4.334, 0.585, kTrenchHeading);
+  private static final Pose2d kTrenchExitRight = new Pose2d(6.589, 0.795, kTrenchHeading);
+
+  private static final Pose2d kTrenchEntryLeft = new Pose2d(
+      4.334, FieldConstants.kFieldWidth.in(edu.wpi.first.units.Units.Meters) - 0.585, kTrenchHeadingMirrored);
+  private static final Pose2d kTrenchExitLeft = new Pose2d(
+      6.589, FieldConstants.kFieldWidth.in(edu.wpi.first.units.Units.Meters) - 0.795, kTrenchHeadingMirrored);
 
   public AutoRoutines(AutoFactory autoFactory, Robot robot, RobotCommands robotCommands,
       CommandSwerveDrivetrain drive) {
     m_autoFactory = autoFactory;
     m_robotCommands = robotCommands;
+    m_drive = drive;
 
     Path.setDefaultGlobalConstraints(new Path.DefaultGlobalConstraints(
         4.729,
@@ -43,6 +62,27 @@ public class AutoRoutines {
 
   public Command driveToPose(Pose2d target) {
     return pathBuilder.build(new Path(new Path.Waypoint(target)));
+  }
+
+  public Command trenchSupport() {
+    return Commands.defer(() -> {
+      Pose2d current = m_drive.getPose();
+      double fieldMidY = FieldConstants.kFieldWidth.in(edu.wpi.first.units.Units.Meters) / 2.0;
+      boolean useRightTrench = current.getY() < fieldMidY;
+
+      Pose2d entry = useRightTrench ? kTrenchEntryRight : kTrenchEntryLeft;
+      Pose2d exit = useRightTrench ? kTrenchExitRight : kTrenchExitLeft;
+
+      Path path = new Path(
+          new PathConstraints()
+              .setMaxVelocityMetersPerSec(3.0)
+              .setMaxAccelerationMetersPerSec2(5.0),
+          new Path.Waypoint(current),
+          new Path.Waypoint(entry, 0.4),
+          new Path.Waypoint(exit));
+
+      return pathBuilder.build(path);
+    }, Set.of(m_drive));
   }
 
   public AutoRoutine MadtownLeft() {

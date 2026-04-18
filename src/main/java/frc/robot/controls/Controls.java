@@ -41,4 +41,6 @@ public interface Controls {
   public Command pulseRumbleCommand(int pulses, double pulseDuration);
 
   public Trigger toggleShootOnTheMove();
+
+  public Trigger trenchSupport();
 }
