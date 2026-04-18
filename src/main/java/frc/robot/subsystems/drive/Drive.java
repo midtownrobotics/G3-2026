@@ -73,8 +73,8 @@ public class Drive extends SubsystemBase {
   private PoseEstimator poseEstimator = new PoseEstimator(kinematics);
 
   /** PID controllers for Choreo path following */
-  private final PIDController m_pathXController = new PIDController(0, 0, 0);
-  private final PIDController m_pathYController = new PIDController(0, 0, 0);
+  private final PIDController m_pathXController = new PIDController(7, 0, 0);
+  private final PIDController m_pathYController = new PIDController(7, 0, 0);
   private final PIDController m_pathThetaController = new PIDController(0, 0, 0);
 
   public Drive(
@@ -105,7 +105,7 @@ public class Drive extends SubsystemBase {
         new SysIdRoutine.Mechanism(
             (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
 
-  sysIdRotation = new SysIdRoutine(
+    sysIdRotation = new SysIdRoutine(
         new SysIdRoutine.Config(
             null,
             Volts.of(6),
