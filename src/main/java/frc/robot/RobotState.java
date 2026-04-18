@@ -26,6 +26,8 @@ import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -56,6 +58,8 @@ public class RobotState {
 
   private final Trigger m_isPreparedToShootTrigger;
   private final Trigger m_inAllianceZoneTrigger;
+
+  private final Field2d m_field2d = new Field2d();
 
   private final LoggedNetworkBoolean m_fixedTurretModeToggle = new LoggedNetworkBoolean("Toggles/FixedTurretMode",
       false);
@@ -102,6 +106,8 @@ public class RobotState {
 
     m_inAllianceZoneTrigger = new Trigger(this::inAllianceZone)
         .debounce(0.2, DebounceType.kFalling);
+
+    SmartDashboard.putData("Field", m_field2d);
   }
 
   public void periodic() {
@@ -130,6 +136,8 @@ public class RobotState {
     Logger.recordOutput("RobotState/isPreparedToShootTrigger", isPreparedToShootTrigger().getAsBoolean());
     Logger.recordOutput("RobotState/shooterMode", getShooterState());
     Logger.recordOutput("ClampedChassisSpeeds", clampChassisSpeeds(getFieldRelativeSpeeds()));
+
+    m_field2d.setRobotPose(getRobotPose());
   }
 
   public ShooterState getShooterState() {
