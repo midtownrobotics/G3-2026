@@ -138,6 +138,10 @@ public class DriveCommands {
         m_drive);
   }
 
+  public Command straightDrive() {
+    return Commands.run(() -> m_drive.runVelocity(new ChassisSpeeds(0.25, 0, 0)), m_drive);
+  }
+
   private Command snakeDrive() {
     final Watchdawg watchdog = new Watchdawg(DriveCommands.class);
     return Commands.run(

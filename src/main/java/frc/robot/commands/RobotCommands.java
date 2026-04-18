@@ -249,4 +249,8 @@ public class RobotCommands {
   public Command decreaseVelocityCompensation() {
     return Commands.runOnce(m_state.getShootingParameters()::decreaseVelocityCompensation);
   }
+
+  public Command driveStrightRobotRelative() {
+    return m_driveCommands.straightDrive();
+  }
 }

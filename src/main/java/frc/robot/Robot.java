@@ -290,6 +290,7 @@ public class Robot extends LoggedRobot {
     SmartDashboard.putData("StartSignalLogger", Commands.runOnce(() -> SignalLogger.start()));
     SmartDashboard.putData("StopSignalLogger", Commands.runOnce(() -> SignalLogger.stop()));
 
+    SmartDashboard.putData("Drive/DriveStraightRobotRelative", m_robotCommands.driveStrightRobotRelative());
   }
 
   private void generateAutoChooser() {

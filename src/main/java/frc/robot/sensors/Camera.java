@@ -31,6 +31,8 @@ public class Camera {
   private final double m_stdDevMultiplier;
   private final Supplier<Boolean> m_enabledSupplier;
 
+  private static final double kDefaultStdMultiplier = 0.1;
+
   public static record PoseObservation(double timestamp, Pose3d pose, int tagCount, double averageDistanceMeters,
       String cameraName, Matrix<N3, N1> standardDevs) {
   }
@@ -45,11 +47,11 @@ public class Camera {
   }
 
   public Camera(String name, Transform3d robotToCamera, Supplier<Boolean> enabledSupplier) {
-    this(name, robotToCamera, 4.0, enabledSupplier);
+    this(name, robotToCamera, kDefaultStdMultiplier, enabledSupplier);
   }
 
   public Camera(String name, Transform3d robotToCamera) {
-    this(name, robotToCamera, 4.0, () -> true);
+    this(name, robotToCamera, kDefaultStdMultiplier, () -> true);
   }
 
   public void periodic() {
