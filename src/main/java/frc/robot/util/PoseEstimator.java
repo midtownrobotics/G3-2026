@@ -46,6 +46,7 @@ public class PoseEstimator {
 
   private final TimeInterpolatableBuffer<Pose2d> poseBuffer = TimeInterpolatableBuffer.createBuffer(kPoseBufferSizeSec);
   private final Matrix<N3, N1> qStdDevs = new Matrix<>(Nat.N3(), Nat.N1());
+  private double odometryStdDevMultiplier = 1.0;
 
   private final SwerveDriveKinematics kinematics;
   private SwerveModulePosition[] lastWheelPositions = new SwerveModulePosition[] {
@@ -77,6 +78,11 @@ public class PoseEstimator {
     return estimatedPose.getRotation();
   }
 
+  /** Set a multiplier on odometry standard deviations (e.g. 3.0 during skid events). */
+  public void setOdometryStdDevMultiplier(double multiplier) {
+    this.odometryStdDevMultiplier = multiplier;
+  }
+
   /** Adds a new odometry observation from the drive subsystem. */
   public void addOdometryObservation(OdometryObservation observation) {
     // Scale down odometry when the robot is tilted (e.g. driving over a ramp).
@@ -91,14 +97,6 @@ public class PoseEstimator {
 
     Twist2d twist = kinematics.toTwist2d(lastWheelPositions, observation.wheelPositions());
     twist = new Twist2d(twist.dx * tiltScale, twist.dy * tiltScale, twist.dtheta * tiltScale);
-
-    // Scale down translational odometry when skidding is detected.
-    // The gyro still provides reliable heading, so dtheta is preserved.
-    // We use 1/skidRatio to proportionally reduce trust in wheel translation.
-    if (observation.skidRatio() > 1.0) {
-      double skidScale = 1.0 / observation.skidRatio();
-      twist = new Twist2d(twist.dx * skidScale, twist.dy * skidScale, twist.dtheta);
-    }
 
     lastWheelPositions = observation.wheelPositions();
     Pose2d lastOdometryPose = odometryPose;
@@ -173,9 +171,10 @@ public class PoseEstimator {
 
     // Solve for closed form Kalman gain for continuous Kalman filter with A = 0
     // and C = I. See wpimath/algorithms.md.
+    double multiplierSq = odometryStdDevMultiplier * odometryStdDevMultiplier;
     Matrix<N3, N3> visionK = new Matrix<>(Nat.N3(), Nat.N3());
     for (int row = 0; row < 3; ++row) {
-      double stdDev = qStdDevs.get(row, 0);
+      double stdDev = qStdDevs.get(row, 0) * multiplierSq;
       if (stdDev == 0.0) {
         visionK.set(row, row, 0.0);
       } else {
@@ -221,8 +220,7 @@ public class PoseEstimator {
       SwerveModulePosition[] wheelPositions,
       Optional<Rotation2d> pitch,
       Optional<Rotation2d> roll,
-      Optional<Rotation2d> yaw,
-      double skidRatio) {
+      Optional<Rotation2d> yaw) {
   }
 
   public record VisionObservation(

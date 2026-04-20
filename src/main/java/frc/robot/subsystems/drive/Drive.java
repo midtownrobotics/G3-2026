@@ -59,8 +59,13 @@ public class Drive extends SubsystemBase {
   private static final double kSkidRatioThreshold = 1.5;
   /** Duration (seconds) after a skid event during which vision trust is boosted. */
   private static final double kSkidVisionBoostDurationSec = 2.5;
-  /** Factor by which vision std devs are scaled down during the post-skid boost window. */
-  private static final double kSkidVisionStdDevScale = 0.5;
+  /** Factor by which odometry std devs are inflated during the post-skid boost window. */
+  private static final double kSkidOdometryStdDevMultiplier = 3.0;
+
+  /** XY acceleration magnitude (m/s^2) above which we consider a collision has occurred. 2g ≈ 19.62 m/s^2. */
+  private static final double kCollisionThresholdMetersPerSecSq = 2.0 * 9.81;
+  /** Duration (seconds) after a collision during which hasCollision() returns true. */
+  private static final double kCollisionCooldownSec = 0.5;
 
   static final Lock odometryLock = new ReentrantLock();
   private final GyroIO gyroIO;
@@ -83,6 +88,7 @@ public class Drive extends SubsystemBase {
 
   private double m_skidRatio = 1.0;
   private double m_lastSkidTimestamp = -100.0; // large negative so boost is inactive at startup
+  private double m_lastCollisionTimestamp = -100.0;
 
   /** PID controllers for Choreo path following */
   private final PIDController m_pathXController = new PIDController(7, 0, 0);
@@ -156,6 +162,18 @@ public class Drive extends SubsystemBase {
       m_lastSkidTimestamp = Logger.getTimestamp() / 1e6; // convert microseconds to seconds
     }
 
+    // Inflate odometry std devs during skid events so the Kalman filter trusts vision more
+    m_poseEstimator.setOdometryStdDevMultiplier(
+        isSkidVisionBoostActive() ? kSkidOdometryStdDevMultiplier : 1.0);
+
+    // Collision detection from accelerometer
+    if (gyroInputs.connected) {
+      double xyAccel = Math.hypot(gyroInputs.xAcceleration, gyroInputs.yAcceleration);
+      if (xyAccel >= kCollisionThresholdMetersPerSecSq) {
+        m_lastCollisionTimestamp = Logger.getTimestamp() / 1e6;
+      }
+    }
+
     // Update odometry
     double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together
     int sampleCount = sampleTimestamps.length;
@@ -191,8 +209,7 @@ public class Drive extends SubsystemBase {
               : Optional.empty(),
           gyroInputs.connected
               ? Optional.of(gyroInputs.odometryYawPositions[i])
-              : Optional.empty(),
-          m_skidRatio);
+              : Optional.empty());
 
       // Apply update
       m_poseEstimator.addOdometryObservation(odometryObservation);
@@ -209,6 +226,9 @@ public class Drive extends SubsystemBase {
     Logger.recordOutput("Drive/skidRatio", getSkidRatio());
     Logger.recordOutput("Drive/isSkidding", isSkidding());
     Logger.recordOutput("Drive/skidVisionBoostActive", isSkidVisionBoostActive());
+    Logger.recordOutput("Drive/hasCollision", hasCollision());
+    Logger.recordOutput("Drive/xyAcceleration",
+        Math.hypot(gyroInputs.xAcceleration, gyroInputs.yAcceleration));
   }
 
   /**
@@ -386,10 +406,6 @@ public class Drive extends SubsystemBase {
       Pose3d visionRobotPoseMeters,
       double timestampSeconds,
       Matrix<N3, N1> visionMeasurementStdDevs) {
-    // Boost vision trust for a window after skid is detected
-    if (isSkidVisionBoostActive()) {
-      visionMeasurementStdDevs = visionMeasurementStdDevs.times(kSkidVisionStdDevScale);
-    }
     var visionObservation = new VisionObservation(timestampSeconds, visionRobotPoseMeters, visionMeasurementStdDevs);
     m_poseEstimator.addVisionObservation(visionObservation);
   }
@@ -411,6 +427,12 @@ public class Drive extends SubsystemBase {
   /** Returns whether the robot is currently skidding based on the Orbit skid ratio. */
   public boolean isSkidding() {
     return getSkidRatio() > kSkidRatioThreshold;
+  }
+
+  /** Returns true for kCollisionCooldownSec after any accelerometer reading exceeds 2g. */
+  public boolean hasCollision() {
+    double now = Logger.getTimestamp() / 1e6;
+    return (now - m_lastCollisionTimestamp) < kCollisionCooldownSec;
   }
 
   /** Returns whether we are within the post-skid window where vision trust is boosted. */
