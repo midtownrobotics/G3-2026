@@ -26,6 +26,8 @@ import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -33,7 +35,7 @@ import frc.lib.GeometryUtil;
 import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
 import frc.robot.sensors.Vision;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.intake.IntakePivot;
@@ -43,7 +45,7 @@ import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.Turret;
 
 public class RobotState {
-  private final CommandSwerveDrivetrain m_drive;
+  private final Drive m_drive;
   private final IntakePivot m_intakePivot;
   private final IntakeRoller m_intakeRoller;
   private final Turret m_turret;
@@ -56,6 +58,8 @@ public class RobotState {
 
   private final Trigger m_isPreparedToShootTrigger;
   private final Trigger m_inAllianceZoneTrigger;
+
+  private final Field2d m_field2d = new Field2d();
 
   private final LoggedNetworkBoolean m_fixedTurretModeToggle = new LoggedNetworkBoolean("Toggles/FixedTurretMode",
       false);
@@ -73,7 +77,7 @@ public class RobotState {
   private TimeInterpolatableBuffer<Pose2d> m_robotPoseBuffer = TimeInterpolatableBuffer.createBuffer(1.0);
 
   public RobotState(
-      CommandSwerveDrivetrain drive,
+      Drive drive,
       IntakePivot intakePivot,
       IntakeRoller intakeRoller,
       Turret turret,
@@ -102,6 +106,8 @@ public class RobotState {
 
     m_inAllianceZoneTrigger = new Trigger(this::inAllianceZone)
         .debounce(0.2, DebounceType.kFalling);
+
+    SmartDashboard.putData("Field", m_field2d);
   }
 
   public void periodic() {
@@ -129,6 +135,9 @@ public class RobotState {
     Logger.recordOutput("RobotState/inAllianceZoneTrigger", inAllianceZoneTrigger().getAsBoolean());
     Logger.recordOutput("RobotState/isPreparedToShootTrigger", isPreparedToShootTrigger().getAsBoolean());
     Logger.recordOutput("RobotState/shooterMode", getShooterState());
+    Logger.recordOutput("ClampedChassisSpeeds", clampChassisSpeeds(getFieldRelativeSpeeds()));
+
+    m_field2d.setRobotPose(getRobotPose());
   }
 
   public ShooterState getShooterState() {
@@ -189,11 +198,41 @@ public class RobotState {
     double h = Constants.kRobotToTurret.getNorm();
     double theta = robotPose.getRotation().getRadians()
         + Constants.kRobotToTurret.getAngle().getRadians();
-    double omega = getFieldRelativeSpeeds().omegaRadiansPerSecond;
+    double omega = robotSpeeds.omegaRadiansPerSecond;
     LinearVelocity xDt = MetersPerSecond.of(-h * Math.sin(theta) * omega);
     LinearVelocity yDt = MetersPerSecond.of(h * Math.cos(theta) * omega);
     ChassisSpeeds robotRelativeTurretSpeeds = new ChassisSpeeds(xDt, yDt, RadiansPerSecond.zero());
     return robotSpeeds.plus(robotRelativeTurretSpeeds);
+  }
+
+  private ChassisSpeeds clampChassisSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
+    Pose2d pose = getRobotPose();
+
+    double cosTheta = Math.abs(pose.getRotation().getCos());
+    double sinTheta = Math.abs(pose.getRotation().getSin());
+    double robotLength = Constants.kRobotLengthWithBumpers.in(Meters);
+    double robotWidth = Constants.kRobotWidthWithBumpers.in(Meters);
+
+    double offsetX = (robotLength * cosTheta + robotWidth * sinTheta) / 2.0 + 0.1;
+    double offsetY = (robotLength * sinTheta + robotWidth * cosTheta) / 2.0 + 0.1;
+
+    double vx = fieldRelativeSpeeds.vxMetersPerSecond;
+    double vy = fieldRelativeSpeeds.vyMetersPerSecond;
+
+    if (fieldRelativeSpeeds.vxMetersPerSecond < 0 && pose.getX() < offsetX) {
+      vx = 0;
+    } else if (fieldRelativeSpeeds.vxMetersPerSecond > 0
+        && pose.getX() > FieldConstants.kFieldLength.in(Meters) - offsetX) {
+      vx = 0;
+    }
+    if (fieldRelativeSpeeds.vyMetersPerSecond < 0 && pose.getY() < offsetY) {
+      vy = 0;
+    } else if (fieldRelativeSpeeds.vyMetersPerSecond > 0
+        && pose.getY() > FieldConstants.kFieldWidth.in(Meters) - offsetY) {
+      vy = 0;
+    }
+
+    return new ChassisSpeeds(vx, vy, fieldRelativeSpeeds.omegaRadiansPerSecond);
   }
 
   public Trigger isPreparedToShootTrigger() {
@@ -250,7 +289,7 @@ public class RobotState {
   public boolean isShootOnTheMoveEnabled() {
     return m_shootOnTheMoveToggle.get()
         && m_vision.hasRecentAcceptedVision();
-        // && !m_drive.hasWheelSlip();
+    // && !m_drive.hasWheelSlip();
   }
 
   public ShootingParameters getShootingParameters() {

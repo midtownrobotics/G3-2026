@@ -31,6 +31,8 @@ public class Camera {
   private final double m_stdDevMultiplier;
   private final Supplier<Boolean> m_enabledSupplier;
 
+  private static final double kDefaultStdMultiplier = 0.1;
+
   public static record PoseObservation(double timestamp, Pose3d pose, int tagCount, double averageDistanceMeters,
       String cameraName, Matrix<N3, N1> standardDevs) {
   }
@@ -45,15 +47,15 @@ public class Camera {
   }
 
   public Camera(String name, Transform3d robotToCamera, Supplier<Boolean> enabledSupplier) {
-    this(name, robotToCamera, 4.0, enabledSupplier);
+    this(name, robotToCamera, kDefaultStdMultiplier, enabledSupplier);
   }
 
   public Camera(String name, Transform3d robotToCamera) {
-    this(name, robotToCamera, 4.0, () -> true);
+    this(name, robotToCamera, kDefaultStdMultiplier, () -> true);
   }
 
   public void periodic() {
-    Logger.recordOutput("Vision/" + m_camera.getName() +  "/enabled", m_enabledSupplier.get());
+    Logger.recordOutput("Vision/" + m_camera.getName() + "/enabled", m_enabledSupplier.get());
     Logger.recordOutput("Vision/" + m_camera.getName() + "/connected", m_camera.isConnected());
     m_connectionAlert.set(!m_camera.isConnected());
   }
@@ -76,23 +78,8 @@ public class Camera {
   }
 
   private Matrix<N3, N1> calculateStandardDevs(int tagCount, double avgDistanceMeters) {
-    double base;
-    switch (tagCount) {
-      case 5:
-        base = 0.04;
-        break;
-      case 4:
-        base = 0.04;
-        break;
-      case 3:
-        base = 0.05;
-        break;
-      default:
-        base = 0.07;
-        break;
-    }
-    double distanceMultiplier = Math.max(1.0, avgDistanceMeters / 3.0);
-    double stdDev = base * distanceMultiplier * m_stdDevMultiplier;
+    double distanceMultiplier = Math.pow(avgDistanceMeters, 1.5);
+    double stdDev = distanceMultiplier / tagCount * m_stdDevMultiplier;
     return VecBuilder.fill(stdDev, stdDev, 5 * stdDev);
   }
 

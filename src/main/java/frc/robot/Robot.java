@@ -41,7 +41,11 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.sensors.Camera;
 import frc.robot.sensors.DynamicCamera;
 import frc.robot.sensors.Vision;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.drive.GyroIOPigeon2;
+import frc.robot.subsystems.drive.GyroIOSim;
+import frc.robot.subsystems.drive.ModuleIOSim;
+import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.feeder.FeederIOSim;
 import frc.robot.subsystems.feeder.FeederIOTalonFX;
@@ -69,7 +73,7 @@ public class Robot extends LoggedRobot {
   private final Controls m_controls;
   private final TrimControls m_trimControls;
 
-  private final CommandSwerveDrivetrain m_drive;
+  private final Drive m_drive;
   private final Vision m_vision;
 
   private final IntakePivot m_intakePivot;
@@ -131,9 +135,14 @@ public class Robot extends LoggedRobot {
 
     Logger.start();
 
-    m_drive = TunerConstants.createDrivetrain();
-
     if (isReal()) {
+      m_drive = new Drive(
+          new GyroIOPigeon2(),
+          new ModuleIOTalonFX(TunerConstants.FrontLeft),
+          new ModuleIOTalonFX(TunerConstants.FrontRight),
+          new ModuleIOTalonFX(TunerConstants.BackLeft),
+          new ModuleIOTalonFX(TunerConstants.BackRight));
+
       m_intakePivot = new IntakePivot(new IntakePivotIOTalonFX());
       m_intakeRoller = new IntakeRoller(new IntakeRollerIOTalonFX());
       m_feeder = new Feeder(new FeederIOTalonFX());
@@ -142,6 +151,13 @@ public class Robot extends LoggedRobot {
       m_shooter = new Shooter(new ShooterIOTalonFX());
       m_turret = new Turret(new TurretIOTalonFX());
     } else {
+      m_drive = new Drive(
+          new GyroIOSim(),
+          new ModuleIOSim(TunerConstants.FrontLeft),
+          new ModuleIOSim(TunerConstants.FrontRight),
+          new ModuleIOSim(TunerConstants.BackLeft),
+          new ModuleIOSim(TunerConstants.BackRight));
+
       m_intakePivot = new IntakePivot(new IntakePivotIOSim());
       m_intakeRoller = new IntakeRoller(new IntakeRollerIOSim());
       m_feeder = new Feeder(new FeederIOSim());
@@ -178,7 +194,7 @@ public class Robot extends LoggedRobot {
 
     m_vision = new Vision(
         (observation) -> m_drive.addVisionMeasurement(
-            observation.pose().toPose2d(), observation.timestamp(), observation.standardDevs()),
+            observation.pose(), observation.timestamp(), observation.standardDevs()),
         m_drive::getPose,
         m_drive::resetPose,
         rearRight,
@@ -261,17 +277,28 @@ public class Robot extends LoggedRobot {
 
     RobotModeTriggers.teleop().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement());
 
-    SmartDashboard.putData("QuasistaticForward", m_drive.sysIdQuasistatic(Direction.kForward));
-    SmartDashboard.putData("QuasistaticReverse", m_drive.sysIdQuasistatic(Direction.kReverse));
-    SmartDashboard.putData("DynamicForward", m_drive.sysIdDynamic(Direction.kForward));
-    SmartDashboard.putData("DynamicReverse", m_drive.sysIdDynamic(Direction.kReverse));
+    SmartDashboard.putData("DriveSysid/Translation/QuasistaticForward", m_drive.sysIdQuasistatic(Direction.kForward));
+    SmartDashboard.putData("DriveSysid/Translation/QuasistaticReverse", m_drive.sysIdQuasistatic(Direction.kReverse));
+    SmartDashboard.putData("DriveSysid/Translation/DynamicForward", m_drive.sysIdDynamic(Direction.kForward));
+    SmartDashboard.putData("DriveSysid/Translation/DynamicReverse", m_drive.sysIdDynamic(Direction.kReverse));
+
+    SmartDashboard.putData("DriveSysid/Rotation/QuasistaticForward", m_drive.sysIdQuasistaticRotation(Direction.kForward));
+    SmartDashboard.putData("DriveSysid/Rotation/QuasistaticReverse", m_drive.sysIdQuasistaticRotation(Direction.kReverse));
+    SmartDashboard.putData("DriveSysid/Rotation/DynamicForward", m_drive.sysIdDynamicRotation(Direction.kForward));
+    SmartDashboard.putData("DriveSysid/Rotation/DynamicReverse", m_drive.sysIdDynamicRotation(Direction.kReverse));
 
     SmartDashboard.putData("StartSignalLogger", Commands.runOnce(() -> SignalLogger.start()));
     SmartDashboard.putData("StopSignalLogger", Commands.runOnce(() -> SignalLogger.stop()));
 
+    SmartDashboard.putData("Drive/DriveStraightRobotRelative", m_robotCommands.driveStrightRobotRelative());
   }
 
   private void generateAutoChooser() {
+    for (int i = 1; i <= 4; ++i) {
+      final int pathId = i;
+      m_autoChooser.addRoutine("Test Path " + i + " Slow", () -> m_autoRoutines.testPath(pathId, true));
+      m_autoChooser.addRoutine("Test Path " + i + " Fast", () -> m_autoRoutines.testPath(pathId, false));
+    }
     m_autoChooser.addRoutine("Left Depot Shoot", m_autoRoutines::pickupDepotAndShoot);
     m_autoChooser.addRoutine("Depot And Middle Shoot", m_autoRoutines::depotAndMiddleShoot);
     m_autoChooser.addRoutine("Middle and Depot Shoot", m_autoRoutines::middleAndDepotShootLeft);
@@ -349,9 +376,9 @@ public class Robot extends LoggedRobot {
 
     m_state.periodic();
 
-    Logger.recordOutput("Pigeon2/accelerationX", m_drive.getPigeon2().getAccelerationX().getValue());
-    Logger.recordOutput("Pigeon2/accelerationY", m_drive.getPigeon2().getAccelerationY().getValue());
-    Logger.recordOutput("Pigeon2/accelerationZ", m_drive.getPigeon2().getAccelerationZ().getValue());
+    // Logger.recordOutput("Pigeon2/accelerationX", m_drive.getPigeon2().getAccelerationX().getValue());
+    // Logger.recordOutput("Pigeon2/accelerationY", m_drive.getPigeon2().getAccelerationY().getValue());
+    // Logger.recordOutput("Pigeon2/accelerationZ", m_drive.getPigeon2().getAccelerationZ().getValue());
 
     LoggedCommandScheduler.periodic();
   }

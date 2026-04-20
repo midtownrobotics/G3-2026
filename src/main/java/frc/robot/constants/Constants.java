@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import frc.lib.GeometryUtil;
 import frc.robot.generated.TunerConstants;
@@ -54,4 +55,7 @@ public class Constants {
 
   public static final Transform3d kTurretToCamera = new Transform3d(Inches.of(6.359), Inches.of(0), Inches.of(1.792),
       GeometryUtil.rotation3dFromPitch(Degrees.of(-25)));
+
+  public static final Distance kRobotWidthWithBumpers = Inches.of(38.438);
+  public static final Distance kRobotLengthWithBumpers = Inches.of(31.256);
 }
