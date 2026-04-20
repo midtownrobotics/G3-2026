@@ -11,6 +11,8 @@ import static edu.wpi.first.units.Units.Meters;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
@@ -45,8 +47,11 @@ public class PoseEstimator {
   private Pose2d estimatedPose = Pose2d.kZero;
 
   private final TimeInterpolatableBuffer<Pose2d> poseBuffer = TimeInterpolatableBuffer.createBuffer(kPoseBufferSizeSec);
+  private static final double kProcessNoiseInflationFactor = 3.0;
+  private static final double kTiltThresholdCos = 0.99;
+
   private final Matrix<N3, N1> qStdDevs = new Matrix<>(Nat.N3(), Nat.N1());
-  private double odometryStdDevMultiplier = 1.0;
+  private boolean inflateProcessNoise = false;
 
   private final SwerveDriveKinematics kinematics;
   private SwerveModulePosition[] lastWheelPositions = new SwerveModulePosition[] {
@@ -78,25 +83,25 @@ public class PoseEstimator {
     return estimatedPose.getRotation();
   }
 
-  /** Set a multiplier on odometry standard deviations (e.g. 3.0 during skid events). */
-  public void setOdometryStdDevMultiplier(double multiplier) {
-    this.odometryStdDevMultiplier = multiplier;
+  /** When true, odometry std devs are inflated so the Kalman filter trusts vision more. */
+  public void setInflateProcessNoise(boolean inflate) {
+    this.inflateProcessNoise = inflate;
   }
 
   /** Adds a new odometry observation from the drive subsystem. */
   public void addOdometryObservation(OdometryObservation observation) {
-    // Scale down odometry when the robot is tilted (e.g. driving over a ramp).
-    // Wheel travel on an incline doesn't translate 1:1 to field-plane movement.
+    // Project wheel travel onto the field plane when tilted (cos(pitch)*cos(roll)).
     double tiltScale = 1.0;
     if (observation.pitch().isPresent() && observation.roll().isPresent()) {
-      double cosProduct = observation.pitch().get().getCos()
+      tiltScale = observation.pitch().get().getCos()
           * observation.roll().get().getCos();
-      double tiltDegrees = Math.abs(Math.toDegrees(Math.acos(cosProduct)));
-      tiltScale = MathUtil.clamp(1.0 - MathUtil.inverseInterpolate(0, 25, tiltDegrees), 0.0, 1.0);
+      if (tiltScale < kTiltThresholdCos) {
+        inflateProcessNoise = true;
+      }
     }
 
     Twist2d twist = kinematics.toTwist2d(lastWheelPositions, observation.wheelPositions());
-    twist = new Twist2d(twist.dx * tiltScale, twist.dy * tiltScale, twist.dtheta * tiltScale);
+    twist = new Twist2d(twist.dx * tiltScale, twist.dy * tiltScale, twist.dtheta);
 
     lastWheelPositions = observation.wheelPositions();
     Pose2d lastOdometryPose = odometryPose;
@@ -117,6 +122,8 @@ public class PoseEstimator {
     // Apply odometry delta to the vision-corrected estimated pose
     Twist2d finalTwist = lastOdometryPose.log(odometryPose);
     estimatedPose = clampPose2dToFieldBounds(estimatedPose.exp(finalTwist));
+
+    Logger.recordOutput("PoseEstimator/processNoiseInflated", inflateProcessNoise);
   }
 
   private static Pose2d clampPose2dToFieldBounds(Pose2d pose) {
@@ -171,10 +178,11 @@ public class PoseEstimator {
 
     // Solve for closed form Kalman gain for continuous Kalman filter with A = 0
     // and C = I. See wpimath/algorithms.md.
-    double multiplierSq = odometryStdDevMultiplier * odometryStdDevMultiplier;
+    double inflationSq = inflateProcessNoise
+        ? kProcessNoiseInflationFactor * kProcessNoiseInflationFactor : 1.0;
     Matrix<N3, N3> visionK = new Matrix<>(Nat.N3(), Nat.N3());
     for (int row = 0; row < 3; ++row) {
-      double stdDev = qStdDevs.get(row, 0) * multiplierSq;
+      double stdDev = qStdDevs.get(row, 0) * inflationSq;
       if (stdDev == 0.0) {
         visionK.set(row, row, 0.0);
       } else {

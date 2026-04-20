@@ -57,10 +57,6 @@ public class Drive extends SubsystemBase {
   private static final double kSkidMinSpeedMetersPerSec = 0.1;
   /** Skid ratio threshold above which we consider the robot to be skidding. */
   private static final double kSkidRatioThreshold = 1.5;
-  /** Duration (seconds) after a skid event during which vision trust is boosted. */
-  private static final double kSkidVisionBoostDurationSec = 2.5;
-  /** Factor by which odometry std devs are inflated during the post-skid boost window. */
-  private static final double kSkidOdometryStdDevMultiplier = 3.0;
 
   /** XY acceleration magnitude (m/s^2) above which we consider a collision has occurred. 2g ≈ 19.62 m/s^2. */
   private static final double kCollisionThresholdMetersPerSecSq = 2.0 * 9.81;
@@ -87,7 +83,6 @@ public class Drive extends SubsystemBase {
   private PoseEstimator m_poseEstimator = new PoseEstimator(kinematics);
 
   private double m_skidRatio = 1.0;
-  private double m_lastSkidTimestamp = -100.0; // large negative so boost is inactive at startup
   private double m_lastCollisionTimestamp = -100.0;
 
   /** PID controllers for Choreo path following */
@@ -158,13 +153,6 @@ public class Drive extends SubsystemBase {
 
     // Compute skid ratio using Orbit's method (based on latest module states)
     m_skidRatio = calculateSkiddingRatio(getModuleStates());
-    if (isSkidding()) {
-      m_lastSkidTimestamp = Logger.getTimestamp() / 1e6; // convert microseconds to seconds
-    }
-
-    // Inflate odometry std devs during skid events so the Kalman filter trusts vision more
-    m_poseEstimator.setOdometryStdDevMultiplier(
-        isSkidVisionBoostActive() ? kSkidOdometryStdDevMultiplier : 1.0);
 
     // Collision detection from accelerometer
     if (gyroInputs.connected) {
@@ -173,6 +161,9 @@ public class Drive extends SubsystemBase {
         m_lastCollisionTimestamp = Logger.getTimestamp() / 1e6;
       }
     }
+
+    // Inflate odometry process noise when skidding or after a collision
+    m_poseEstimator.setInflateProcessNoise(isSkidding() || hasCollision());
 
     // Update odometry
     double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together
@@ -225,7 +216,6 @@ public class Drive extends SubsystemBase {
     Logger.recordOutput("Drive/modulePositions", getModulePositions());
     Logger.recordOutput("Drive/skidRatio", getSkidRatio());
     Logger.recordOutput("Drive/isSkidding", isSkidding());
-    Logger.recordOutput("Drive/skidVisionBoostActive", isSkidVisionBoostActive());
     Logger.recordOutput("Drive/hasCollision", hasCollision());
     Logger.recordOutput("Drive/xyAcceleration",
         Math.hypot(gyroInputs.xAcceleration, gyroInputs.yAcceleration));
@@ -435,11 +425,6 @@ public class Drive extends SubsystemBase {
     return (now - m_lastCollisionTimestamp) < kCollisionCooldownSec;
   }
 
-  /** Returns whether we are within the post-skid window where vision trust is boosted. */
-  public boolean isSkidVisionBoostActive() {
-    double now = Logger.getTimestamp() / 1e6;
-    return (now - m_lastSkidTimestamp) < kSkidVisionBoostDurationSec;
-  }
 
   /**
    * Calculates the skidding ratio using 1690 Orbit's method.
