@@ -18,7 +18,6 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
@@ -35,7 +34,6 @@ public class Camera {
   private final Alert m_connectionAlert;
   private final double m_stdDevMultiplier;
   private final Supplier<Boolean> m_enabledSupplier;
-  private Supplier<Rotation2d> m_headingSupplier = () -> Rotation2d.kZero;
 
   private static final double kDefaultStdMultiplier = 0.1;
 
@@ -76,10 +74,6 @@ public class Camera {
 
   public PhotonCamera getCamera() {
     return m_camera;
-  }
-
-  public void setHeadingSupplier(Supplier<Rotation2d> headingSupplier) {
-    m_headingSupplier = headingSupplier;
   }
 
   public PhotonCameraSim getSimCamera() {
