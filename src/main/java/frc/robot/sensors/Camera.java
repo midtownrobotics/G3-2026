@@ -167,17 +167,7 @@ public class Camera {
           continue;
         }
 
-        Rotation2d currentHeading = m_headingSupplier.get();
-        Rotation2d heading0 = robotPose0.toPose2d().getRotation();
-        Rotation2d heading1 = robotPose1.toPose2d().getRotation();
-        Pose3d robotPose;
-        if (Math.abs(currentHeading.minus(heading0).getRadians())
-            < Math.abs(currentHeading.minus(heading1).getRadians())) {
-          robotPose = robotPose0;
-        } else {
-          robotPose = robotPose1;
-        }
-
+        Pose3d robotPose = robotPose0;
         double distance = robotPose.getTranslation().getDistance(tagFieldPose.get().getTranslation());
 
         Logger.recordOutput("Vision/" + m_camera.getName() + "/singleTagDistance", distance);
