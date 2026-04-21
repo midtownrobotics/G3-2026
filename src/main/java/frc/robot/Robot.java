@@ -240,9 +240,9 @@ public class Robot extends LoggedRobot {
 
     generateAutoChooser();
 
-    m_hood.setDefaultCommand(m_robotCommands.alignHood());
+    m_hood.setDefaultCommand(m_hood.setAngleCommand(Degrees.zero()).withName("hoodDefaultStow"));
 
-    m_turret.setDefaultCommand(m_robotCommands.alignTurret());
+    m_turret.setDefaultCommand(m_robotCommands.turretTrackShootingParameters());
 
     m_drive.setDefaultCommand(m_robotCommands.driveCommand());
 
@@ -282,8 +282,10 @@ public class Robot extends LoggedRobot {
     SmartDashboard.putData("DriveSysid/Translation/DynamicForward", m_drive.sysIdDynamic(Direction.kForward));
     SmartDashboard.putData("DriveSysid/Translation/DynamicReverse", m_drive.sysIdDynamic(Direction.kReverse));
 
-    SmartDashboard.putData("DriveSysid/Rotation/QuasistaticForward", m_drive.sysIdQuasistaticRotation(Direction.kForward));
-    SmartDashboard.putData("DriveSysid/Rotation/QuasistaticReverse", m_drive.sysIdQuasistaticRotation(Direction.kReverse));
+    SmartDashboard.putData("DriveSysid/Rotation/QuasistaticForward",
+        m_drive.sysIdQuasistaticRotation(Direction.kForward));
+    SmartDashboard.putData("DriveSysid/Rotation/QuasistaticReverse",
+        m_drive.sysIdQuasistaticRotation(Direction.kReverse));
     SmartDashboard.putData("DriveSysid/Rotation/DynamicForward", m_drive.sysIdDynamicRotation(Direction.kForward));
     SmartDashboard.putData("DriveSysid/Rotation/DynamicReverse", m_drive.sysIdDynamicRotation(Direction.kReverse));
 
