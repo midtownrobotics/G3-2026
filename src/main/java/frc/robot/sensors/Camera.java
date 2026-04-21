@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.Meters;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
@@ -12,10 +13,12 @@ import org.photonvision.PhotonCamera;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
@@ -24,12 +27,15 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.robot.constants.FieldConstants;
 
 public class Camera {
+  private static final double kAmbiguityThreshold = 0.4;
+
   private PhotonCamera m_camera;
   protected Transform3d m_robotToCamera;
   private String m_name;
   private final Alert m_connectionAlert;
   private final double m_stdDevMultiplier;
   private final Supplier<Boolean> m_enabledSupplier;
+  private Supplier<Rotation2d> m_headingSupplier = () -> Rotation2d.kZero;
 
   private static final double kDefaultStdMultiplier = 0.1;
 
@@ -70,6 +76,10 @@ public class Camera {
 
   public PhotonCamera getCamera() {
     return m_camera;
+  }
+
+  public void setHeadingSupplier(Supplier<Rotation2d> headingSupplier) {
+    m_headingSupplier = headingSupplier;
   }
 
   public PhotonCameraSim getSimCamera() {
@@ -120,6 +130,75 @@ public class Camera {
                 m_name,
                 calculateStandardDevs(tagCount, avgDistance)));
 
+      } else if (result.hasTargets()) {
+        // Single-tag fallback: disambiguate two PnP solutions using estimated heading.
+        // Currently log-only — not added to observations.
+        PhotonTrackedTarget bestTarget = result.getBestTarget();
+        if (bestTarget == null || bestTarget.getFiducialId() < 0) {
+          continue;
+        }
+
+        int tagId = bestTarget.getFiducialId();
+        double ambiguity = bestTarget.getPoseAmbiguity();
+        double areaPercent = bestTarget.getArea();
+
+        Optional<Pose3d> tagFieldPose = FieldConstants.kTagLayout.getTagPose(tagId);
+        if (tagFieldPose.isEmpty()) {
+          continue;
+        }
+
+        Transform3d cameraToRobot = getRobotToCamera().inverse();
+        Pose3d robotPose0 = tagFieldPose.get()
+            .transformBy(bestTarget.getBestCameraToTarget().inverse())
+            .transformBy(cameraToRobot);
+        Pose3d robotPose1 = tagFieldPose.get()
+            .transformBy(bestTarget.getAlternateCameraToTarget().inverse())
+            .transformBy(cameraToRobot);
+
+        Logger.recordOutput("Vision/" + m_camera.getName() + "/isSingleTagResult", true);
+        Logger.recordOutput("Vision/" + m_camera.getName() + "/singleTagId", tagId);
+        Logger.recordOutput("Vision/" + m_camera.getName() + "/singleTagAmbiguity", ambiguity);
+        Logger.recordOutput("Vision/" + m_camera.getName() + "/singleTagAreaPercent", areaPercent);
+        Logger.recordOutput("Vision/" + m_camera.getName() + "/singleTagPose0", robotPose0);
+        Logger.recordOutput("Vision/" + m_camera.getName() + "/singleTagPose1", robotPose1);
+
+        if (ambiguity < 0 || ambiguity > kAmbiguityThreshold) {
+          Logger.recordOutput("Vision/" + m_camera.getName() + "/singleTagRejection", "ambiguity");
+          continue;
+        }
+
+        Rotation2d currentHeading = m_headingSupplier.get();
+        Rotation2d heading0 = robotPose0.toPose2d().getRotation();
+        Rotation2d heading1 = robotPose1.toPose2d().getRotation();
+        Pose3d robotPose;
+        if (Math.abs(currentHeading.minus(heading0).getRadians())
+            < Math.abs(currentHeading.minus(heading1).getRadians())) {
+          robotPose = robotPose0;
+        } else {
+          robotPose = robotPose1;
+        }
+
+        double distance = robotPose.getTranslation().getDistance(tagFieldPose.get().getTranslation());
+
+        Logger.recordOutput("Vision/" + m_camera.getName() + "/singleTagDistance", distance);
+        Logger.recordOutput("Vision/" + m_camera.getName() + "/singleTagPose", robotPose);
+
+        if (distance > 4.0) {
+          Logger.recordOutput("Vision/" + m_camera.getName() + "/singleTagRejection", "distance");
+          continue;
+        }
+
+        if (areaPercent < 0.6) {
+          Logger.recordOutput("Vision/" + m_camera.getName() + "/singleTagRejection", "area");
+          continue;
+        }
+
+        if (robotPose.getMeasureZ().abs(Feet) > 1.5) {
+          Logger.recordOutput("Vision/" + m_camera.getName() + "/singleTagRejection", "z-height");
+          continue;
+        }
+
+        Logger.recordOutput("Vision/" + m_camera.getName() + "/singleTagRejection", "none");
       }
     }
 

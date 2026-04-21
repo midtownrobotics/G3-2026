@@ -15,6 +15,7 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
 import edu.wpi.first.wpilibj.Timer;
@@ -58,12 +59,17 @@ public class Vision extends SubsystemBase {
   public Vision(
       Consumer<PoseObservation> addVisionMeasurement,
       Supplier<Pose2d> poseSupplier,
+      Supplier<Rotation2d> gyroHeadingSupplier,
       Consumer<Pose2d> resetPoseConsumer,
       Camera... cameras) {
     m_cameras = List.of(cameras);
     m_addVisionMeasurement = addVisionMeasurement;
     m_poseSupplier = poseSupplier;
     m_resetPoseConsumer = resetPoseConsumer;
+
+    for (var camera : m_cameras) {
+      camera.setHeadingSupplier(gyroHeadingSupplier);
+    }
 
     m_acceptedObservations = TimeInterpolatableBuffer.createBuffer(0.1);
 
