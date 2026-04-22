@@ -79,18 +79,16 @@ public class PoseEstimator {
 
   /** Adds a new odometry observation from the drive subsystem. */
   public void addOdometryObservation(OdometryObservation observation) {
-    // Scale down odometry when the robot is tilted (e.g. driving over a ramp).
-    // Wheel travel on an incline doesn't translate 1:1 to field-plane movement.
+    // Project odometry onto the field plane when the robot is tilted.
+    // cos(pitch) * cos(roll) gives the fraction of wheel travel in the horizontal plane.
     double tiltScale = 1.0;
     if (observation.pitch().isPresent() && observation.roll().isPresent()) {
-      double cosProduct = observation.pitch().get().getCos()
-          * observation.roll().get().getCos();
-      double tiltDegrees = Math.abs(Math.toDegrees(Math.acos(cosProduct)));
-      tiltScale = MathUtil.clamp(1.0 - MathUtil.inverseInterpolate(0, 25, tiltDegrees), 0.0, 1.0);
+      tiltScale = Math.abs(observation.pitch().get().getCos()
+          * observation.roll().get().getCos());
     }
 
     Twist2d twist = kinematics.toTwist2d(lastWheelPositions, observation.wheelPositions());
-    twist = new Twist2d(twist.dx * tiltScale, twist.dy * tiltScale, twist.dtheta * tiltScale);
+    twist = new Twist2d(twist.dx * tiltScale, twist.dy * tiltScale, twist.dtheta);
     lastWheelPositions = observation.wheelPositions();
     Pose2d lastOdometryPose = odometryPose;
     odometryPose = odometryPose.exp(twist);
