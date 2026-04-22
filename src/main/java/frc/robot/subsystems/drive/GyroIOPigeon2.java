@@ -36,9 +36,12 @@ public class GyroIOPigeon2 implements GyroIO {
   private final StatusSignal<LinearAcceleration> m_zAcceleration = m_pigeon.getAccelerationZ();
   private final StatusSignal<Voltage> m_pigeonSupplyVoltage = m_pigeon.getSupplyVoltage();
 
-  public GyroIOPigeon2() {
-    m_pigeon.getConfigurator().apply(new Pigeon2Configuration());
-    m_pigeon.getConfigurator().setYaw(0.0);
+    public GyroIOPigeon2() {
+        var config = new Pigeon2Configuration();
+        config.MountPose.MountPosePitch = 0.0;
+        config.MountPose.MountPoseRoll = 0.0;
+        m_pigeon.getConfigurator().apply(config);
+        m_pigeon.getConfigurator().setYaw(0.0);
 
     BaseStatusSignal.setUpdateFrequencyForAll(
         100,
