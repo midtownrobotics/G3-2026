@@ -218,9 +218,9 @@ public class Robot extends LoggedRobot {
 
         generateAutoChooser();
 
-        m_hood.setDefaultCommand(m_hood.setAngleCommand(Degrees.zero()));
+        m_hood.setDefaultCommand(m_hood.setAngleCommand(Degrees.zero()).withName("hoodDefaultStow"));
 
-        m_turret.setDefaultCommand(m_robotCommands.alignTurret());
+        m_turret.setDefaultCommand(m_robotCommands.turretTrackShootingParameters());
 
         m_drive.setDefaultCommand(m_robotCommands.driveCommand());
 
@@ -260,8 +260,10 @@ public class Robot extends LoggedRobot {
         SmartDashboard.putData("DriveSysid/Translation/DynamicForward", m_drive.sysIdDynamic(Direction.kForward));
         SmartDashboard.putData("DriveSysid/Translation/DynamicReverse", m_drive.sysIdDynamic(Direction.kReverse));
 
-        SmartDashboard.putData("DriveSysid/Rotation/QuasistaticForward", m_drive.sysIdQuasistaticRotation(Direction.kForward));
-        SmartDashboard.putData("DriveSysid/Rotation/QuasistaticReverse", m_drive.sysIdQuasistaticRotation(Direction.kReverse));
+        SmartDashboard.putData("DriveSysid/Rotation/QuasistaticForward",
+                m_drive.sysIdQuasistaticRotation(Direction.kForward));
+        SmartDashboard.putData("DriveSysid/Rotation/QuasistaticReverse",
+                m_drive.sysIdQuasistaticRotation(Direction.kReverse));
         SmartDashboard.putData("DriveSysid/Rotation/DynamicForward", m_drive.sysIdDynamicRotation(Direction.kForward));
         SmartDashboard.putData("DriveSysid/Rotation/DynamicReverse", m_drive.sysIdDynamicRotation(Direction.kReverse));
 
@@ -276,151 +278,8 @@ public class Robot extends LoggedRobot {
         m_autoChooser.addRoutine("Madtown Right", m_autoRoutines::MadtownRight);
         m_autoChooser.addRoutine("Hub Swipe Left", m_autoRoutines::HubSwipeLeft);
         m_autoChooser.addRoutine("Hub Swipe Right", m_autoRoutines::HubSwipeRight);
-
-        SmartDashboard.putData("Auto Chooser", m_autoChooser);
-        RobotModeTriggers.autonomous().whileTrue(m_autoChooser.selectedCommandScheduler());
-    }
-
-    public void configureBindings() {
-        m_controls.idle().onTrue(m_robotCommands.idle());
-
-        m_controls.intake().onTrue(m_robotCommands.fill());
-
-        m_controls.defense().onTrue(m_robotCommands.defense());
-
-        m_controls.shoot().onTrue(m_robotCommands.autoAimAndPrepareShootTeleop());
-        m_controls.shoot().onTrue(m_state.setShooterStateCommand(ShooterState.kRev))
-                .onFalse(m_state.setShooterStateCommand(ShooterState.kShoot));
-
-        m_controls.snowBlow().onTrue(m_robotCommands.snowBlow());
-        m_controls.snowBlow().onTrue(m_state.setShooterStateCommand(ShooterState.kRev))
-                .onFalse(m_state.setShooterStateCommand(ShooterState.kShoot));
-
-        m_controls.setpointShoot().onTrue(m_robotCommands.setPointShoot());
-        m_controls.setpointShoot().onTrue(m_state.setShooterStateCommand(ShooterState.kRev))
-                .onFalse(m_state.setShooterStateCommand(ShooterState.kShoot));
-
-        m_controls.feedFuel().onTrue(m_robotCommands.feedFuel()).onFalse(m_robotCommands.stopFeedingFuel());
-
-        m_controls.zeroHood().whileTrue(m_robotCommands.zeroTurretHood());
-
-        m_controls.zeroIntake().whileTrue(m_robotCommands.zeroIntake());
-
-        m_controls.toggleShootOnTheMove()
-                .onTrue(m_state.setShootOnTheMoveEnabledCommand(() -> !m_state.isShootOnTheMoveEnabled()));
-    }
-
-    public void configureTrimControlBindings(TrimControls controls) {
-        controls.increaseFlywheelVelocity().onTrue(m_robotCommands.increaseFlywheelVelocity());
-        controls.decreaseFlywheelVelocity().onTrue(m_robotCommands.decreaseFlywheelVelocity());
-
-        controls.increaseHoodAngle().onTrue(m_robotCommands.increaseHoodAngle());
-        controls.decreaseHoodAngle().onTrue(m_robotCommands.decreaseHoodAngle());
-
-        controls.increaseVelocityCompensation().onTrue(m_robotCommands.increaseVelocityCompensation());
-        controls.decreaseVelocityCompensation().onTrue(m_robotCommands.decreaseVelocityCompensation());
-        m_vision = new Vision(
-                (observation) -> m_drive.addVisionMeasurement(
-                        observation.pose().toPose2d(), observation.timestamp(), observation.standardDevs()),
-                m_drive::getPose,
-                m_drive::resetPose,
-                rearRight,
-                rearLeft,
-                rear,
-                frontLeft,
-                turretCamera);
-
-        m_controls = new XboxControls(0);
-
-        m_state = new RobotState(
-                m_drive,
-                m_intakePivot,
-                m_intakeRoller,
-                m_turret,
-                m_feeder,
-                m_vision,
-                m_indexer,
-                m_shooter,
-                m_hood);
-
-        turretCamera.addRobotToCameraSupplier(m_state::getRobotToTurretCamera);
-
-        m_robotCommands = new RobotCommands(
-                m_drive,
-                m_intakePivot,
-                m_intakeRoller,
-                m_turret,
-                m_feeder,
-                m_vision,
-                m_indexer,
-                m_shooter,
-                m_hood,
-                m_state,
-                m_controls);
-
-        m_viz = new RobotViz(m_state);
-
-        m_autoFactory = new AutoFactory(m_drive::getPose, m_drive::resetPose, m_drive::followPath, true, m_drive);
-
-        m_autoRoutines = new AutoRoutines(m_autoFactory, this, m_robotCommands);
-        m_autoChooser = new AutoChooser("Do Nothing");
-
-        generateAutoChooser();
-
-        m_hood.setDefaultCommand(m_hood.setAngleCommand(Degrees.zero()));
-
-        m_turret.setDefaultCommand(m_robotCommands.alignTurret());
-
-        m_drive.setDefaultCommand(m_robotCommands.driveCommand());
-
-        m_trimControls = new TrimXboxControls(1);
-
-        configureTrimControlBindings(m_trimControls);
-
-        m_state.isPreparedToShootTrigger()
-                .onTrue(m_robotCommands.feedFuel())
-                .onFalse(m_robotCommands.stopFeedingFuel());
-
-        m_watchdog = new Watchdawg(getClass());
-
-        configureBindings();
-
-        LoggedCommandScheduler.init(CommandScheduler.getInstance());
-
-        m_state.inAllianceZoneTrigger().and(RobotModeTriggers.disabled().negate())
-                .and(RobotModeTriggers.autonomous().negate())
-                .whileTrue(m_state.getShootingParameters()
-                        .setTargetCommand(FieldConstants::getHubPosition2d, ShootingParametersMode.kShoot)
-                        .withName("setTargetCommandHubPosition"))
-                .whileFalse(
-                        m_state.getShootingParameters().setTargetCommand(m_state::calculateFeedTarget, ShootingParametersMode.kPass)
-                                .withName("setTargetCommandFeed"));
-
-        m_vision.getHasAcceptedVisionUpdateTrigger().negate().debounce(3.0)
-                .onTrue(m_controls.rumbleCommand().withTimeout(Seconds.of(1)));
-
-        m_vision.getHasAcceptedVisionUpdateTrigger().debounce(6.0, DebounceType.kFalling)
-                .onTrue(m_controls.pulseRumbleCommand(3, 0.14));
-
-        RobotModeTriggers.teleop().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement());
-
-        SmartDashboard.putData("QuasistaticForward", m_drive.sysIdQuasistatic(Direction.kForward));
-        SmartDashboard.putData("QuasistaticReverse", m_drive.sysIdQuasistatic(Direction.kReverse));
-        SmartDashboard.putData("DynamicForward", m_drive.sysIdDynamic(Direction.kForward));
-        SmartDashboard.putData("DynamicReverse", m_drive.sysIdDynamic(Direction.kReverse));
-
-        SmartDashboard.putData("StartSignalLogger", Commands.runOnce(() -> SignalLogger.start()));
-        SmartDashboard.putData("StopSignalLogger", Commands.runOnce(() -> SignalLogger.stop()));
-
-    }
-
-    private void generateAutoChooser() {
-        m_autoChooser.addRoutine("Madtown Left", m_autoRoutines::MadtownLeft);
-        m_autoChooser.addRoutine("Madtown Right", m_autoRoutines::MadtownRight);
-        m_autoChooser.addRoutine("Hub Swipe Left", m_autoRoutines::HubSwipeLeft);
-        m_autoChooser.addRoutine("Hub Swipe Right", m_autoRoutines::HubSwipeRight);
-        m_autoChooser.addRoutine("Copy 1002 Left", m_autoRoutines::copy1002left);
-        m_autoChooser.addRoutine("Copy 1002 Right", m_autoRoutines::copy1002right);
+        m_autoChooser.addRoutine("1002 Left", m_autoRoutines::copy1002left);
+        m_autoChooser.addRoutine("1002 Right", m_autoRoutines::copy1002right);
 
         SmartDashboard.putData("Auto Chooser", m_autoChooser);
         RobotModeTriggers.autonomous().whileTrue(m_autoChooser.selectedCommandScheduler());
@@ -481,10 +340,9 @@ public class Robot extends LoggedRobot {
 
         m_state.periodic();
 
-        Logger.recordOutput("Pigeon2/accelerationX", m_drive.getPigeon2().getAccelerationX().getValue());
-        Logger.recordOutput("Pigeon2/accelerationY", m_drive.getPigeon2().getAccelerationY().getValue());
-        Logger.recordOutput("Pigeon2/accelerationZ", m_drive.getPigeon2().getAccelerationZ().getValue());
-
+        // Logger.recordOutput("Pigeon2/accelerationX", m_drive.getPigeon2().getAccelerationX().getValue());
+        // Logger.recordOutput("Pigeon2/accelerationY", m_drive.getPigeon2().getAccelerationY().getValue());
+        // Logger.recordOutput("Pigeon2/accelerationZ", m_drive.getPigeon2().getAccelerationZ().getValue());
         LoggedCommandScheduler.periodic();
     }
 
@@ -493,51 +351,16 @@ public class Robot extends LoggedRobot {
         if (m_autonomousCommand != null) {
             m_autonomousCommand.cancel();
         }
-
-        @Override
-        public void robotPeriodic
-            
-        () {
-
-        Logger.recordOutput("Vision/isSOTMEnabled", m_state.isShootOnTheMoveEnabled());
-
-            m_watchdog.start();
-            CommandScheduler.getInstance().run();
-            m_watchdog.end("commandScheduler");
-
-            m_watchdog.start();
-            m_viz.periodic();
-            m_watchdog.end("robotVizPeriodic");
-
-            m_state.periodic();
-
-            // Logger.recordOutput("Pigeon2/accelerationX", m_drive.getPigeon2().getAccelerationX().getValue());
-            // Logger.recordOutput("Pigeon2/accelerationY", m_drive.getPigeon2().getAccelerationY().getValue());
-            // Logger.recordOutput("Pigeon2/accelerationZ", m_drive.getPigeon2().getAccelerationZ().getValue());
-            LoggedCommandScheduler.periodic();
-        }
-
-        @Override
-        public void teleopInit
-            
-        () {
-        if (m_autonomousCommand != null) {
-                m_autonomousCommand.cancel();
-            }
-        }
-
-        @Override
-        public void testInit
-            
-        () {
-        CommandScheduler.getInstance().cancelAll();
-        }
-
-        @Override
-        public void driverStationConnected
-            
-        () {
-        CommandScheduler.getInstance()
-                    .schedule(m_state.getShootingParameters().setTargetCommand(FieldConstants.getHubPosition2d()));
-        }
     }
+
+    @Override
+    public void testInit() {
+        CommandScheduler.getInstance().cancelAll();
+    }
+
+    @Override
+    public void driverStationConnected() {
+        CommandScheduler.getInstance()
+                .schedule(m_state.getShootingParameters().setTargetCommand(FieldConstants.getHubPosition2d()));
+    }
+}
