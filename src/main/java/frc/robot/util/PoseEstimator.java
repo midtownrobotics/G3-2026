@@ -79,16 +79,7 @@ public class PoseEstimator {
 
   /** Adds a new odometry observation from the drive subsystem. */
   public void addOdometryObservation(OdometryObservation observation) {
-    // Project odometry onto the field plane when the robot is tilted.
-    // cos(pitch) * cos(roll) gives the fraction of wheel travel in the horizontal plane.
-    double tiltScale = 1.0;
-    if (observation.pitch().isPresent() && observation.roll().isPresent()) {
-      tiltScale = Math.abs(observation.pitch().get().getCos()
-          * observation.roll().get().getCos());
-    }
-
     Twist2d twist = kinematics.toTwist2d(lastWheelPositions, observation.wheelPositions());
-    twist = new Twist2d(twist.dx * tiltScale, twist.dy * tiltScale, twist.dtheta);
     lastWheelPositions = observation.wheelPositions();
     Pose2d lastOdometryPose = odometryPose;
     odometryPose = odometryPose.exp(twist);
