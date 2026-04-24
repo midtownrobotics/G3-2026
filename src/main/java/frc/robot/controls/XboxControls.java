@@ -5,6 +5,7 @@ import java.util.List;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -141,13 +142,19 @@ public class XboxControls implements Controls {
   }
 
   @Override
-  public Command comboCommand(Command action) {
+  public Command comboCommand(Trigger heldTrigger, Command action) {
+    Timer confirmTimer = new Timer();
     return Commands.sequence(
-        rumbleCommand().withTimeout(1.5),
-        Commands.runOnce(() -> m_controlsLocked = true),
-        action,
-        Commands.waitSeconds(1.5),
-        Commands.runOnce(() -> m_controlsLocked = false));
+        Commands.runOnce(confirmTimer::restart),
+        rumbleCommand().until(heldTrigger.negate()).withTimeout(1.5),
+        Commands.either(
+            Commands.sequence(
+                Commands.runOnce(() -> m_controlsLocked = true),
+                action,
+                Commands.waitSeconds(1.5),
+                Commands.runOnce(() -> m_controlsLocked = false)),
+            Commands.none(),
+            () -> confirmTimer.hasElapsed(1.5)));
   }
 
   public void setRumble(boolean enabled) {

@@ -322,23 +322,23 @@ public class Robot extends LoggedRobot {
     m_controls.decreaseTurretAngle().onTrue(m_robotCommands.decreaseTurretAngle());
 
     m_controls.defense().onTrue(
-        m_controls.comboCommand(m_robotCommands.defense()));
+        m_controls.comboCommand(m_controls.defense(), m_robotCommands.defense()));
 
     m_controls.zeroHood().onTrue(
-        m_controls.comboCommand(m_robotCommands.zeroTurretHood()));
+        m_controls.comboCommand(m_controls.zeroHood(), m_robotCommands.zeroTurretHood()));
 
     m_controls.zeroIntake().onTrue(
-        m_controls.comboCommand(m_robotCommands.zeroIntake()));
+        m_controls.comboCommand(m_controls.zeroIntake(), m_robotCommands.zeroIntake()));
 
     m_controls.disableShooting().onTrue(
-        m_controls.comboCommand(
+        m_controls.comboCommand(m_controls.disableShooting(),
             Commands.parallel(
                 m_state.setShootOnTheMoveEnabledCommand(() -> false),
                 m_robotCommands.shootShooterCommand()))
             .andThen(m_state.setShootOnTheMoveEnabledCommand(() -> true)));
 
     m_controls.fixedShooter().onTrue(
-        m_controls.comboCommand(
+        m_controls.comboCommand(m_controls.fixedShooter(),
             Commands.runOnce(() -> m_state.setFixedTurretMode(true)))
             .andThen(Commands.runOnce(() -> m_state.setFixedTurretMode(false))));
 

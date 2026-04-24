@@ -52,7 +52,7 @@ public interface Controls {
 
   public Trigger controlsLocked();
 
-  public Command comboCommand(Command action);
+  public Command comboCommand(Trigger heldTrigger, Command action);
 
   public Trigger toggleShootOnTheMove();
 }
