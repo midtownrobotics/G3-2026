@@ -3,11 +3,13 @@ package frc.robot.subsystems.shooter;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Volts;
 
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.math.controller.BangBangController;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
@@ -18,8 +20,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.LoggedTunableNumber;
 import frc.lib.Watchdawg;
 
-public class Shooter extends SubsystemBase {
-  private final ShooterIO m_io;
+public class Flywheel extends SubsystemBase {
+  private final FlywheelIO m_io;
   private final ShooterIOInputsAutoLogged m_inputs = new ShooterIOInputsAutoLogged();
   private final Alert m_talon1ConnectionAlert = new Alert("Shooter TalonFX motor 1 is not connected",
       AlertType.kWarning);
@@ -34,7 +36,9 @@ public class Shooter extends SubsystemBase {
   private final LoggedTunableNumber m_shooterSetpointSpeed = new LoggedTunableNumber(
       "Shooter/SetpointRPM", 0);
 
-  public Shooter(ShooterIO io) {
+  private final BangBangController m_bangBangController = new BangBangController(RPM.of(25).in(RPM));
+
+  public Flywheel(FlywheelIO io) {
     m_io = io;
     m_watchdog = new Watchdawg(getClass());
     SmartDashboard.putData("TuningModes/Shooter", tuningMode());
@@ -85,6 +89,13 @@ public class Shooter extends SubsystemBase {
 
   public Command setSpeedCommand(Supplier<AngularVelocity> speedSupplier) {
     return run(() -> m_io.setSpeed(speedSupplier.get()));
+  }
+
+  public Command bangBangCommand(Supplier<AngularVelocity> targetSpeedSupplier) {
+    return run(() -> {
+      double voltage = m_bangBangController.calculate(targetSpeedSupplier.get().in(RPM), getSpeed().in(RPM));
+      m_io.setVoltage(Volts.of(voltage));
+    });
   }
 
   public Command slowIdle() {

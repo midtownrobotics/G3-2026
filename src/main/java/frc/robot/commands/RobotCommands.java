@@ -21,8 +21,8 @@ import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
+import frc.robot.subsystems.shooter.Flywheel;
 import frc.robot.subsystems.shooter.Hood;
-import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.Turret;
 
 public class RobotCommands {
@@ -31,7 +31,7 @@ public class RobotCommands {
   private final Turret m_turret;
   private final Feeder m_feeder;
   private final Indexer m_indexer;
-  private final Shooter m_shooter;
+  private final Flywheel m_shooter;
   private final Hood m_hood;
   private final RobotState m_state;
   private final DriveCommands m_driveCommands;
@@ -44,7 +44,7 @@ public class RobotCommands {
       Feeder feeder,
       Vision vision,
       Indexer indexer,
-      Shooter shooter,
+      Flywheel shooter,
       Hood hood,
       RobotState state,
       Controls controls) {
@@ -91,7 +91,7 @@ public class RobotCommands {
   public Command hoodAndFlywheelTrackShootingParamters() {
     return Commands.parallel(
         m_hood.setAngleCommand(() -> m_state.getShootingParameters().getParameters().hoodAngle()),
-        m_shooter.setSpeedCommand(() -> m_state.getShootingParameters().getParameters().flywheelVelocity()))
+        m_shooter.bangBangCommand(() -> m_state.getShootingParameters().getParameters().flywheelVelocity()))
         .withName("hoodAndFlywheelTrackShootingParamters");
   }
 

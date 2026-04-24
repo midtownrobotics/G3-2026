@@ -3,7 +3,6 @@ package frc.robot.subsystems.shooter;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
-import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -22,7 +21,7 @@ import edu.wpi.first.units.measure.Voltage;
 import frc.lib.PhoenixUtil;
 import frc.robot.constants.Ports;
 
-public class ShooterIOTalonFX implements ShooterIO {
+public class FlywheelIOTalonFX implements FlywheelIO {
   private static final double kGearRatio = 1.0;
 
   private final TalonFX m_motor1;
@@ -41,7 +40,7 @@ public class ShooterIOTalonFX implements ShooterIO {
 
   private AngularVelocity m_setpoint = RPM.zero();
 
-  public ShooterIOTalonFX() {
+  public FlywheelIOTalonFX() {
     m_motor1 = new TalonFX(Ports.kTurretShooter1.canId(), Ports.kTurretShooter1.canbus());
     m_motor2 = new TalonFX(Ports.kTurretShooter2.canId(), Ports.kTurretShooter2.canbus());
 
@@ -58,12 +57,9 @@ public class ShooterIOTalonFX implements ShooterIO {
         .withNeutralMode(NeutralModeValue.Coast);
     config.Feedback
         .withSensorToMechanismRatio(kGearRatio);
-    config.MotionMagic
-        .withMotionMagicCruiseVelocity(RPM.of(9999))
-        .withMotionMagicAcceleration(RPM.of(1600).per(Second));
     config.CurrentLimits
         .withStatorCurrentLimitEnable(true)
-        .withStatorCurrentLimit(Amps.of(90));
+        .withStatorCurrentLimit(Amps.of(120));
     PhoenixUtil.tryUntilOk(5, () -> m_motor1.getConfigurator().apply(config));
 
     // Motor 2 follows motor 1 inverted
@@ -90,7 +86,7 @@ public class ShooterIOTalonFX implements ShooterIO {
   }
 
   @Override
-  public void updateInputs(ShooterIOInputs inputs) {
+  public void updateInputs(FlywheelIOInputs inputs) {
     BaseStatusSignal.refreshAll(
         m_velocity1Signal,
         m_velocity2Signal,

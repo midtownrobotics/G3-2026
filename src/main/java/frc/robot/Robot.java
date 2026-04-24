@@ -59,12 +59,12 @@ import frc.robot.subsystems.intake.IntakePivotIOTalonFX;
 import frc.robot.subsystems.intake.IntakeRoller;
 import frc.robot.subsystems.intake.IntakeRollerIOSim;
 import frc.robot.subsystems.intake.IntakeRollerIOTalonFX;
+import frc.robot.subsystems.shooter.Flywheel;
+import frc.robot.subsystems.shooter.FlywheelIOSim;
+import frc.robot.subsystems.shooter.FlywheelIOTalonFX;
 import frc.robot.subsystems.shooter.Hood;
 import frc.robot.subsystems.shooter.HoodIOSim;
 import frc.robot.subsystems.shooter.HoodIOTalonFX;
-import frc.robot.subsystems.shooter.Shooter;
-import frc.robot.subsystems.shooter.ShooterIOSim;
-import frc.robot.subsystems.shooter.ShooterIOTalonFX;
 import frc.robot.subsystems.shooter.Turret;
 import frc.robot.subsystems.shooter.TurretIOSim;
 import frc.robot.subsystems.shooter.TurretIOTalonFX;
@@ -81,7 +81,7 @@ public class Robot extends LoggedRobot {
   private final IntakeRoller m_intakeRoller;
 
   private final Turret m_turret;
-  private final Shooter m_shooter;
+  private final Flywheel m_shooter;
   private final Hood m_hood;
 
   private final AutoFactory m_autoFactory;
@@ -151,7 +151,7 @@ public class Robot extends LoggedRobot {
       m_feeder = new Feeder(new FeederIOTalonFX());
       m_indexer = new Indexer(new IndexerIOTalonFX());
       m_hood = new Hood(new HoodIOTalonFX());
-      m_shooter = new Shooter(new ShooterIOTalonFX());
+      m_shooter = new Flywheel(new FlywheelIOTalonFX());
       m_turret = new Turret(new TurretIOTalonFX());
     } else {
       m_drive = new Drive(
@@ -166,7 +166,7 @@ public class Robot extends LoggedRobot {
       m_feeder = new Feeder(new FeederIOSim());
       m_indexer = new Indexer(new IndexerIOSim());
       m_hood = new Hood(new HoodIOSim());
-      m_shooter = new Shooter(new ShooterIOSim());
+      m_shooter = new Flywheel(new FlywheelIOSim());
       m_turret = new Turret(new TurretIOSim());
     }
 
