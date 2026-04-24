@@ -124,7 +124,15 @@ public class RobotCommands {
   public Command reverseIntake() {
     return Commands.parallel(
         m_intakePivot.intake(),
-        m_intakeRoller.reverseIntake()).withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("runIntake");
+        m_intakeRoller.reverseIntake()).withInterruptBehavior(InterruptionBehavior.kCancelSelf)
+        .withName("reverseIntake");
+  }
+
+  public Command intakeDownNoRollers() {
+    return Commands.parallel(
+        m_intakePivot.intake(),
+        m_intakeRoller.stop())
+        .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("intakeDownNoRollers");
   }
 
   public Command stowIntake() {
@@ -254,6 +262,14 @@ public class RobotCommands {
 
   public Command decreaseVelocityCompensation() {
     return Commands.runOnce(m_state.getShootingParameters()::decreaseVelocityCompensation);
+  }
+
+  public Command increaseTurretAngle() {
+    return Commands.runOnce(m_state.getShootingParameters()::increaseTurretAngle);
+  }
+
+  public Command decreaseTurretAngle() {
+    return Commands.runOnce(m_state.getShootingParameters()::decreaseTurretAngle);
   }
 
   public Command driveStrightRobotRelative() {

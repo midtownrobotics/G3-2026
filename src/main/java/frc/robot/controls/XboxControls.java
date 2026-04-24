@@ -34,27 +34,49 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger idle() {
-    return m_controller.leftBumper();
+    return m_controller.leftBumper().and(defense().negate()).and(fixedShooter().negate()).and(zeroHood().negate());
   }
 
   @Override
   public Trigger intake() {
-    return m_controller.leftTrigger();
+    return m_controller.leftTrigger().and(defense().negate()).and(fixedShooter().negate()).and(zeroIntake().negate());
   }
 
   @Override
   public Trigger shoot() {
-    return m_controller.rightBumper();
+    return m_controller.rightBumper().and(disableShooting().negate()).and(fixedShooter().negate())
+        .and(zeroHood().negate());
   }
 
   @Override
   public Trigger snowBlow() {
-    return m_controller.rightTrigger();
+    return m_controller.rightTrigger().and(disableShooting().negate()).and(fixedShooter().negate())
+        .and(zeroIntake().negate());
   }
 
   @Override
   public Trigger unjam() {
     return m_controller.y();
+  }
+
+  @Override
+  public Trigger feedFuel() {
+    return m_controller.b();
+  }
+
+  @Override
+  public Trigger setpointShoot() {
+    return m_controller.a();
+  }
+
+  @Override
+  public Trigger setpointFeed() {
+    return m_controller.x();
+  }
+
+  @Override
+  public Trigger defense() {
+    return m_controller.leftTrigger().and(m_controller.leftBumper());
   }
 
   @Override
@@ -68,39 +90,41 @@ public class XboxControls implements Controls {
   }
 
   @Override
-  public Trigger setpointShoot() {
-    return m_controller.a();
+  public Trigger fixedShooter() {
+    return m_controller.leftTrigger()
+        .and(m_controller.leftBumper())
+        .and(m_controller.rightTrigger())
+        .and(m_controller.rightBumper());
   }
 
   @Override
-  public Trigger fullFieldShoot() {
-    return m_controller.x();
+  public Trigger disableShooting() {
+    return m_controller.rightTrigger().and(m_controller.rightBumper());
   }
 
   @Override
-  public Trigger feedFuel() {
-    return m_controller.b();
+  public Trigger increaseHoodAngle() {
+    return m_controller.povUp();
   }
 
   @Override
-  public Trigger defense() {
-    return m_controller.leftTrigger().and(m_controller.leftBumper());
+  public Trigger decreaseHoodAngle() {
+    return m_controller.povDown();
+  }
+
+  @Override
+  public Trigger increaseTurretAngle() {
+    return m_controller.povRight();
+  }
+
+  @Override
+  public Trigger decreaseTurretAngle() {
+    return m_controller.povLeft();
   }
 
   @Override
   public Trigger toggleShootOnTheMove() {
     return m_controller.start();
-  }
-
-  @Override
-  public Trigger fixedShooter() {
-    return m_controller.rightBumper()
-        .and(m_controller.rightTrigger().and(m_controller.leftTrigger()).and(m_controller.leftBumper()));
-  }
-
-  @Override
-  public Trigger disableShooting() {
-    return m_controller.rightBumper().and(m_controller.rightTrigger());
   }
 
   public void setRumble(boolean enabled) {
