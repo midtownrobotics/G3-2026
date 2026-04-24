@@ -2,7 +2,6 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Seconds;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -16,7 +15,7 @@ import com.ctre.phoenix6.SignalLogger;
 
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
-import edu.wpi.first.math.filter.Debouncer.DebounceType;
+
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -267,11 +266,6 @@ public class Robot extends LoggedRobot {
             m_state.getShootingParameters().setTargetCommand(m_state::calculateFeedTarget, ShootingParametersMode.kPass)
                 .withName("setTargetCommandFeed"));
 
-    m_vision.getHasAcceptedVisionUpdateTrigger().negate().debounce(3.0)
-        .onTrue(m_controls.rumbleCommand().withTimeout(Seconds.of(1)));
-
-    m_vision.getHasAcceptedVisionUpdateTrigger().debounce(6.0, DebounceType.kFalling)
-        .onTrue(m_controls.pulseRumbleCommand(3, 0.14));
 
     RobotModeTriggers.teleop().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement());
 
@@ -327,21 +321,26 @@ public class Robot extends LoggedRobot {
     m_controls.increaseTurretAngle().onTrue(m_robotCommands.increaseTurretAngle());
     m_controls.decreaseTurretAngle().onTrue(m_robotCommands.decreaseTurretAngle());
 
-    m_controls.defense().onTrue(m_robotCommands.defense());
+    m_controls.defense().onTrue(
+        m_controls.comboCommand(m_robotCommands.defense()));
 
-    m_controls.zeroHood().whileTrue(m_robotCommands.zeroTurretHood());
+    m_controls.zeroHood().onTrue(
+        m_controls.comboCommand(m_robotCommands.zeroTurretHood()));
 
-    m_controls.zeroIntake().whileTrue(m_robotCommands.zeroIntake());
+    m_controls.zeroIntake().onTrue(
+        m_controls.comboCommand(m_robotCommands.zeroIntake()));
 
-    m_controls.disableShooting().whileTrue(
-        Commands.parallel(
-            m_state.setShootOnTheMoveEnabledCommand(() -> false),
-            m_robotCommands.shootShooterCommand()))
-        .onFalse(m_state.setShootOnTheMoveEnabledCommand(() -> true));
+    m_controls.disableShooting().onTrue(
+        m_controls.comboCommand(
+            Commands.parallel(
+                m_state.setShootOnTheMoveEnabledCommand(() -> false),
+                m_robotCommands.shootShooterCommand()))
+            .andThen(m_state.setShootOnTheMoveEnabledCommand(() -> true)));
 
-    m_controls.fixedShooter().debounce(0.25)
-        .whileTrue(Commands.runOnce(() -> m_state.setFixedTurretMode(true)))
-        .onFalse(Commands.runOnce(() -> m_state.setFixedTurretMode(false)));
+    m_controls.fixedShooter().onTrue(
+        m_controls.comboCommand(
+            Commands.runOnce(() -> m_state.setFixedTurretMode(true)))
+            .andThen(Commands.runOnce(() -> m_state.setFixedTurretMode(false))));
 
     m_controls.toggleShootOnTheMove()
         .onTrue(m_state.setShootOnTheMoveEnabledCommand(() -> !m_state.isShootOnTheMoveEnabled()));

@@ -50,5 +50,9 @@ public interface Controls {
 
   public Command pulseRumbleCommand(int pulses, double pulseDuration);
 
+  public Trigger controlsLocked();
+
+  public Command comboCommand(Command action);
+
   public Trigger toggleShootOnTheMove();
 }
