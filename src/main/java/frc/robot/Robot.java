@@ -9,6 +9,7 @@ import java.net.UnknownHostException;
 
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
@@ -97,6 +98,8 @@ public class Robot extends LoggedRobot {
 
   private final RobotCommands m_robotCommands;
 
+  private final LoggedDashboardChooser<Integer> m_cameraPipelineChooser;
+
   public Robot() {
     DriverStation.silenceJoystickConnectionWarning(Robot.isSimulation());
 
@@ -169,38 +172,32 @@ public class Robot extends LoggedRobot {
 
     DynamicCamera turretCamera = new DynamicCamera("Turret", 0.4, () -> true);
 
-    Camera rear = new Camera(
+    Camera rearCamera = new Camera(
         "Rear",
         new Transform3d(
-            new Translation3d(Inches.of(-11.018), Inches.of(7.388), Inches.of(14.444)),
-            new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(180))));
-    Camera rearRight = new Camera(
-        "Rear Right",
+            new Translation3d(Inches.of(-10.548), Inches.of(-12.991), Inches.of(17.749)),
+            new Rotation3d(Degrees.zero(), Degrees.of(-28.065), Degrees.of(160.21))));
+    Camera rightCamera = new Camera(
+        "Right",
         new Transform3d(
-            new Translation3d(Inches.of(-8.758), Inches.of(-14.541), Inches.of(8.022)),
-            new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(-33.26 - 90))),
+            new Translation3d(Inches.of(-9.809), Inches.of(-13.627), Inches.of(20.494)),
+            new Rotation3d(Degrees.zero(), Degrees.of(-22.657), Degrees.of(-90 + 20.946))),
         () -> (DriverStation.isAutonomous() || !turretCamera.isConnected()));
-    Camera rearLeft = new Camera(
-        "Rear Left",
+    Camera leftCamera = new Camera(
+        "Left",
         new Transform3d(
-            new Translation3d(Inches.of(-7.692), Inches.of(14.396), Inches.of(14.217)),
-            new Rotation3d(Degrees.zero(), Degrees.of(-10), Degrees.of(31.475 + 90))),
+            new Translation3d(Inches.of(1.054), Inches.of(14.619), Inches.of(9.870)),
+            new Rotation3d(Degrees.zero(), Degrees.of(-13), Degrees.of(70))),
         () -> (DriverStation.isAutonomous() || !turretCamera.isConnected()));
-    Camera frontLeft = new Camera(
-        "Front Left",
-        new Transform3d(
-            new Translation3d(Inches.of(-7.076), Inches.of(14.525), Inches.of(10.65)),
-            new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(90 - 37.698))));
 
     m_vision = new Vision(
         (observation) -> m_drive.addVisionMeasurement(
             observation.pose(), observation.timestamp(), observation.standardDevs()),
         m_drive::getPose,
         m_drive::resetPose,
-        rearRight,
-        rearLeft,
-        rear,
-        frontLeft,
+        rearCamera,
+        leftCamera,
+        rightCamera,
         turretCamera);
 
     m_controls = new XboxControls(0);
@@ -232,6 +229,18 @@ public class Robot extends LoggedRobot {
         m_controls);
 
     m_viz = new RobotViz(m_state);
+
+    m_cameraPipelineChooser = new LoggedDashboardChooser<Integer>("Vision Pipeline");
+    m_cameraPipelineChooser.addDefaultOption("Main Field", 0);
+    m_cameraPipelineChooser.addOption("Practice Field", 2);
+    m_cameraPipelineChooser.addOption("Johnson", 1);
+
+    m_cameraPipelineChooser.onChange(x -> {
+      rearCamera.getCamera().setPipelineIndex(x);
+      leftCamera.getCamera().setPipelineIndex(x);
+      rightCamera.getCamera().setPipelineIndex(x);
+      turretCamera.getCamera().setPipelineIndex(x);
+    });
 
     m_autoFactory = new AutoFactory(m_drive::getPose, m_drive::resetPose, m_drive::followPath, true, m_drive);
 
