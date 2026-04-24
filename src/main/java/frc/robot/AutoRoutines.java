@@ -1,15 +1,19 @@
 package frc.robot;
 
+import java.util.Set;
+
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.lib.LoggedTunableNumber;
 import frc.robot.commands.RobotCommands;
 
 public class AutoRoutines {
 
     private final AutoFactory m_autoFactory;
     private final RobotCommands m_robotCommands;
+		private final LoggedTunableNumber m_hubSwipeDelaySeconds = new LoggedTunableNumber("HubSwipeDelaySeconds", 0.0);
 
     public AutoRoutines(AutoFactory autoFactory, Robot robot, RobotCommands robotCommands) {
         m_autoFactory = autoFactory;
@@ -91,6 +95,7 @@ public class AutoRoutines {
 
         routine.active().onTrue(
                 Commands.sequence(
+												Commands.defer(() ->  Commands.waitSeconds(m_hubSwipeDelaySeconds.get()), Set.of()),
                         HubSwipe.resetOdometry(),
                         HubSwipe.cmd()));
         return routine;
@@ -107,6 +112,7 @@ public class AutoRoutines {
 
         routine.active().onTrue(
                 Commands.sequence(
+												Commands.defer(() ->  Commands.waitSeconds(m_hubSwipeDelaySeconds.get()), Set.of()),
                         HubSwipe.resetOdometry(),
                         HubSwipe.cmd()));
         return routine;
@@ -114,7 +120,7 @@ public class AutoRoutines {
     }
 
     public AutoRoutine copy1002right() {
-        AutoRoutine routine = m_autoFactory.newRoutine("copy1002left");
+        AutoRoutine routine = m_autoFactory.newRoutine("1002right");
         AutoTrajectory copy1002left = routine.trajectory("copy1002");
         AutoTrajectory copy1002left2 = routine.trajectory("copy1002");
         AutoTrajectory trenchLineUp1002 = routine.trajectory("trenchLineUp1002");
@@ -141,7 +147,7 @@ public class AutoRoutines {
     }
 
     public AutoRoutine copy1002left() {
-        AutoRoutine routine = m_autoFactory.newRoutine("copy1002left");
+        AutoRoutine routine = m_autoFactory.newRoutine("1002left");
         AutoTrajectory copy1002left = routine.trajectory("copy1002").mirrorY();
         AutoTrajectory copy1002left2 = routine.trajectory("copy1002").mirrorY();
         AutoTrajectory trenchLineUp1002 = routine.trajectory("trenchLineUp1002").mirrorY();
