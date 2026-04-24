@@ -55,4 +55,6 @@ public interface Controls {
   public Command comboCommand(Trigger heldTrigger, Command action);
 
   public Trigger toggleShootOnTheMove();
+
+  public void perodic();
 }

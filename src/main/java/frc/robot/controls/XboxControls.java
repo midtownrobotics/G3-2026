@@ -3,6 +3,8 @@ package frc.robot.controls;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.Timer;
@@ -150,11 +152,11 @@ public class XboxControls implements Controls {
         Commands.either(
             Commands.sequence(
                 Commands.runOnce(() -> m_controlsLocked = true),
-                action,
-                Commands.waitSeconds(1.5),
-                Commands.runOnce(() -> m_controlsLocked = false)),
+                Commands.parallel(action,
+                    Commands.waitSeconds(1.5).andThen(Commands.runOnce(() -> m_controlsLocked = false)))),
             Commands.none(),
-            () -> confirmTimer.hasElapsed(1.5)));
+            () -> confirmTimer.hasElapsed(1.5)))
+        .finallyDo(() -> m_controlsLocked = false);
   }
 
   public void setRumble(boolean enabled) {
@@ -177,5 +179,10 @@ public class XboxControls implements Controls {
     }
 
     return Commands.sequence(commands.toArray(Command[]::new));
+  }
+
+  @Override
+  public void perodic() {
+    Logger.recordOutput("Controls/controlsLocked", m_controlsLocked);
   }
 }
