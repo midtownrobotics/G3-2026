@@ -22,7 +22,7 @@ import frc.lib.Watchdawg;
 
 public class Flywheel extends SubsystemBase {
   private final FlywheelIO m_io;
-  private final ShooterIOInputsAutoLogged m_inputs = new ShooterIOInputsAutoLogged();
+  private final FlywheelIOInputsAutoLogged m_inputs = new FlywheelIOInputsAutoLogged();
   private final Alert m_talon1ConnectionAlert = new Alert("Shooter TalonFX motor 1 is not connected",
       AlertType.kWarning);
   private final Alert m_talon2ConnectionAlert = new Alert("Shooter TalonFX motor 2 is not connected",
