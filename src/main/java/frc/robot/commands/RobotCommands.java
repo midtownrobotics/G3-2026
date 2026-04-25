@@ -126,7 +126,7 @@ public class RobotCommands {
 
 	public Command pulseIndexer() {
 		return Commands.repeatingSequence(m_indexer.runForward().withTimeout(2.5),
-		m_indexer.runReverse().withTimeout(0.5));
+		m_indexer.runReverse().withTimeout(0.25));
 	}
 
   public Command runIntake() {
@@ -177,12 +177,12 @@ public class RobotCommands {
   }
 
   public Command prepareShoot() {
-    return Commands.parallel(hoodAndFlywheelTrackShootingParamters(), shakeIntake(), pulseIndexer())
+    return Commands.parallel(hoodAndFlywheelTrackShootingParamters(), shakeIntake())
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("prepareShoot");
   }
 
   public Command feedFuel() {
-    return Commands.parallel(m_feeder.runForward(), m_indexer.runForward())
+    return Commands.parallel(m_feeder.runForward(), m_indexer.runForward(), pulseIndexer())
         .withName("feedFuel");
   }
 
