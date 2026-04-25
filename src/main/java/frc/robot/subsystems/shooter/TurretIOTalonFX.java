@@ -35,8 +35,8 @@ public class TurretIOTalonFX implements TurretIO {
   private static final double kRotorToSensorRatio = 60.0 / 12;
   private static final double kSensorToMechanismRatio = 82.0 / 10;
 
-  private static final Angle kLowSoftLimit = Degrees.of(-45);
-  private static final Angle kHighSoftLimit = Degrees.of(330);
+  private static final Angle kLowSoftLimit = Degrees.of(-90);
+  private static final Angle kHighSoftLimit = Degrees.of(270);
 
   private final TalonFX m_motor;
   private final CANcoder m_encoder1;
@@ -180,8 +180,8 @@ public class TurretIOTalonFX implements TurretIO {
 
   @Override
   public void setPosition(Angle angle) {
-    m_setpoint = angle;
-    m_motor.setControl(m_positionRequest.withPosition(angle));
+    m_setpoint = mapAngleToLimits(angle);
+    m_motor.setControl(m_positionRequest.withPosition(m_setpoint));
   }
 
   @Override
@@ -197,6 +197,18 @@ public class TurretIOTalonFX implements TurretIO {
   @Override
   public void setEncoderPosition(Angle angle) {
     m_motor.setPosition(angle);
+  }
+
+  /**
+   * Maps an angle from any range to the range defined by the turret's soft limits.
+   * @param angle
+   * @return
+   */
+  private Angle mapAngleToLimits(Angle angle) {
+    // Shift by +90 so that soft-limit low (-90) maps to 0, wrap to [0,360), then shift back.
+    double mappedDegrees = (angle.in(Degrees) - kLowSoftLimit.in(Degrees) + 360) % 360
+        + kLowSoftLimit.in(Degrees);
+    return Degrees.of(mappedDegrees);
   }
 
   @Override

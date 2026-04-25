@@ -11,15 +11,16 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 
-public interface ShooterIO {
+public interface FlywheelIO {
   @AutoLog
-  public static class ShooterIOInputs {
+  public static class FlywheelIOInputs {
     public AngularVelocity velocity = RPM.zero();
     public Voltage appliedVoltage = Volts.zero();
     public Current statorCurrent1 = Amps.zero();
     public Current statorCurrent2 = Amps.zero();
     public Current supplyCurrent1 = Amps.zero();
     public Current supplyCurrent2 = Amps.zero();
+    public Voltage feedForwardVoltage = Volts.zero();
     public AngularVelocity velocity1 = RotationsPerSecond.zero();
     public AngularVelocity velocity2 = RotationsPerSecond.zero();
     public AngularVelocity setpoint = RPM.zero();
@@ -27,13 +28,19 @@ public interface ShooterIO {
     public boolean motor2Connected = false;
   }
 
-  default void updateInputs(ShooterIOInputs inputs) {
+  default void updateInputs(FlywheelIOInputs inputs) {
   }
 
   default void setSpeed(AngularVelocity speed) {
   }
 
+  default void setSpeed(AngularVelocity speed, Voltage feedForward) {
+  }
+
   default void setVoltage(Voltage voltage) {
+  }
+
+  default void bangBang(Voltage voltage, AngularVelocity targetSpeed) {
   }
 
   default void stop() {

@@ -3,7 +3,6 @@ package frc.robot.subsystems.shooter;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
-import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -22,7 +21,7 @@ import edu.wpi.first.units.measure.Voltage;
 import frc.lib.PhoenixUtil;
 import frc.robot.constants.Ports;
 
-public class ShooterIOTalonFX implements ShooterIO {
+public class FlywheelIOTalonFX implements FlywheelIO {
   private static final double kGearRatio = 1.0;
 
   private final TalonFX m_motor1;
@@ -40,30 +39,28 @@ public class ShooterIOTalonFX implements ShooterIO {
   private final VoltageOut m_voltageRequest = new VoltageOut(0);
 
   private AngularVelocity m_setpoint = RPM.zero();
+  private Voltage m_feedForward = Volts.zero();
 
-  public ShooterIOTalonFX() {
+  public FlywheelIOTalonFX() {
     m_motor1 = new TalonFX(Ports.kTurretShooter1.canId(), Ports.kTurretShooter1.canbus());
     m_motor2 = new TalonFX(Ports.kTurretShooter2.canId(), Ports.kTurretShooter2.canbus());
 
     TalonFXConfiguration config = new TalonFXConfiguration();
 
     config.Slot0 = new Slot0Configs()
-        .withKP(0.4)
+        .withKP(0.41)
         .withKI(0)
         .withKD(0)
         .withKS(0.29)
-        .withKV(0.12)
+        .withKV(0.13)
         .withKA(0);
     config.MotorOutput
         .withNeutralMode(NeutralModeValue.Coast);
     config.Feedback
         .withSensorToMechanismRatio(kGearRatio);
-    config.MotionMagic
-        .withMotionMagicCruiseVelocity(RPM.of(9999))
-        .withMotionMagicAcceleration(RPM.of(1600).per(Second));
     config.CurrentLimits
         .withStatorCurrentLimitEnable(true)
-        .withStatorCurrentLimit(Amps.of(90));
+        .withStatorCurrentLimit(Amps.of(120));
     PhoenixUtil.tryUntilOk(5, () -> m_motor1.getConfigurator().apply(config));
 
     // Motor 2 follows motor 1 inverted
@@ -90,7 +87,7 @@ public class ShooterIOTalonFX implements ShooterIO {
   }
 
   @Override
-  public void updateInputs(ShooterIOInputs inputs) {
+  public void updateInputs(FlywheelIOInputs inputs) {
     BaseStatusSignal.refreshAll(
         m_velocity1Signal,
         m_velocity2Signal,
@@ -109,6 +106,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     inputs.velocity1 = m_velocity1Signal.getValue();
     inputs.velocity2 = m_velocity2Signal.getValue();
     inputs.setpoint = m_setpoint;
+    inputs.feedForwardVoltage = m_feedForward;
     inputs.motor1Connected = m_motor1.isAlive();
     inputs.motor2Connected = m_motor2.isAlive();
   }
@@ -120,8 +118,21 @@ public class ShooterIOTalonFX implements ShooterIO {
   }
 
   @Override
+  public void setSpeed(AngularVelocity speed, Voltage feedForward) {
+    m_setpoint = speed;
+    m_feedForward = feedForward;
+    m_motor1.setControl(m_velocityRequest.withVelocity(speed.in(RotationsPerSecond)).withFeedForward(feedForward));
+  }
+
+  @Override
   public void setVoltage(Voltage voltage) {
     m_motor1.setControl(m_voltageRequest.withOutput(voltage.in(Volts)));
+  }
+
+  @Override
+  public void bangBang(Voltage voltage, AngularVelocity targetSpeed) {
+    m_setpoint = targetSpeed;
+    setVoltage(voltage);
   }
 
   @Override

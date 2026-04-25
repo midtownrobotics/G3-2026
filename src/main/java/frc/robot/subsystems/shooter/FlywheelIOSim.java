@@ -12,7 +12,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
-public class ShooterIOSim implements ShooterIO {
+public class FlywheelIOSim implements FlywheelIO {
   private static final double kGearRatio = 2.0 / 3.0;
   private static final DCMotor MOTOR = DCMotor.getKrakenX60(2);
   // Approximate MOI for a flywheel (kg*m^2)
@@ -25,12 +25,12 @@ public class ShooterIOSim implements ShooterIO {
   private boolean m_closedLoop = false;
   private AngularVelocity m_setpoint = RPM.zero();
 
-  public ShooterIOSim() {
+  public FlywheelIOSim() {
     m_sim = new DCMotorSim(LinearSystemId.createDCMotorSystem(MOTOR, MOI, kGearRatio), MOTOR);
   }
 
   @Override
-  public void updateInputs(ShooterIOInputs inputs) {
+  public void updateInputs(FlywheelIOInputs inputs) {
     if (m_closedLoop) {
       m_appliedVolts = MathUtil.clamp(
           m_controller.calculate(
