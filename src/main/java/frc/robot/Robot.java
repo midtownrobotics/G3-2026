@@ -240,9 +240,9 @@ public class Robot extends LoggedRobot {
 
     generateAutoChooser();
 
-    m_hood.setDefaultCommand(m_robotCommands.alignHood());
+    m_hood.setDefaultCommand(m_hood.setAngleCommand(Degrees.zero()).withName("hoodDefaultStow"));
 
-    m_turret.setDefaultCommand(m_robotCommands.alignTurret());
+    m_turret.setDefaultCommand(m_robotCommands.turretTrackShootingParameters());
 
     m_drive.setDefaultCommand(m_robotCommands.driveCommand());
 

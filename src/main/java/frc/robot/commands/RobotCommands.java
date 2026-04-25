@@ -69,7 +69,7 @@ public class RobotCommands {
         .parallel(
             Commands.either(autoAimWithDrivetrainForTeleop(), driveCommand(),
                 m_state::isAutoAimAndFixedTurretModeEnabled),
-            shooterTrackShootingParamters(), runIntake())
+            hoodAndFlywheelTrackShootingParamters(), runIntake())
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("snowBlow");
   }
 
@@ -88,9 +88,11 @@ public class RobotCommands {
         .withName("autoAimAndPrepareShootAutonomous");
   }
 
-  public Command shooterTrackShootingParamters() {
-    return m_shooter.setSpeedCommand(() -> m_state.getShootingParameters().getParameters().flywheelVelocity())
-        .withName("shooterTrackShootingParamters");
+  public Command hoodAndFlywheelTrackShootingParamters() {
+    return Commands.parallel(
+        m_hood.setAngleCommand(() -> m_state.getShootingParameters().getParameters().hoodAngle()),
+        m_shooter.setSpeedCommand(() -> m_state.getShootingParameters().getParameters().flywheelVelocity()))
+        .withName("hoodAndFlywheelTrackShootingParamters");
   }
 
   public Command autoAimWithDrivetrainForTeleop() {
@@ -104,11 +106,13 @@ public class RobotCommands {
   }
 
   public Command revShooterCommand() {
-    return Commands.parallel(shooterTrackShootingParamters(), m_state.setShooterStateCommand(ShooterState.kRev));
+    return Commands.parallel(hoodAndFlywheelTrackShootingParamters(),
+        m_state.setShooterStateCommand(ShooterState.kRev));
   }
 
   public Command shootShooterCommand() {
-    return Commands.parallel(shooterTrackShootingParamters(), m_state.setShooterStateCommand(ShooterState.kShoot));
+    return Commands.parallel(hoodAndFlywheelTrackShootingParamters(),
+        m_state.setShooterStateCommand(ShooterState.kShoot));
   }
 
   public Command stopShooterCommand() {
@@ -154,7 +158,7 @@ public class RobotCommands {
   }
 
   public Command prepareShoot() {
-    return Commands.parallel(shooterTrackShootingParamters(), shakeIntake())
+    return Commands.parallel(hoodAndFlywheelTrackShootingParamters(), shakeIntake())
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("prepareShoot");
   }
 
@@ -195,17 +199,12 @@ public class RobotCommands {
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("fullFieldFeedShoot");
   }
 
-  public Command alignHood() {
-    return m_hood.setAngleCommand(() -> m_state.getShootingParameters().getParameters().hoodAngle())
-        .withName("alignHood");
-  }
-
-  public Command alignTurret() {
+  public Command turretTrackShootingParameters() {
     return m_turret.setAngleCommand(
         () -> m_state.isFixedTurretModeEnabled()
             ? Constants.kFixedTurretRotation
             : m_state.getShootingParameters().getParameters().turretAngle())
-        .withName("alignTurret");
+        .withName("turretTrackShootingParameters");
   }
 
   public Command driveCommand() {
