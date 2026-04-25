@@ -124,6 +124,11 @@ public class RobotCommands {
         m_intakePivot.setAngle(Degrees.of(25)).withTimeout(0.2));
   }
 
+	public Command pulseIndexer() {
+		return Commands.repeatingSequence(m_indexer.runForward().withTimeout(2.5),
+		m_indexer.runReverse().withTimeout(0.5));
+	}
+
   public Command runIntake() {
     return Commands.parallel(
         m_intakePivot.intake(),
@@ -172,7 +177,7 @@ public class RobotCommands {
   }
 
   public Command prepareShoot() {
-    return Commands.parallel(hoodAndFlywheelTrackShootingParamters(), shakeIntake())
+    return Commands.parallel(hoodAndFlywheelTrackShootingParamters(), shakeIntake(), pulseIndexer())
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("prepareShoot");
   }
 
