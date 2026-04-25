@@ -2,10 +2,8 @@ package frc.robot.sensors;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
@@ -15,9 +13,11 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.Watchdawg;
@@ -38,15 +38,6 @@ public class Vision extends SubsystemBase {
 
   private final LoggedNetworkBoolean m_enableVisionObservations = new LoggedNetworkBoolean(
       "Toggles/UseVisionObservations", false);
-  private final LoggedNetworkBoolean m_enableRobotPoseReset = new LoggedNetworkBoolean(
-      "Toggles/EnableRobotPoseReset", false);
-
-  private final List<String> m_cameraHierarchy = List.of(
-      "Turret",
-      "Rear",
-      "Rear Left",
-      "Front Left",
-      "Rear Right");
 
   private boolean m_hasVisionUpdate;
   private boolean m_hasAcceptedVisionUpdate;
@@ -70,7 +61,7 @@ public class Vision extends SubsystemBase {
     if (Robot.isSimulation()) {
       m_visionSim = new VisionSystemSim("main");
       m_visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded));
-      // m_cameras.forEach(c -> m_visionSim.addCamera(c.getSimCamera(), c.getRobotToCamera()));
+      m_cameras.forEach(c -> m_visionSim.addCamera(c.getSimCamera(), c.getRobotToCamera()));
     }
 
     m_hasVisionUpdateTrigger = new Trigger(this::hasVisionUpdate);
@@ -78,29 +69,27 @@ public class Vision extends SubsystemBase {
     m_hasRecentAcceptedVisionTrigger = new Trigger(this::hasRecentAcceptedVision);
 
     m_watchdog = new Watchdawg(getClass());
+
+    SmartDashboard.putData("Commands/Vision/ResetRobotPoseToLatestVisionPose",
+        resetRobotPoseToLatestVisionPoseCommand());
   }
 
   @Override
   public void periodic() {
     m_watchdog.start();
 
-    Pose2d fusedPose = m_poseSupplier.get();
-    Pose3d robotPose = new Pose3d(fusedPose);
+    Pose2d robotPose = m_poseSupplier.get();
+    Pose3d robotPose3d = new Pose3d(robotPose);
 
     for (var camera : m_cameras) {
       camera.periodic();
       Logger.recordOutput("Vision/" + camera.getName() + "/cameraPose",
-          robotPose.transformBy(camera.getRobotToCamera()));
+          robotPose3d.transformBy(camera.getRobotToCamera()));
     }
 
     List<PoseObservation> observations = m_cameras.stream().filter(c -> c.isEnabled())
-        .flatMap(c -> c.getLatestObservations().stream()).toList();
-
-    // String desiredCamera = getDesiredCameraName(observations);
-
-    // Logger.recordOutput("Vision/desiredCamera", desiredCamera);
-
-    // observations = observations.stream().filter(o -> o.cameraName().equals(desiredCamera)).toList();
+        .flatMap(c -> c.getLatestObservations().stream()).sorted((a, b) -> Double.compare(b.timestamp(), a.timestamp()))
+        .toList();
 
     Logger.recordOutput("Vision/observationsSize", observations.size());
 
@@ -114,7 +103,7 @@ public class Vision extends SubsystemBase {
 
       for (var observation : observations) {
         Logger.recordOutput("Vision/" + observation.cameraName() + "/observedRobotPose", observation.pose());
-        double distFromFused = fusedPose.getTranslation()
+        double distFromFused = robotPose.getTranslation()
             .getDistance(observation.pose().toPose2d().getTranslation());
         Logger.recordOutput("Vision/" + observation.cameraName() + "/distFromFusedPose", distFromFused);
 
@@ -130,10 +119,6 @@ public class Vision extends SubsystemBase {
           m_addVisionMeasurement.accept(observation);
         }
       }
-
-      if (m_enableRobotPoseReset.get()) {
-        resetRobotPoseIfDiverged(fusedPose);
-      }
     }
 
     Logger.recordOutput("Vision/hasVisionUpdate", m_hasVisionUpdate);
@@ -141,18 +126,6 @@ public class Vision extends SubsystemBase {
     Logger.recordOutput("Vision/hasRecentAcceptedVision", hasRecentAcceptedVision());
 
     m_watchdog.end("periodic");
-  }
-
-  private String getDesiredCameraName(List<PoseObservation> observations) {
-    Set<String> camerasWithObservations = observations.stream().map((o) -> o.cameraName()).collect(Collectors.toSet());
-
-    for (String cameraName : m_cameraHierarchy) {
-      if (camerasWithObservations.contains(cameraName)) {
-        return cameraName;
-      }
-    }
-
-    return null;
   }
 
   public Optional<Pose2d> getPoseAtTime(double time) {
@@ -188,18 +161,12 @@ public class Vision extends SubsystemBase {
     return m_hasRecentAcceptedVisionTrigger;
   }
 
-  private void resetRobotPoseIfDiverged(Pose2d robotPose) {
-    if (!m_acceptedObservations.getInternalBuffer().isEmpty()) {
-      Translation2d robotTranslation = robotPose.getTranslation();
-      Pose2d latestAcceptedObservationPose = m_acceptedObservations.getInternalBuffer().lastEntry().getValue();
-      Logger.recordOutput("Vision/acceptedObservationsLastEntry", latestAcceptedObservationPose);
-      if (robotTranslation.getDistance(latestAcceptedObservationPose.getTranslation()) > 1.5
-          && Timer.getFPGATimestamp() - m_acceptedObservations.getInternalBuffer().lastKey() < 0.04) {
-        Logger.recordOutput("Vision/resetPose", true);
-        m_resetPoseConsumer.accept(latestAcceptedObservationPose);
-        return;
-      }
-    }
-    Logger.recordOutput("Vision/resetPose", false);
+  private void resetRobotPoseToVision() {
+    Pose2d latestAcceptedObservationPose = m_acceptedObservations.getInternalBuffer().lastEntry().getValue();
+    m_resetPoseConsumer.accept(latestAcceptedObservationPose);
+  }
+
+  public Command resetRobotPoseToLatestVisionPoseCommand() {
+    return Commands.runOnce(this::resetRobotPoseToVision);
   }
 }
