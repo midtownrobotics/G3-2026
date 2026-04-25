@@ -50,7 +50,7 @@ public class Constants {
   //public static final Transform2d kRobotToTurret = new Transform2d(new Translation2d(-0.1, 0.2), new Rotation2d());
 
   public static final Translation3d kRobotToTurret3d = new Translation3d(Inches.of(-3.75), Inches.of(7.25),
-      Inches.of(17.625));
+      Inches.of(13.25));
   public static final Translation2d kRobotToTurret = kRobotToTurret3d.toTranslation2d();
 
   public static final Transform3d kTurretToCamera = new Transform3d(Inches.of(6.359), Inches.of(0), Inches.of(1.792),

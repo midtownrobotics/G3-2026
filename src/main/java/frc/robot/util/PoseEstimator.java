@@ -11,6 +11,8 @@ import static edu.wpi.first.units.Units.Meters;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
@@ -37,7 +39,7 @@ import lombok.Getter;
  */
 public class PoseEstimator {
   private static final double kPoseBufferSizeSec = 2.0;
-  private static final Matrix<N3, N1> kOdometryStdDevs = new Matrix<>(VecBuilder.fill(0.003, 0.003, 0.002));
+  private static final Matrix<N3, N1> kOdometryStdDevs = new Matrix<>(VecBuilder.fill(1, 1, 0.2));
 
   @Getter
   private Pose2d odometryPose = Pose2d.kZero;
@@ -46,6 +48,9 @@ public class PoseEstimator {
 
   private final TimeInterpolatableBuffer<Pose2d> poseBuffer = TimeInterpolatableBuffer.createBuffer(kPoseBufferSizeSec);
   private final Matrix<N3, N1> qStdDevs = new Matrix<>(Nat.N3(), Nat.N1());
+
+  private final LoggedNetworkBoolean m_tiltCompensationEnabled = new LoggedNetworkBoolean(
+      "Toggles/OdometryTiltCompensation", false);
 
   private final SwerveDriveKinematics kinematics;
   private SwerveModulePosition[] lastWheelPositions = new SwerveModulePosition[] {
@@ -82,7 +87,8 @@ public class PoseEstimator {
     // Scale down odometry when the robot is tilted (e.g. driving over a ramp).
     // Wheel travel on an incline doesn't translate 1:1 to field-plane movement.
     double tiltScale = 1.0;
-    if (observation.pitch().isPresent() && observation.roll().isPresent()) {
+
+    if (m_tiltCompensationEnabled.get() && observation.pitch().isPresent() && observation.roll().isPresent()) {
       double cosProduct = observation.pitch().get().getCos()
           * observation.roll().get().getCos();
       double tiltDegrees = Math.abs(Math.toDegrees(Math.acos(cosProduct)));

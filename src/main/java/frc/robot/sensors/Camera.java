@@ -23,6 +23,7 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import frc.lib.LoggedTunableNumber;
 import frc.robot.constants.FieldConstants;
 
 public class Camera {
@@ -35,7 +36,10 @@ public class Camera {
   private final double m_stdDevMultiplier;
   private final Supplier<Boolean> m_enabledSupplier;
 
-  private static final double kDefaultStdMultiplier = 0.1;
+  private static final double kDefaultStdMultiplier = 25;
+
+  private static final LoggedTunableNumber kCameraStdDevMultiplier = new LoggedTunableNumber(
+      "Vision/CameraStdDevMultiplier", 1.0);
 
   public static record PoseObservation(double timestamp, Pose3d pose, int tagCount, double averageDistanceMeters,
       String cameraName, Matrix<N3, N1> standardDevs) {
@@ -83,8 +87,8 @@ public class Camera {
 
   private Matrix<N3, N1> calculateStandardDevs(int tagCount, double avgDistanceMeters) {
     double distanceMultiplier = Math.pow(avgDistanceMeters, 1.5);
-    double stdDev = distanceMultiplier / tagCount * m_stdDevMultiplier;
-    return VecBuilder.fill(stdDev, stdDev, 5 * stdDev);
+    double stdDev = distanceMultiplier / tagCount * m_stdDevMultiplier * kCameraStdDevMultiplier.get();
+    return VecBuilder.fill(stdDev, stdDev, stdDev);
   }
 
   public List<PoseObservation> getLatestObservations() {

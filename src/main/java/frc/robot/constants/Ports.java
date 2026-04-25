@@ -20,10 +20,11 @@ public class Ports {
 
   public static final CANPort kTurretYaw = new CANPort(30, primaryCanBus);
   public static final CANPort kTurretYawEncoder1 = new CANPort(31, primaryCanBus);
-  public static final CANPort kTurretYawEncoder2 = new CANPort(32, primaryCanBus);
+  // public static final CANPort kTurretYawEncoder2 = new CANPort(32, primaryCanBus);
 
   public static final CANPort kIndexer = new CANPort(33, primaryCanBus);
 
-  public static final CANPort kFeederBelt = new CANPort(34, primaryCanBus);
-  public static final CANPort kFeederFuelSensor = new CANPort(35, primaryCanBus);
+  public static final CANPort kFeederBeltLeader = new CANPort(34, primaryCanBus);
+  // public static final CANPort kFeederFuelSensor = new CANPort(35, primaryCanBus);
+  public static final CANPort kFeederBeltFollower = new CANPort(36, primaryCanBus);
 }
