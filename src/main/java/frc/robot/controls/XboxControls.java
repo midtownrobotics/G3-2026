@@ -147,8 +147,12 @@ public class XboxControls implements Controls {
   public Command comboCommand(Trigger heldTrigger, Command action) {
     Timer confirmTimer = new Timer();
     return Commands.sequence(
-        Commands.runOnce(confirmTimer::restart),
-        rumbleCommand().until(heldTrigger.negate()).withTimeout(1.5),
+        Commands.runOnce(() -> {
+          confirmTimer.restart();
+          setRumble(true);
+        }),
+        Commands.waitSeconds(1.5).until(heldTrigger.negate()),
+        Commands.runOnce(() -> setRumble(false)),
         Commands.either(
             Commands.sequence(
                 Commands.runOnce(() -> m_controlsLocked = true),
@@ -156,7 +160,10 @@ public class XboxControls implements Controls {
                     Commands.waitSeconds(1.5).andThen(Commands.runOnce(() -> m_controlsLocked = false)))),
             Commands.none(),
             () -> confirmTimer.hasElapsed(1.5)))
-        .finallyDo(() -> m_controlsLocked = false);
+        .finallyDo(() -> {
+          setRumble(false);
+          m_controlsLocked = false;
+        });
   }
 
   public void setRumble(boolean enabled) {
