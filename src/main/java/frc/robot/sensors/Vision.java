@@ -88,7 +88,7 @@ public class Vision extends SubsystemBase {
     }
 
     List<PoseObservation> observations = m_cameras.stream().filter(c -> c.isEnabled())
-        .flatMap(c -> c.getLatestObservations().stream()).sorted((a, b) -> Double.compare(b.timestamp(), a.timestamp()))
+        .flatMap(c -> c.getLatestObservations().stream()).sorted((a, b) -> Double.compare(a.timestamp(), b.timestamp()))
         .toList();
 
     Logger.recordOutput("Vision/observationsSize", observations.size());
