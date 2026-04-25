@@ -156,7 +156,7 @@ public class RobotCommands {
 
   public Command idle() {
     return Commands
-        .parallel(m_shooter.stop(), m_feeder.stop(), stowIntake(), m_state.setShooterStateCommand(ShooterState.kIdle))
+        .parallel(m_shooter.stop(), m_feeder.stop(), stowIntake(), m_state.setShooterStateCommand(ShooterState.kIdle), m_indexer.stop())
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("idle");
   }
 
@@ -182,7 +182,7 @@ public class RobotCommands {
   }
 
   public Command feedFuel() {
-    return Commands.parallel(m_feeder.runForward(), m_indexer.runForward(), pulseIndexer())
+    return Commands.parallel(m_feeder.runForward())
         .withName("feedFuel");
   }
 

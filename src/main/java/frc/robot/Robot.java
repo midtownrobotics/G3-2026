@@ -253,6 +253,8 @@ public class Robot extends LoggedRobot {
 
     m_drive.setDefaultCommand(m_robotCommands.driveCommand());
 
+		m_indexer.setDefaultCommand(m_robotCommands.pulseIndexer());
+
     m_trimControls = new TrimXboxControls(1);
 
     configureTrimControlBindings(m_trimControls);
