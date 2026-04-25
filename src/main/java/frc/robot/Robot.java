@@ -181,14 +181,12 @@ public class Robot extends LoggedRobot {
         "Right",
         new Transform3d(
             new Translation3d(Inches.of(-9.809), Inches.of(-13.627), Inches.of(20.494)),
-            new Rotation3d(Degrees.zero(), Degrees.of(-22.657), Degrees.of(-90 + 20.946))),
-        () -> (DriverStation.isAutonomous() || !turretCamera.isConnected()));
+            new Rotation3d(Degrees.zero(), Degrees.of(-22.657), Degrees.of(-90 + 20.946))));
     Camera leftCamera = new Camera(
         "Left",
         new Transform3d(
             new Translation3d(Inches.of(1.054), Inches.of(14.619), Inches.of(9.870)),
-            new Rotation3d(Degrees.zero(), Degrees.of(-13), Degrees.of(70))),
-        () -> (DriverStation.isAutonomous() || !turretCamera.isConnected()));
+            new Rotation3d(Degrees.zero(), Degrees.of(-13), Degrees.of(70))));
 
     m_vision = new Vision(
         (observation) -> m_drive.addVisionMeasurement(

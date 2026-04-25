@@ -39,6 +39,7 @@ public class FlywheelIOTalonFX implements FlywheelIO {
   private final VoltageOut m_voltageRequest = new VoltageOut(0);
 
   private AngularVelocity m_setpoint = RPM.zero();
+  private Voltage m_feedForward = Volts.zero();
 
   public FlywheelIOTalonFX() {
     m_motor1 = new TalonFX(Ports.kTurretShooter1.canId(), Ports.kTurretShooter1.canbus());
@@ -47,11 +48,11 @@ public class FlywheelIOTalonFX implements FlywheelIO {
     TalonFXConfiguration config = new TalonFXConfiguration();
 
     config.Slot0 = new Slot0Configs()
-        .withKP(0.4)
+        .withKP(0.41)
         .withKI(0)
         .withKD(0)
         .withKS(0.29)
-        .withKV(0.12)
+        .withKV(0.13)
         .withKA(0);
     config.MotorOutput
         .withNeutralMode(NeutralModeValue.Coast);
@@ -105,6 +106,7 @@ public class FlywheelIOTalonFX implements FlywheelIO {
     inputs.velocity1 = m_velocity1Signal.getValue();
     inputs.velocity2 = m_velocity2Signal.getValue();
     inputs.setpoint = m_setpoint;
+    inputs.feedForwardVoltage = m_feedForward;
     inputs.motor1Connected = m_motor1.isAlive();
     inputs.motor2Connected = m_motor2.isAlive();
   }
@@ -116,8 +118,21 @@ public class FlywheelIOTalonFX implements FlywheelIO {
   }
 
   @Override
+  public void setSpeed(AngularVelocity speed, Voltage feedForward) {
+    m_setpoint = speed;
+    m_feedForward = feedForward;
+    m_motor1.setControl(m_velocityRequest.withVelocity(speed.in(RotationsPerSecond)).withFeedForward(feedForward));
+  }
+
+  @Override
   public void setVoltage(Voltage voltage) {
     m_motor1.setControl(m_voltageRequest.withOutput(voltage.in(Volts)));
+  }
+
+  @Override
+  public void bangBang(Voltage voltage, AngularVelocity targetSpeed) {
+    m_setpoint = targetSpeed;
+    setVoltage(voltage);
   }
 
   @Override

@@ -20,6 +20,7 @@ public interface FlywheelIO {
     public Current statorCurrent2 = Amps.zero();
     public Current supplyCurrent1 = Amps.zero();
     public Current supplyCurrent2 = Amps.zero();
+    public Voltage feedForwardVoltage = Volts.zero();
     public AngularVelocity velocity1 = RotationsPerSecond.zero();
     public AngularVelocity velocity2 = RotationsPerSecond.zero();
     public AngularVelocity setpoint = RPM.zero();
@@ -33,7 +34,13 @@ public interface FlywheelIO {
   default void setSpeed(AngularVelocity speed) {
   }
 
+  default void setSpeed(AngularVelocity speed, Voltage feedForward) {
+  }
+
   default void setVoltage(Voltage voltage) {
+  }
+
+  default void bangBang(Voltage voltage, AngularVelocity targetSpeed) {
   }
 
   default void stop() {

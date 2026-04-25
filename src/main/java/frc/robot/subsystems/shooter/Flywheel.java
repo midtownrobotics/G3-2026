@@ -11,6 +11,7 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.controller.BangBangController;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -36,7 +37,7 @@ public class Flywheel extends SubsystemBase {
   private final LoggedTunableNumber m_shooterSetpointSpeed = new LoggedTunableNumber(
       "Shooter/SetpointRPM", 0);
 
-  private final BangBangController m_bangBangController = new BangBangController(RPM.of(25).in(RPM));
+  private final BangBangController m_bangBangController = new BangBangController(RPM.of(200).in(RPM));
 
   public Flywheel(FlywheelIO io) {
     m_io = io;
@@ -93,8 +94,10 @@ public class Flywheel extends SubsystemBase {
 
   public Command bangBangCommand(Supplier<AngularVelocity> targetSpeedSupplier) {
     return run(() -> {
-      double voltage = m_bangBangController.calculate(targetSpeedSupplier.get().in(RPM), getSpeed().in(RPM));
-      m_io.setVoltage(Volts.of(voltage));
+      AngularVelocity setpoint = targetSpeedSupplier.get();
+      double output = m_bangBangController.calculate(getSpeed().in(RPM), setpoint.in(RPM));
+      Voltage feedForward = Volts.of(1.2).times(output);
+      m_io.setSpeed(setpoint, feedForward);
     });
   }
 
