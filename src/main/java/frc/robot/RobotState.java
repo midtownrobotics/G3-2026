@@ -40,8 +40,8 @@ import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.intake.IntakePivot;
 import frc.robot.subsystems.intake.IntakeRoller;
+import frc.robot.subsystems.shooter.Flywheel;
 import frc.robot.subsystems.shooter.Hood;
-import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.Turret;
 
 public class RobotState {
@@ -52,7 +52,7 @@ public class RobotState {
   private final Feeder m_feeder;
   private final Vision m_vision;
   private final Indexer m_indexer;
-  private final Shooter m_shooter;
+  private final Flywheel m_shooter;
   private final Hood m_hood;
   private final ShootingParameters m_shootingParameters;
 
@@ -84,7 +84,7 @@ public class RobotState {
       Feeder feeder,
       Vision vision,
       Indexer indexer,
-      Shooter shooter,
+      Flywheel shooter,
       Hood hood) {
     m_drive = drive;
     m_intakePivot = intakePivot;

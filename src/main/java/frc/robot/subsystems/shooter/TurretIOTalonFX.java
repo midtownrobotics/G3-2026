@@ -35,12 +35,12 @@ public class TurretIOTalonFX implements TurretIO {
   private static final double kRotorToSensorRatio = 60.0 / 12;
   private static final double kSensorToMechanismRatio = 82.0 / 10;
 
-  private static final Angle kLowSoftLimit = Degrees.of(-45);
-  private static final Angle kHighSoftLimit = Degrees.of(330);
+  private static final Angle kLowSoftLimit = Degrees.of(-90);
+  private static final Angle kHighSoftLimit = Degrees.of(270);
 
   private final TalonFX m_motor;
   private final CANcoder m_encoder1;
-  private final CANcoder m_encoder2;
+  // private final CANcoder m_encoder2;
 
   private final StatusSignal<Angle> m_positionSignal;
   private final StatusSignal<edu.wpi.first.units.measure.AngularVelocity> m_velocitySignal;
@@ -48,7 +48,7 @@ public class TurretIOTalonFX implements TurretIO {
   private final StatusSignal<edu.wpi.first.units.measure.Current> m_statorCurrentSignal;
   private final StatusSignal<edu.wpi.first.units.measure.Current> m_supplyCurrentSignal;
   private final StatusSignal<Angle> m_encoder1AbsolutePosition;
-  private final StatusSignal<Angle> m_encoder2AbsolutePosition;
+  // private final StatusSignal<Angle> m_encoder2AbsolutePosition;
 
   private final MotionMagicVoltage m_positionRequest = new MotionMagicVoltage(0).withEnableFOC(true);
   private final VoltageOut m_voltageRequest = new VoltageOut(0);
@@ -58,7 +58,7 @@ public class TurretIOTalonFX implements TurretIO {
   public TurretIOTalonFX() {
     m_motor = new TalonFX(Ports.kTurretYaw.canId(), Ports.kTurretYaw.canbus());
     m_encoder1 = new CANcoder(Ports.kTurretYawEncoder1.canId(), Ports.kTurretYawEncoder1.canbus());
-    m_encoder2 = new CANcoder(Ports.kTurretYawEncoder2.canId(), Ports.kTurretYawEncoder2.canbus());
+    // m_encoder2 = new CANcoder(Ports.kTurretYawEncoder2.canId(), Ports.kTurretYawEncoder2.canbus());
 
     TalonFXConfiguration config = new TalonFXConfiguration();
 
@@ -110,7 +110,7 @@ public class TurretIOTalonFX implements TurretIO {
     encoder2Config.MagnetSensor.withMagnetOffset(Rotations.of(0.21484375));
 
     PhoenixUtil.tryUntilOk(5, () -> m_encoder1.getConfigurator().apply(encoder1Config));
-    PhoenixUtil.tryUntilOk(5, () -> m_encoder2.getConfigurator().apply(encoder2Config));
+    // PhoenixUtil.tryUntilOk(5, () -> m_encoder2.getConfigurator().apply(encoder2Config));
 
     // Cache status signals
     m_positionSignal = m_motor.getPosition();
@@ -119,7 +119,7 @@ public class TurretIOTalonFX implements TurretIO {
     m_statorCurrentSignal = m_motor.getStatorCurrent();
     m_supplyCurrentSignal = m_motor.getSupplyCurrent();
     m_encoder1AbsolutePosition = m_encoder1.getAbsolutePosition();
-    m_encoder2AbsolutePosition = m_encoder2.getAbsolutePosition();
+    // m_encoder2AbsolutePosition = m_encoder2.getAbsolutePosition();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
         50,
@@ -128,11 +128,11 @@ public class TurretIOTalonFX implements TurretIO {
         m_appliedVoltsSignal,
         m_statorCurrentSignal,
         m_supplyCurrentSignal,
-        m_encoder1AbsolutePosition,
-        m_encoder2AbsolutePosition);
+        m_encoder1AbsolutePosition);
+    // m_encoder2AbsolutePosition);
 
-    PhoenixUtil.tryUntilOk(5,
-        () -> BaseStatusSignal.refreshAll(m_encoder1AbsolutePosition, m_encoder2AbsolutePosition));
+    // PhoenixUtil.tryUntilOk(5,
+    // () -> BaseStatusSignal.refreshAll(m_encoder1AbsolutePosition, m_encoder2AbsolutePosition));
 
     // Seed motor position from CANcoder absolute position
     // EasyCRTConfig easyCRTConfig = new EasyCRTConfig(m_encoder1AbsolutePosition::getValue,
@@ -164,8 +164,8 @@ public class TurretIOTalonFX implements TurretIO {
         m_appliedVoltsSignal,
         m_statorCurrentSignal,
         m_supplyCurrentSignal,
-        m_encoder1AbsolutePosition,
-        m_encoder2AbsolutePosition);
+        m_encoder1AbsolutePosition);
+    // m_encoder2AbsolutePosition);
 
     inputs.position = m_positionSignal.getValue();
     inputs.velocity = m_velocitySignal.getValue();
@@ -173,15 +173,15 @@ public class TurretIOTalonFX implements TurretIO {
     inputs.statorCurrent = m_statorCurrentSignal.getValue();
     inputs.supplyCurrent = m_supplyCurrentSignal.getValue();
     inputs.encoder1AbsolutePosition = m_encoder1AbsolutePosition.getValue();
-    inputs.encoder2AbsolutePosition = m_encoder2AbsolutePosition.getValue();
+    // inputs.encoder2AbsolutePosition = m_encoder2AbsolutePosition.getValue();
     inputs.setpoint = m_setpoint;
     inputs.motorConnected = m_motor.isAlive();
   }
 
   @Override
   public void setPosition(Angle angle) {
-    m_setpoint = angle;
-    m_motor.setControl(m_positionRequest.withPosition(angle));
+    m_setpoint = mapAngleToLimits(angle);
+    m_motor.setControl(m_positionRequest.withPosition(m_setpoint));
   }
 
   @Override
@@ -197,6 +197,18 @@ public class TurretIOTalonFX implements TurretIO {
   @Override
   public void setEncoderPosition(Angle angle) {
     m_motor.setPosition(angle);
+  }
+
+  /**
+   * Maps an angle from any range to the range defined by the turret's soft limits.
+   * @param angle
+   * @return
+   */
+  private Angle mapAngleToLimits(Angle angle) {
+    // Shift by +90 so that soft-limit low (-90) maps to 0, wrap to [0,360), then shift back.
+    double mappedDegrees = (angle.in(Degrees) - kLowSoftLimit.in(Degrees) + 360) % 360
+        + kLowSoftLimit.in(Degrees);
+    return Degrees.of(mappedDegrees);
   }
 
   @Override

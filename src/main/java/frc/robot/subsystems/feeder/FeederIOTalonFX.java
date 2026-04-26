@@ -13,28 +13,29 @@ import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
-import com.ctre.phoenix6.hardware.CANrange;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.constants.Ports;
 
 public class FeederIOTalonFX implements FeederIO {
   private static final double kGearRatio = 2.0;
 
-  private final TalonFX m_motor;
-  private final CANrange m_fuelSensor;
+  private final TalonFX m_motorLeader;
+  private final TalonFX m_motorFollower;
+  // private final CANrange m_fuelSensor;
 
   private final StatusSignal<edu.wpi.first.units.measure.AngularVelocity> m_velocitySignal;
   private final StatusSignal<edu.wpi.first.units.measure.Voltage> m_appliedVoltsSignal;
   private final StatusSignal<edu.wpi.first.units.measure.Current> m_statorCurrentSignal;
   private final StatusSignal<edu.wpi.first.units.measure.Current> m_supplyCurrentSignal;
-  private final StatusSignal<Distance> m_fuelSensorDistanceSignal;
+  // private final StatusSignal<Distance> m_fuelSensorDistanceSignal;
 
   private final VelocityVoltage m_velocityRequest = new VelocityVoltage(0).withEnableFOC(true);
   private final VoltageOut m_voltageRequest = new VoltageOut(0);
@@ -42,8 +43,9 @@ public class FeederIOTalonFX implements FeederIO {
   private AngularVelocity m_setpoint = RPM.zero();
 
   public FeederIOTalonFX() {
-    m_motor = new TalonFX(Ports.kFeederBelt.canId(), Ports.kFeederBelt.canbus());
-    m_fuelSensor = new CANrange(Ports.kFeederFuelSensor.canId(), Ports.kFeederFuelSensor.canbus());
+    m_motorLeader = new TalonFX(Ports.kFeederBeltLeader.canId(), Ports.kFeederBeltLeader.canbus());
+    m_motorFollower = new TalonFX(Ports.kFeederBeltFollower.canId(), Ports.kFeederBeltFollower.canbus());
+    // m_fuelSensor = new CANrange(Ports.kFeederFuelSensor.canId(), Ports.kFeederFuelSensor.canbus());
 
     // Configure TalonFX
     TalonFXConfiguration config = new TalonFXConfiguration();
@@ -58,26 +60,28 @@ public class FeederIOTalonFX implements FeederIO {
         .withSupplyCurrentLimitEnable(true)
         .withSupplyCurrentLimit(Amps.of(70));
 
-    m_motor.getConfigurator().apply(config);
+    m_motorLeader.getConfigurator().apply(config);
 
     // Configure CANrange
     CANrangeConfiguration fuelSensorConfig = new CANrangeConfiguration();
-    m_fuelSensor.getConfigurator().apply(fuelSensorConfig);
+    // m_fuelSensor.getConfigurator().apply(fuelSensorConfig);
 
     // Cache status signals
-    m_velocitySignal = m_motor.getVelocity();
-    m_appliedVoltsSignal = m_motor.getMotorVoltage();
-    m_statorCurrentSignal = m_motor.getStatorCurrent();
-    m_supplyCurrentSignal = m_motor.getSupplyCurrent();
-    m_fuelSensorDistanceSignal = m_fuelSensor.getDistance();
+    m_velocitySignal = m_motorLeader.getVelocity();
+    m_appliedVoltsSignal = m_motorLeader.getMotorVoltage();
+    m_statorCurrentSignal = m_motorLeader.getStatorCurrent();
+    m_supplyCurrentSignal = m_motorLeader.getSupplyCurrent();
+    // m_fuelSensorDistanceSignal = m_fuelSensor.getDistance();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
         50,
         m_velocitySignal,
         m_appliedVoltsSignal,
         m_statorCurrentSignal,
-        m_supplyCurrentSignal,
-        m_fuelSensorDistanceSignal);
+        m_supplyCurrentSignal);
+    // m_fuelSensorDistanceSignal);
+
+    m_motorFollower.setControl(new Follower(m_motorLeader.getDeviceID(), MotorAlignmentValue.Aligned));
   }
 
   @Override
@@ -86,37 +90,37 @@ public class FeederIOTalonFX implements FeederIO {
         m_velocitySignal,
         m_appliedVoltsSignal,
         m_statorCurrentSignal,
-        m_supplyCurrentSignal,
-        m_fuelSensorDistanceSignal);
+        m_supplyCurrentSignal);
+    // m_fuelSensorDistanceSignal);
 
     inputs.velocity = m_velocitySignal.getValue();
     inputs.appliedVoltage = m_appliedVoltsSignal.getValue();
     inputs.statorCurrent = m_statorCurrentSignal.getValue();
     inputs.supplyCurrent = m_supplyCurrentSignal.getValue();
-    inputs.fuelSensorDistance = m_fuelSensorDistanceSignal.getValue();
+    // inputs.fuelSensorDistance = m_fuelSensorDistanceSignal.getValue();
     inputs.setpoint = m_setpoint;
-    inputs.motorConnected = m_motor.isAlive();
+    inputs.motorConnected = m_motorLeader.isAlive();
   }
 
   @Override
   public void setSpeed(AngularVelocity speed) {
     m_setpoint = speed;
-    m_motor.setControl(m_velocityRequest.withVelocity(speed.in(RotationsPerSecond)));
+    m_motorLeader.setControl(m_velocityRequest.withVelocity(speed.in(RotationsPerSecond)));
   }
 
   @Override
   public void setVoltage(Voltage voltage) {
-    m_motor.setControl(m_voltageRequest.withOutput(voltage.in(Volts)));
+    m_motorLeader.setControl(m_voltageRequest.withOutput(voltage.in(Volts)));
   }
 
   @Override
   public void stop() {
-    m_motor.stopMotor();
+    m_motorLeader.stopMotor();
   }
 
   @Override
   public void setPID(double kP, double kI, double kD) {
     var slot0 = new Slot0Configs().withKP(kP).withKI(kI).withKD(kD);
-    m_motor.getConfigurator().apply(slot0);
+    m_motorLeader.getConfigurator().apply(slot0);
   }
 }
