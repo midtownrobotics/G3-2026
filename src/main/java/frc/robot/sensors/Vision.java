@@ -37,7 +37,7 @@ public class Vision extends SubsystemBase {
   private final TimeInterpolatableBuffer<Pose2d> m_acceptedObservations;
 
   private final LoggedNetworkBoolean m_enableVisionObservations = new LoggedNetworkBoolean(
-      "Toggles/UseVisionObservations", false);
+      "Toggles/UseVisionObservations", true);
 
   private boolean m_hasVisionUpdate;
   private boolean m_hasAcceptedVisionUpdate;

@@ -198,7 +198,7 @@ public class RobotCommands {
   }
 
   public Command reverseFeedFuel() {
-    return Commands.parallel(m_feeder.runReverse(), m_indexer.runReverse(), driveCommand()).withName("reverseFeedFuel");
+    return Commands.parallel(m_feeder.runReverse(), m_indexer.runReverse()).withName("reverseFeedFuel");
   }
 
   public Command setPointShoot() {

@@ -318,7 +318,7 @@ public class Robot extends LoggedRobot {
     m_controls.idle().onTrue(m_robotCommands.idle());
 
     m_controls.intake().onTrue(m_robotCommands.fill());
-    m_controls.intake().debounce(0.2).whileTrue(m_robotCommands.reverseFeedFuel());
+    m_controls.intake().debounce(0.2, DebounceType.kRising).whileTrue(m_robotCommands.reverseIntake());
 
     m_controls.unjam().whileTrue(m_robotCommands.reverseFeedFuel());
 
@@ -358,8 +358,7 @@ public class Robot extends LoggedRobot {
         .onFalse(m_state.setShootOnTheMoveEnabledCommand(() -> true));
 
     m_controls.fixedShooter()
-        .whileTrue(Commands.runOnce(() -> m_state.setFixedTurretMode(true)))
-        .onFalse(Commands.runOnce(() -> m_state.setFixedTurretMode(false)));
+        .onTrue(Commands.runOnce(() -> m_state.setFixedTurretMode(!m_state.isFixedTurretModeEnabled())));
 
     m_controls.toggleShootOnTheMove()
         .onTrue(m_state.setShootOnTheMoveEnabledCommand(() -> !m_state.isShootOnTheMoveEnabled()));

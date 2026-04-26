@@ -50,7 +50,7 @@ public class Indexer extends SubsystemBase {
   }
 
   public Command runForward() {
-    return run(() -> m_io.setVoltage(Volts.of(8)));
+    return run(() -> m_io.setVoltage(Volts.of(8))).finallyDo(() -> m_io.setVoltage(Volts.zero()) );
   }
 
   public Command stop() {
@@ -58,6 +58,6 @@ public class Indexer extends SubsystemBase {
   }
 
   public Command runReverse() {
-    return run(() -> m_io.setVoltage(Volts.of(-3)));
+    return run(() -> m_io.setVoltage(Volts.of(-3))).finallyDo(() -> m_io.setVoltage(Volts.zero()) );
   }
 }
