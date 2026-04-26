@@ -34,7 +34,7 @@ public class IntakePivot extends SubsystemBase {
 
   public IntakePivot(IntakePivotIO io) {
     m_io = io;
-      m_currentSpikeFilter = LinearFilter.movingAverage(5);
+    m_currentSpikeFilter = LinearFilter.movingAverage(5);
     m_currentSpikeTrigger = new Trigger(this::getIsCurrentSpiking);
     m_watchdog = new Watchdawg(getClass());
     SmartDashboard.putData("TuningModes/IntakePivot", tuningMode());
@@ -79,6 +79,10 @@ public class IntakePivot extends SubsystemBase {
 
   public Command setAngle(Supplier<Angle> angle) {
     return run(() -> m_io.setPosition(angle.get()));
+  }
+
+  public Command setAngle(Angle angle) {
+    return setAngle(() -> angle);
   }
 
   public Command setVoltage(Voltage volts) {
