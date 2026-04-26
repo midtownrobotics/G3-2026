@@ -170,7 +170,7 @@ public class Robot extends LoggedRobot {
       m_turret = new Turret(new TurretIOSim());
     }
 
-    DynamicCamera turretCamera = new DynamicCamera("Turret", 0.4, () -> !m_turret.getAngle().isNear(Degrees.of(130), Degrees.of(55)));
+    DynamicCamera turretCamera = new DynamicCamera("Turret", 10, () -> !m_turret.getAngle().isNear(Degrees.of(130), Degrees.of(55)));
 
     Camera rearCamera = new Camera(
         "Rear",
@@ -317,7 +317,7 @@ public class Robot extends LoggedRobot {
     m_controls.idle().onTrue(m_robotCommands.idle());
 
     m_controls.intake().onTrue(m_robotCommands.fill());
-    m_controls.intake().debounce(0.2, DebounceType.kRising).whileTrue(m_robotCommands.reverseIntake());
+    // m_controls.intake().debounce(0.2, DebounceType.kRising).whileTrue(m_robotCommands.reverseIntake());
 
     m_controls.unjam().whileTrue(m_robotCommands.reverseFeedFuel());
 
