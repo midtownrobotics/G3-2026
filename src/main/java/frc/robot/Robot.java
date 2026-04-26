@@ -345,22 +345,20 @@ public class Robot extends LoggedRobot {
     m_controls.increaseTurretAngle().onTrue(m_robotCommands.increaseTurretAngle());
     m_controls.decreaseTurretAngle().onTrue(m_robotCommands.decreaseTurretAngle());
 
-    m_controls.defense().onTrue(m_controls.comboCommand(m_robotCommands.defense()));
+    m_controls.defense().onTrue(m_robotCommands.defense());
 
-    m_controls.zeroHood().whileTrue(m_controls.comboCommand(m_robotCommands.zeroTurretHood()));
+    m_controls.zeroHood().whileTrue(m_robotCommands.zeroTurretHood());
 
-    m_controls.zeroIntake().whileTrue(m_controls.comboCommand(m_robotCommands.zeroIntake()));
+    m_controls.zeroIntake().whileTrue(m_robotCommands.zeroIntake());
 
     m_controls.disableShooting().whileTrue(
-        m_controls.comboCommand(
-            Commands.parallel(
-                m_state.setShootOnTheMoveEnabledCommand(() -> false),
-                m_robotCommands.shootShooterCommand())))
+        Commands.parallel(
+            m_state.setShootOnTheMoveEnabledCommand(() -> false),
+            m_robotCommands.shootShooterCommand()))
         .onFalse(m_state.setShootOnTheMoveEnabledCommand(() -> true));
 
     m_controls.fixedShooter()
-        .whileTrue(m_controls.comboCommand(
-            Commands.runOnce(() -> m_state.setFixedTurretMode(true))))
+        .whileTrue(Commands.runOnce(() -> m_state.setFixedTurretMode(true)))
         .onFalse(Commands.runOnce(() -> m_state.setFixedTurretMode(false)));
 
     m_controls.toggleShootOnTheMove()

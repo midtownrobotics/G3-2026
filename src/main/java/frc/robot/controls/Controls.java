@@ -50,8 +50,6 @@ public interface Controls {
 
   public Command pulseRumbleCommand(int pulses, double pulseDuration);
 
-  public Command comboCommand(Command action);
-
   public Trigger toggleShootOnTheMove();
 
   public void perodic();

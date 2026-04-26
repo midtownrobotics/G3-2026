@@ -121,13 +121,6 @@ public class XboxControls implements Controls {
     return m_controller.start();
   }
 
-  @Override
-  public Command comboCommand(Command action) {
-    return Commands.parallel(
-        rumbleCommand().withTimeout(0.5),
-        action);
-  }
-
   public void setRumble(boolean enabled) {
     m_controller.setRumble(RumbleType.kBothRumble, enabled ? 0.5 : 0);
   }
