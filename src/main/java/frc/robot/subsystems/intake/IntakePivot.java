@@ -81,6 +81,10 @@ public class IntakePivot extends SubsystemBase {
     return run(() -> m_io.setPosition(angle.get()));
   }
 
+  public Command setAngle(Angle angle) {
+    return setAngle(() -> angle);
+  }
+
   public Command setVoltage(Voltage volts) {
     return run(() -> m_io.setVoltage(volts));
   }
