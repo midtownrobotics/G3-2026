@@ -43,7 +43,7 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger shoot() {
-    return m_controller.rightBumper();
+    return m_controller.rightBumper().and(disableShooting().negate());
   }
 
   @Override
@@ -63,7 +63,7 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger setpointShoot() {
-    return m_controller.a().and(disableShooting().negate());
+    return m_controller.a();
   }
 
   @Override
@@ -93,7 +93,7 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger disableShooting() {
-    return m_controller.leftBumper().and(m_controller.a());
+    return m_controller.leftBumper().and(m_controller.rightBumper());
   }
 
   @Override
