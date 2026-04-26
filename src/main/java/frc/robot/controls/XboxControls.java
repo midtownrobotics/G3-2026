@@ -58,32 +58,32 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger feedFuel() {
-    return m_controller.b().and(defense().negate());
+    return m_controller.b().and(zeroHood().negate());
   }
 
   @Override
   public Trigger setpointShoot() {
-    return m_controller.a();
+    return m_controller.a().and(defense().negate());
   }
 
   @Override
   public Trigger setpointFeed() {
-    return m_controller.x().and(zeroHood().negate());
+    return m_controller.x().and(zeroIntake().negate());
   }
 
   @Override
   public Trigger defense() {
-    return m_controller.leftBumper().and(m_controller.b());
+    return m_controller.leftBumper().and(m_controller.a());
   }
 
   @Override
   public Trigger zeroIntake() {
-    return m_controller.leftTrigger().and(m_controller.rightTrigger());
+    return m_controller.leftBumper().and(m_controller.x());
   }
 
   @Override
   public Trigger zeroHood() {
-    return m_controller.leftBumper().and(m_controller.x());
+    return m_controller.leftBumper().and(m_controller.b());
   }
 
   @Override
