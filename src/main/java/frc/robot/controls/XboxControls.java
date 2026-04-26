@@ -12,7 +12,6 @@ import frc.lib.IOProtectionXboxController;
 
 public class XboxControls implements Controls {
   private final IOProtectionXboxController m_controller;
-
   public XboxControls(int controllerPort) {
     m_controller = new IOProtectionXboxController(controllerPort);
   }
@@ -44,7 +43,7 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger shoot() {
-    return m_controller.rightBumper();
+    return m_controller.rightBumper().and(disableShooting().negate());
   }
 
   @Override
@@ -54,37 +53,67 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger unjam() {
-    return m_controller.y();
-  }
-
-  @Override
-  public Trigger zeroIntake() {
-    return m_controller.povLeft();
-  }
-
-  @Override
-  public Trigger zeroHood() {
-    return m_controller.povRight();
-  }
-
-  @Override
-  public Trigger setpointShoot() {
-    return m_controller.a();
-  }
-
-  @Override
-  public Trigger fullFieldShoot() {
-    return m_controller.x();
+    return m_controller.y().and(fixedShooter().negate());
   }
 
   @Override
   public Trigger feedFuel() {
-    return m_controller.b();
+    return m_controller.b().and(zeroHood().negate());
+  }
+
+  @Override
+  public Trigger setpointShoot() {
+    return m_controller.a().and(defense().negate());
+  }
+
+  @Override
+  public Trigger setpointFeed() {
+    return m_controller.x().and(zeroIntake().negate());
   }
 
   @Override
   public Trigger defense() {
-    return m_controller.back();
+    return m_controller.leftBumper().and(m_controller.a());
+  }
+
+  @Override
+  public Trigger zeroIntake() {
+    return m_controller.leftBumper().and(m_controller.x());
+  }
+
+  @Override
+  public Trigger zeroHood() {
+    return m_controller.leftBumper().and(m_controller.b());
+  }
+
+  @Override
+  public Trigger fixedShooter() {
+    return m_controller.leftBumper().and(m_controller.y());
+  }
+
+  @Override
+  public Trigger disableShooting() {
+    return m_controller.leftBumper().and(m_controller.rightBumper());
+  }
+
+  @Override
+  public Trigger increaseHoodAngle() {
+    return m_controller.povUp();
+  }
+
+  @Override
+  public Trigger decreaseHoodAngle() {
+    return m_controller.povDown();
+  }
+
+  @Override
+  public Trigger increaseTurretAngle() {
+    return m_controller.povRight();
+  }
+
+  @Override
+  public Trigger decreaseTurretAngle() {
+    return m_controller.povLeft();
   }
 
   @Override
@@ -105,12 +134,16 @@ public class XboxControls implements Controls {
 
     for (int i = 0; i < pulses; i++) {
       commands.add(rumbleCommand().withTimeout(pulseDuration));
-      
+
       if (i < pulses - 1) {
         commands.add(Commands.waitSeconds(0.1));
       }
     }
-    
+
     return Commands.sequence(commands.toArray(Command[]::new));
+  }
+
+  @Override
+  public void perodic() {
   }
 }

@@ -318,8 +318,9 @@ public class Robot extends LoggedRobot {
     m_controls.idle().onTrue(m_robotCommands.idle());
 
     m_controls.intake().onTrue(m_robotCommands.fill());
+    m_controls.intake().debounce(0.2).whileTrue(m_robotCommands.reverseFeedFuel());
 
-    m_controls.defense().onTrue(m_robotCommands.defense());
+    m_controls.unjam().whileTrue(m_robotCommands.reverseFeedFuel());
 
     m_controls.shoot().onTrue(m_robotCommands.autoAimAndPrepareShootTeleop());
     m_controls.shoot().onTrue(m_state.setShooterStateCommand(ShooterState.kRev))
@@ -333,11 +334,32 @@ public class Robot extends LoggedRobot {
     m_controls.setpointShoot().onTrue(m_state.setShooterStateCommand(ShooterState.kRev))
         .onFalse(m_state.setShooterStateCommand(ShooterState.kShoot));
 
+    m_controls.setpointFeed().onTrue(m_robotCommands.fullFieldFeedShoot());
+    m_controls.setpointFeed().onTrue(m_state.setShooterStateCommand(ShooterState.kRev))
+        .onFalse(m_state.setShooterStateCommand(ShooterState.kShoot));
+
     m_controls.feedFuel().onTrue(m_robotCommands.feedFuel()).onFalse(m_robotCommands.stopFeedingFuel());
+
+    m_controls.increaseHoodAngle().onTrue(m_robotCommands.increaseHoodAngle());
+    m_controls.decreaseHoodAngle().onTrue(m_robotCommands.decreaseHoodAngle());
+    m_controls.increaseTurretAngle().onTrue(m_robotCommands.increaseTurretAngle());
+    m_controls.decreaseTurretAngle().onTrue(m_robotCommands.decreaseTurretAngle());
+
+    m_controls.defense().onTrue(m_robotCommands.defense());
 
     m_controls.zeroHood().whileTrue(m_robotCommands.zeroTurretHood());
 
     m_controls.zeroIntake().whileTrue(m_robotCommands.zeroIntake());
+
+    m_controls.disableShooting().whileTrue(
+        Commands.parallel(
+            m_state.setShootOnTheMoveEnabledCommand(() -> false),
+            m_robotCommands.shootShooterCommand()))
+        .onFalse(m_state.setShootOnTheMoveEnabledCommand(() -> true));
+
+    m_controls.fixedShooter()
+        .whileTrue(Commands.runOnce(() -> m_state.setFixedTurretMode(true)))
+        .onFalse(Commands.runOnce(() -> m_state.setFixedTurretMode(false)));
 
     m_controls.toggleShootOnTheMove()
         .onTrue(m_state.setShootOnTheMoveEnabledCommand(() -> !m_state.isShootOnTheMoveEnabled()));

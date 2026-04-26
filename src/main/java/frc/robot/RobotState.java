@@ -193,6 +193,10 @@ public class RobotState {
     return getFieldRelativeTurretSpeeds(getRobotPose());
   }
 
+  public void setFixedTurretMode(boolean enabled) {
+    m_fixedTurretModeToggle.set(enabled);
+  }
+
   public ChassisSpeeds getFieldRelativeTurretSpeeds(Pose2d robotPose) {
     ChassisSpeeds robotSpeeds = getFieldRelativeSpeeds();
     double h = Constants.kRobotToTurret.getNorm();
