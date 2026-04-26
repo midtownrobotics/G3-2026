@@ -32,6 +32,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.GeometryUtil;
+import frc.robot.ShootingParameters.ShootingParametersMode;
 import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
 import frc.robot.sensors.Vision;
@@ -57,6 +58,7 @@ public class RobotState {
   private final ShootingParameters m_shootingParameters;
 
   private final Trigger m_isPreparedToShootTrigger;
+	private final Trigger m_isFeedingTrigger;
   private final Trigger m_inAllianceZoneTrigger;
 
   private final Field2d m_field2d = new Field2d();
@@ -97,15 +99,22 @@ public class RobotState {
     m_hood = hood;
     m_shootingParameters = new ShootingParameters(this);
 
+		m_inAllianceZoneTrigger = new Trigger(this::inAllianceZone)
+      .debounce(0.2, DebounceType.kFalling);
+
+		m_isFeedingTrigger = m_turret.isNearSetpointTrigger()
+				.and(() -> m_shooter.getSetpointSpeed().gt(RPM.of(500)))
+				.and(m_turret.isNearSetpointTrigger())
+				.and(() -> m_shooterState == ShooterState.kShoot)
+				.and(() -> m_shootingParameters.getMode() == ShootingParametersMode.kPass)
+				.and(m_inAllianceZoneTrigger.negate());
+
     m_isPreparedToShootTrigger = m_shooter.isNearSetpointTrigger()
         .and(() -> m_shooterState == ShooterState.kShoot)
         .and(m_hood.isNearSetpointTrigger())
         .and(m_turret.isNearSetpointTrigger())
         .and(() -> m_shooter.getSetpointSpeed().gt(RPM.of(500)))
         .debounce(0.1, DebounceType.kFalling);
-
-    m_inAllianceZoneTrigger = new Trigger(this::inAllianceZone)
-        .debounce(0.2, DebounceType.kFalling);
 
     SmartDashboard.putData("Field", m_field2d);
   }
@@ -242,6 +251,10 @@ public class RobotState {
   public Trigger isPreparedToShootTrigger() {
     return m_isPreparedToShootTrigger;
   }
+
+	public Trigger isFeedingTrigger() {
+		return m_isFeedingTrigger;
+	}
 
   public Angle getIntakeAngle() {
     return m_intakePivot.getAngle();

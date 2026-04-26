@@ -257,9 +257,8 @@ public class Robot extends LoggedRobot {
 
     configureTrimControlBindings(m_trimControls);
 
-    m_state.isPreparedToShootTrigger()
-        .onTrue(m_robotCommands.feedFuel())
-        .onFalse(m_robotCommands.stopFeedingFuel());
+    m_state.isPreparedToShootTrigger().or(m_state.isFeedingTrigger())
+        .whileTrue(m_robotCommands.feedFuel());
 
     m_watchdog = new Watchdawg(getClass());
 

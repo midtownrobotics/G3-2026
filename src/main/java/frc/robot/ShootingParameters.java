@@ -72,19 +72,14 @@ public class ShootingParameters {
       Map.entry(Feet.of(6).in(Meters), Degrees.of(0).in(Radians)), //
       Map.entry(Feet.of(7).in(Meters), Degrees.of(3).in(Radians)), //
       Map.entry(Feet.of(8).in(Meters), Degrees.of(3).in(Radians)), //
-      Map.entry(Feet.of(9).in(Meters), Degrees.of(3).in(Radians)), //
-      Map.entry(Feet.of(10).in(Meters), Degrees.of(3).in(Radians)), //
-      Map.entry(Feet.of(11).in(Meters), Degrees.of(3).in(Radians)), //
-      Map.entry(Feet.of(12).in(Meters), Degrees.of(3).in(Radians)), //
-      Map.entry(Feet.of(13).in(Meters), Degrees.of(3).in(Radians)), //
+      Map.entry(Feet.of(9).in(Meters), Degrees.of(4.5).in(Radians)), //
+      Map.entry(Feet.of(10).in(Meters), Degrees.of(4.5).in(Radians)),
+      Map.entry(Feet.of(11).in(Meters), Degrees.of(4.5).in(Radians)), //
+      Map.entry(Feet.of(12).in(Meters), Degrees.of(4.5).in(Radians)),
+      Map.entry(Feet.of(13).in(Meters), Degrees.of(6).in(Radians)),
       Map.entry(Feet.of(14).in(Meters), Degrees.of(6).in(Radians)), //
       Map.entry(Feet.of(15).in(Meters), Degrees.of(6).in(Radians)), //
       Map.entry(Feet.of(16).in(Meters), Degrees.of(9).in(Radians)) //
-  // Map.entry(Feet.of(17).in(Meters), Degrees.of(25).in(Radians)),
-  // Map.entry(Feet.of(18).in(Meters), Degrees.of(25).in(Radians)),
-  // Map.entry(Feet.of(19).in(Meters), Degrees.of(25).in(Radians)),
-  // Map.entry(Feet.of(20).in(Meters), Degrees.of(25).in(Radians)),
-  // Map.entry(Feet.of(26.875).in(Meters), Degrees.of(20).in(Radians))
   );
 
   private final InterpolatingDoubleTreeMap m_feedingHoodAngleMap = InterpolatingDoubleTreeMap.ofEntries(
@@ -110,19 +105,14 @@ public class ShootingParameters {
       Map.entry(Feet.of(7).in(Meters), RPM.of(1800).in(RadiansPerSecond)), //
       Map.entry(Feet.of(8).in(Meters), RPM.of(1900).in(RadiansPerSecond)), //
       Map.entry(Feet.of(9).in(Meters), RPM.of(1980).in(RadiansPerSecond)), //
-      Map.entry(Feet.of(10).in(Meters), RPM.of(2050).in(RadiansPerSecond)), //
+      Map.entry(Feet.of(10).in(Meters), RPM.of(1950).in(RadiansPerSecond)),
       Map.entry(Feet.of(11).in(Meters), RPM.of(2200).in(RadiansPerSecond)), //
-      Map.entry(Feet.of(12).in(Meters), RPM.of(2250).in(RadiansPerSecond)), //
-      Map.entry(Feet.of(13).in(Meters), RPM.of(2300).in(RadiansPerSecond)), //
+      Map.entry(Feet.of(12).in(Meters), RPM.of(1950).in(RadiansPerSecond)),
+      Map.entry(Feet.of(13).in(Meters), RPM.of(2050).in(RadiansPerSecond)),
       Map.entry(Feet.of(14).in(Meters), RPM.of(2300).in(RadiansPerSecond)), //
       Map.entry(Feet.of(15).in(Meters), RPM.of(2350).in(RadiansPerSecond)), //
       Map.entry(Feet.of(16).in(Meters), RPM.of(2300).in(RadiansPerSecond)), //
-      Map.entry(Feet.of(25).in(Meters), RPM.of(2600).in(RadiansPerSecond))
-  // Map.entry(Feet.of(17).in(Meters), RPM.of(2300).in(RadiansPerSecond)),
-  // Map.entry(Feet.of(18).in(Meters), RPM.of(2300).in(RadiansPerSecond)),
-  // Map.entry(Feet.of(19).in(Meters), RPM.of(2300).in(RadiansPerSecond)),
-  // Map.entry(Feet.of(20).in(Meters), RPM.of(2300).in(RadiansPerSecond)),
-  // Map.entry(Feet.of(26.875).in(Meters), RPM.of(3200).in(RadiansPerSecond))
+      Map.entry(Feet.of(25).in(Meters), RPM.of(2600).in(RadiansPerSecond)) //
   );
 
   private final InterpolatingDoubleTreeMap m_feedingFlywheelVelocityMap = InterpolatingDoubleTreeMap.ofEntries(
@@ -321,6 +311,10 @@ public class ShootingParameters {
     m_target = target;
     m_mode = mode;
   }
+
+	public ShootingParametersMode getMode() {
+		return m_mode;
+	}
 
   public Command setTargetCommand(Translation2d target) {
     return Commands.runOnce(() -> setTarget(target)).ignoringDisable(true);

@@ -79,19 +79,19 @@ public class Feeder extends SubsystemBase {
   }
 
   public Command setSpeedCommand(AngularVelocity angularVelocity) {
-    return run(() -> m_io.setSpeed(angularVelocity));
+    return run(() -> m_io.setSpeed(angularVelocity)).finallyDo(() -> m_io.stop());
   }
 
   public Command runForward() {
-    return run(() -> m_io.setVoltage(Volts.of(m_feedVoltage.get())));
+    return run(() -> m_io.setVoltage(Volts.of(m_feedVoltage.get()))).finallyDo(() -> m_io.stop());
   }
 
   public Command stop() {
-    return run(() -> m_io.setVoltage(Volts.of(0)));
+    return run(() -> m_io.stop());
   }
 
   public Command runReverse() {
-    return run(() -> m_io.setVoltage(Volts.of(-10)));
+    return run(() -> m_io.setVoltage(Volts.of(-10))).finallyDo(() -> m_io.stop());
   }
 
   public Command tuningMode() {
