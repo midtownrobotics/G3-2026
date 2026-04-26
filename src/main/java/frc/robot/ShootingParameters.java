@@ -77,9 +77,9 @@ public class ShootingParameters {
       Map.entry(Feet.of(11).in(Meters), Degrees.of(4.5).in(Radians)), //
       Map.entry(Feet.of(12).in(Meters), Degrees.of(4.5).in(Radians)),
       Map.entry(Feet.of(13).in(Meters), Degrees.of(6).in(Radians)),
-      Map.entry(Feet.of(14).in(Meters), Degrees.of(6).in(Radians)), //
-      Map.entry(Feet.of(15).in(Meters), Degrees.of(6).in(Radians)), //
-      Map.entry(Feet.of(16).in(Meters), Degrees.of(9).in(Radians)) //
+      Map.entry(Feet.of(14).in(Meters), Degrees.of(6).in(Radians)),
+      Map.entry(Feet.of(15).in(Meters), Degrees.of(7).in(Radians)),
+      Map.entry(Feet.of(16).in(Meters), Degrees.of(8).in(Radians))
   );
 
   private final InterpolatingDoubleTreeMap m_feedingHoodAngleMap = InterpolatingDoubleTreeMap.ofEntries(
@@ -109,9 +109,9 @@ public class ShootingParameters {
       Map.entry(Feet.of(11).in(Meters), RPM.of(2200).in(RadiansPerSecond)), //
       Map.entry(Feet.of(12).in(Meters), RPM.of(1950).in(RadiansPerSecond)),
       Map.entry(Feet.of(13).in(Meters), RPM.of(2050).in(RadiansPerSecond)),
-      Map.entry(Feet.of(14).in(Meters), RPM.of(2300).in(RadiansPerSecond)), //
-      Map.entry(Feet.of(15).in(Meters), RPM.of(2350).in(RadiansPerSecond)), //
-      Map.entry(Feet.of(16).in(Meters), RPM.of(2300).in(RadiansPerSecond)), //
+      Map.entry(Feet.of(14).in(Meters), RPM.of(2100).in(RadiansPerSecond)),
+      Map.entry(Feet.of(15).in(Meters), RPM.of(2150).in(RadiansPerSecond)),
+      Map.entry(Feet.of(16).in(Meters), RPM.of(2100).in(RadiansPerSecond)),
       Map.entry(Feet.of(25).in(Meters), RPM.of(2600).in(RadiansPerSecond)) //
   );
 
@@ -248,8 +248,8 @@ public class ShootingParameters {
 
     Logger.recordOutput("ShootingParameters/targetPose", targetPose3d.toPose2d());
     Logger.recordOutput("ShootingParameters/targetPose3d", targetPose3d);
-    Logger.recordOutput("ShootingParameters/distanceToTarget", distanceToTarget);
-    Logger.recordOutput("ShootingParameters/distanceToAdjustedTarget", rawDistanceToTarget);
+    Logger.recordOutput("ShootingParameters/distanceToAdjustedTarget", distanceToTarget);
+    Logger.recordOutput("ShootingParameters/distanceToTarget", rawDistanceToTarget);
     Logger.recordOutput("ShootingParameters/tofMultiplier", m_ToFModifier);
     Logger.recordOutput("ShootingParameters/hoodAngleAdjustment", m_hoodAngleModifier);
     Logger.recordOutput("ShootingParameters/shooterRPMMultiplier", m_flywheelVelocityModifier);

@@ -107,9 +107,9 @@ public class Vision extends SubsystemBase {
             .getDistance(observation.pose().toPose2d().getTranslation());
         Logger.recordOutput("Vision/" + observation.cameraName() + "/distFromFusedPose", distFromFused);
 
-        if (poseTrusted && distFromFused > kMaxDistanceFromFusedPose) {
-          continue;
-        }
+        // if (poseTrusted && distFromFused > kMaxDistanceFromFusedPose) {
+        //   continue;
+        // }
 
         m_acceptedObservations.addSample(observation.timestamp(), observation.pose().toPose2d());
         m_hasAcceptedVisionUpdate = true;

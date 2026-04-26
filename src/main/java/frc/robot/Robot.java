@@ -170,7 +170,7 @@ public class Robot extends LoggedRobot {
       m_turret = new Turret(new TurretIOSim());
     }
 
-    DynamicCamera turretCamera = new DynamicCamera("Turret", 0.4, () -> true);
+    DynamicCamera turretCamera = new DynamicCamera("Turret", 0.4, () -> !m_turret.getAngle().isNear(Degrees.of(130), Degrees.of(55)));
 
     Camera rearCamera = new Camera(
         "Rear",
