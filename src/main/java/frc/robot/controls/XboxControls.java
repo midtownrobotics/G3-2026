@@ -33,9 +33,7 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger idle() {
-    return m_controller.leftBumper()
-        .and(defense().negate()).and(disableShooting().negate())
-        .and(zeroHood().negate()).and(fixedShooter().negate());
+    return m_controller.leftBumper();
   }
 
   @Override
@@ -100,27 +98,27 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger increaseHoodAngle() {
-    return m_controller.povUp().and(controlsLocked().negate());
+    return m_controller.povUp();
   }
 
   @Override
   public Trigger decreaseHoodAngle() {
-    return m_controller.povDown().and(controlsLocked().negate());
+    return m_controller.povDown();
   }
 
   @Override
   public Trigger increaseTurretAngle() {
-    return m_controller.povRight().and(controlsLocked().negate());
+    return m_controller.povRight();
   }
 
   @Override
   public Trigger decreaseTurretAngle() {
-    return m_controller.povLeft().and(controlsLocked().negate());
+    return m_controller.povLeft();
   }
 
   @Override
   public Trigger toggleShootOnTheMove() {
-    return m_controller.start().and(controlsLocked().negate());
+    return m_controller.start();
   }
 
   @Override
@@ -131,7 +129,7 @@ public class XboxControls implements Controls {
   }
 
   public void setRumble(boolean enabled) {
-    m_controller.setRumble(RumbleType.kBothRumble, enabled ? 1.0 : 0);
+    m_controller.setRumble(RumbleType.kBothRumble, enabled ? 0.5 : 0);
   }
 
   public Command rumbleCommand() {
