@@ -175,18 +175,18 @@ public class Robot extends LoggedRobot {
     Camera rearCamera = new Camera(
         "Rear",
         new Transform3d(
-            new Translation3d(Inches.of(-9.384), Inches.of(-12.659), Inches.of(20.650)),
+            new Translation3d(Inches.of(-9.394), Inches.of(-12.564), Inches.of(20.659)),
             new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(160))));
     Camera rightCamera = new Camera(
         "Right",
         new Transform3d(
-            new Translation3d(Inches.of(-5.547), Inches.of(-13.712), Inches.of(20.568)),
+            new Translation3d(Inches.of(-5.587), Inches.of(-13.648), Inches.of(20.6695)),
             new Rotation3d(Degrees.zero(), Degrees.of(-15), Degrees.of(-60))));
     Camera leftCamera = new Camera(
         "Left",
         new Transform3d(
-            new Translation3d(Inches.of(1.054), Inches.of(14.619), Inches.of(9.870)),
-            new Rotation3d(Degrees.zero(), Degrees.of(-13), Degrees.of(70))));
+            new Translation3d(Inches.of(1.054), Inches.of(14.429), Inches.of(10.172)),
+            new Rotation3d(Degrees.zero(), Degrees.of(-12), Degrees.of(70))));
 
     m_vision = new Vision(
         (observation) -> m_drive.addVisionMeasurement(
