@@ -5,18 +5,32 @@
  "variables":{
   "expressions":{},
   "poses":{
+   "AllianceBumpFar":{
+    "x":{
+     "exp":"2.96 m",
+     "val":2.96
+    },
+    "y":{
+     "exp":"2.61 m",
+     "val":2.61
+    },
+    "heading":{
+     "exp":"-2.3815689881890654 rad",
+     "val":-2.381568988189066
+    }
+   },
    "AllianceBumpStart":{
     "x":{
      "exp":"AllianceBumpFar.x + 0.45 m",
-     "val":3.406632137298584
+     "val":3.41
     },
     "y":{
      "exp":"AllianceBumpFar.y",
-     "val":2.5865139961242676
+     "val":2.61
     },
     "heading":{
      "exp":"AllianceBumpFar.heading - 90 deg",
-     "val":0.6981317007977319
+     "val":-3.952365314983962
     }
    },
    "CenterBump":{
@@ -29,8 +43,8 @@
      "val":2.5865139961242676
     },
     "heading":{
-     "exp":"130 deg",
-     "val":2.2689280275926285
+     "exp":"-2.2411594327053814 rad",
+     "val":-2.2411594327053814
     }
    },
    "CenterBumpStart":{
@@ -44,7 +58,7 @@
     },
     "heading":{
      "exp":"CenterBump.heading - 90 deg",
-     "val":0.6981317007977319
+     "val":-3.811955759500278
     }
    },
    "TestStart":{
@@ -86,7 +100,7 @@
     },
     "heading":{
      "exp":"CenterBump.heading",
-     "val":2.2689280275926285
+     "val":-2.2411594327053814
     }
    }
   }
