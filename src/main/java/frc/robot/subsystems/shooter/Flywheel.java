@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.LoggedTunableNumber;
@@ -106,7 +107,7 @@ public class Flywheel extends SubsystemBase {
   }
 
   public Command stop() {
-    return run(() -> m_io.stop());
+    return Commands.sequence(Commands.waitSeconds(0.3), run(() -> m_io.stop()));
   }
 
   public Command tuningMode() {
