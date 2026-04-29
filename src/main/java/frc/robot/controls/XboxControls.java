@@ -126,6 +126,12 @@ public class XboxControls implements Controls {
     return m_controller.rightStick();
   }
 
+	@Override
+  public Trigger bulldoze() {
+    return m_controller.leftStick();
+  }
+
+
   public void setRumble(boolean enabled) {
     m_controller.setRumble(RumbleType.kBothRumble, enabled ? 0.5 : 0);
   }

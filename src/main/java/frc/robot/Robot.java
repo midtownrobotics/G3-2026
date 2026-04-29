@@ -380,6 +380,14 @@ public class Robot extends LoggedRobot {
             new Pose2d(current.getX(), nearestY, Rotation2d.fromDegrees(180)));
     }, Set.of(m_drive)));
 
+		m_controls.bulldoze().whileTrue(
+    Commands.defer(() -> {
+        Pose2d current = m_drive.getPose();
+        return Commands.parallel(
+            m_autoRoutines.driveToPose(
+                new Pose2d(4.7, current.getY(), current.getRotation())),
+            m_robotCommands.reverseIntake());
+    }, Set.of(m_drive)));
   }
 
   public void configureTrimControlBindings(TrimControls controls) {

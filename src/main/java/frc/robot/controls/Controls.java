@@ -34,6 +34,8 @@ public interface Controls {
 
   public Trigger lineUpToWall();
 
+	public Trigger bulldoze();
+
   public Trigger increaseHoodAngle();
 
   public Trigger decreaseHoodAngle();
