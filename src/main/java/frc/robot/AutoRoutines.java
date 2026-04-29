@@ -172,4 +172,46 @@ public class AutoRoutines {
                         copy1002left.cmd()));
         return routine;
     }
+
+		public AutoRoutine bumpDepotMiddleLeft() {
+        AutoRoutine routine = m_autoFactory.newRoutine("bumpDepotMiddleLeft");
+        AutoTrajectory BumpToDepotLineup = routine.trajectory("BumpToDepotLineup");
+        AutoTrajectory MiddleTurn = routine.trajectory("MiddleTurn");
+        AutoTrajectory MiddleTurnBump = routine.trajectory("MiddleTurnBump");
+
+        BumpToDepotLineup.atTime("Intake").onTrue(m_robotCommands.runIntake());
+				BumpToDepotLineup.atTime("StopIntake").onTrue(m_robotCommands.stowIntake());
+				BumpToDepotLineup.done().onTrue(m_robotCommands.shootShooterCommand());
+				BumpToDepotLineup.doneDelayed(7).onTrue(MiddleTurn.cmd());
+
+        MiddleTurn.active().onTrue(m_robotCommands.stowIntake());
+        MiddleTurn.done().onTrue(MiddleTurnBump.cmd());
+
+        routine.active().onTrue(
+                Commands.sequence(
+                        BumpToDepotLineup.resetOdometry(),
+                        BumpToDepotLineup.cmd()));
+        return routine;
+    }
+
+		public AutoRoutine trenchDepotMiddleLeft() {
+        AutoRoutine routine = m_autoFactory.newRoutine("trenchDepotMiddleLeft");
+        AutoTrajectory BumpToDepotLineup = routine.trajectory("BumpToDepotLineup");
+        AutoTrajectory MiddleTurn = routine.trajectory("MiddleTurn");
+        AutoTrajectory MiddleTurnTrench = routine.trajectory("MiddleTurnTrench");
+
+        BumpToDepotLineup.atTime("Intake").onTrue(m_robotCommands.runIntake());
+				BumpToDepotLineup.atTime("StopIntake").onTrue(m_robotCommands.stowIntake());
+				BumpToDepotLineup.done().onTrue(m_robotCommands.shootShooterCommand());
+				BumpToDepotLineup.doneDelayed(7).onTrue(MiddleTurn.cmd());
+
+        MiddleTurn.active().onTrue(m_robotCommands.fill());
+        MiddleTurn.done().onTrue(MiddleTurnTrench.cmd());
+
+        routine.active().onTrue(
+                Commands.sequence(
+                        BumpToDepotLineup.resetOdometry(),
+                        BumpToDepotLineup.cmd()));
+        return routine;
+    }
 }
