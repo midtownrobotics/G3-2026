@@ -376,8 +376,10 @@ public class Robot extends LoggedRobot {
     Commands.defer(() -> {
         Pose2d current = m_drive.getPose();
         double nearestY = current.getY() < (0.58 + 7.49) / 2 ? 0.58 : 7.49;
-        return m_autoRoutines.driveToPose(
-            new Pose2d(current.getX(), nearestY, Rotation2d.fromDegrees(180)));
+				return Commands.parallel(
+         m_autoRoutines.driveToPose(
+            new Pose2d(current.getX(), nearestY, Rotation2d.fromDegrees(180))),
+						m_robotCommands.haltTurretAndHoodMovement());
     }, Set.of(m_drive)));
 
 		m_controls.bulldoze().whileTrue(
