@@ -174,7 +174,7 @@ public class AutoRoutines {
     }
 
 		public AutoRoutine bumpDepotMiddleLeft() {
-        AutoRoutine routine = m_autoFactory.newRoutine("1002left");
+        AutoRoutine routine = m_autoFactory.newRoutine("bumpDepotMiddleLeft");
         AutoTrajectory BumpToDepotLineup = routine.trajectory("BumpToDepotLineup");
         AutoTrajectory MiddleTurn = routine.trajectory("MiddleTurn");
         AutoTrajectory MiddleTurnBump = routine.trajectory("MiddleTurnBump");
@@ -182,31 +182,10 @@ public class AutoRoutines {
         BumpToDepotLineup.atTime("Intake").onTrue(m_robotCommands.runIntake());
 				BumpToDepotLineup.atTime("StopIntake").onTrue(m_robotCommands.stowIntake());
 				BumpToDepotLineup.done().onTrue(m_robotCommands.shootShooterCommand());
-				BumpToDepotLineup.doneDelayed(3).onTrue(MiddleTurn.cmd());
+				BumpToDepotLineup.doneDelayed(7).onTrue(MiddleTurn.cmd());
 
+        MiddleTurn.active().onTrue(m_robotCommands.stowIntake());
         MiddleTurn.done().onTrue(MiddleTurnBump.cmd());
-
-
-        routine.active().onTrue(
-                Commands.sequence(
-                        BumpToDepotLineup.resetOdometry(),
-                        BumpToDepotLineup.cmd()));
-        return routine;
-    }
-
-		public AutoRoutine bumpDepotMiddleRight() {
-        AutoRoutine routine = m_autoFactory.newRoutine("1002left");
-        AutoTrajectory BumpToDepotLineup = routine.trajectory("BumpToDepotLineup").mirrorY();
-        AutoTrajectory MiddleTurn = routine.trajectory("MiddleTurn").mirrorY();
-        AutoTrajectory MiddleTurnBump = routine.trajectory("MiddleTurnBump").mirrorY();
-
-        BumpToDepotLineup.atTime("Intake").onTrue(m_robotCommands.runIntake());
-				BumpToDepotLineup.atTime("StopIntake").onTrue(m_robotCommands.stowIntake());
-				BumpToDepotLineup.done().onTrue(m_robotCommands.shootShooterCommand());
-				BumpToDepotLineup.doneDelayed(3).onTrue(MiddleTurn.cmd());
-
-        MiddleTurn.done().onTrue(MiddleTurnBump.cmd());
-
 
         routine.active().onTrue(
                 Commands.sequence(
@@ -216,7 +195,7 @@ public class AutoRoutines {
     }
 
 		public AutoRoutine trenchDepotMiddleLeft() {
-        AutoRoutine routine = m_autoFactory.newRoutine("1002left");
+        AutoRoutine routine = m_autoFactory.newRoutine("trenchDepotMiddleLeft");
         AutoTrajectory BumpToDepotLineup = routine.trajectory("BumpToDepotLineup");
         AutoTrajectory MiddleTurn = routine.trajectory("MiddleTurn");
         AutoTrajectory MiddleTurnTrench = routine.trajectory("MiddleTurnTrench");
@@ -224,31 +203,10 @@ public class AutoRoutines {
         BumpToDepotLineup.atTime("Intake").onTrue(m_robotCommands.runIntake());
 				BumpToDepotLineup.atTime("StopIntake").onTrue(m_robotCommands.stowIntake());
 				BumpToDepotLineup.done().onTrue(m_robotCommands.shootShooterCommand());
-				BumpToDepotLineup.doneDelayed(3).onTrue(MiddleTurn.cmd());
+				BumpToDepotLineup.doneDelayed(7).onTrue(MiddleTurn.cmd());
 
+        MiddleTurn.active().onTrue(m_robotCommands.fill());
         MiddleTurn.done().onTrue(MiddleTurnTrench.cmd());
-
-
-        routine.active().onTrue(
-                Commands.sequence(
-                        BumpToDepotLineup.resetOdometry(),
-                        BumpToDepotLineup.cmd()));
-        return routine;
-    }
-
-		public AutoRoutine trenchDepotMiddleRight() {
-        AutoRoutine routine = m_autoFactory.newRoutine("1002left");
-        AutoTrajectory BumpToDepotLineup = routine.trajectory("BumpToDepotLineup").mirrorY();
-        AutoTrajectory MiddleTurn = routine.trajectory("MiddleTurn").mirrorY();
-        AutoTrajectory MiddleTurnTrench = routine.trajectory("MiddleTurnTrench").mirrorY();
-
-        BumpToDepotLineup.atTime("Intake").onTrue(m_robotCommands.runIntake());
-				BumpToDepotLineup.atTime("StopIntake").onTrue(m_robotCommands.stowIntake());
-				BumpToDepotLineup.done().onTrue(m_robotCommands.shootShooterCommand());
-				BumpToDepotLineup.doneDelayed(3).onTrue(MiddleTurn.cmd());
-
-        MiddleTurn.done().onTrue(MiddleTurnTrench.cmd());
-
 
         routine.active().onTrue(
                 Commands.sequence(
