@@ -34,6 +34,7 @@ import frc.robot.RobotState.ShooterState;
 import frc.robot.ShootingParameters.ShootingParametersMode;
 import frc.robot.commands.RobotCommands;
 import frc.robot.constants.FieldConstants;
+import frc.robot.constants.Ports;
 import frc.robot.controls.Controls;
 import frc.robot.controls.TrimControls;
 import frc.robot.controls.TrimXboxControls;
@@ -389,6 +390,9 @@ public class Robot extends LoggedRobot {
     m_watchdog.end("robotVizPeriodic");
 
     m_state.periodic();
+		
+		Logger.recordOutput("CanBusUsage/Drive", Ports.driveCanBus.getStatus().BusUtilization);
+		Logger.recordOutput("CanBusUsage/Mechs", Ports.primaryCanBus.getStatus().BusUtilization);
 
     // Logger.recordOutput("Pigeon2/accelerationX", m_drive.getPigeon2().getAccelerationX().getValue());
     // Logger.recordOutput("Pigeon2/accelerationY", m_drive.getPigeon2().getAccelerationY().getValue());
