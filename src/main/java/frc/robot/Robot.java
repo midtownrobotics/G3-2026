@@ -234,11 +234,10 @@ public class Robot extends LoggedRobot {
     m_cameraPipelineChooser.addOption("Johnson", 1);
 
     m_cameraPipelineChooser.onChange(x -> {
-      rearCamera.getCamera().setPipelineIndex(x);
-      leftCamera.getCamera().setPipelineIndex(x);
-      rightCamera.getCamera().setPipelineIndex(x);
-      turretCamera.getCamera().setPipelineIndex(x);
+      m_vision.setPipelinesToIndex(x);
     });
+
+		SmartDashboard.putData("Vision/setToMainFieldPipeline", Commands.runOnce(() -> m_vision.setPipelinesToIndex(0)));
 
     m_autoFactory = new AutoFactory(m_drive::getPose, m_drive::resetPose, m_drive::followPath, true, m_drive);
 
