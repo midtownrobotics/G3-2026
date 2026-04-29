@@ -28,7 +28,7 @@ public class AutoRoutines {
         AutoTrajectory BackwardsBump2 = routine.trajectory("BackwardsBump").mirrorY();
         AutoTrajectory BumpToTrenchSOTM = routine.trajectory("BumpToTrenchSOTM").mirrorY();
 
-        TrenchSweep.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement());
+        TrenchSweep.active().onTrue(m_robotCommands.runIntake());
         TrenchSweep.atTime("startintake").onTrue(m_robotCommands.runIntake());
         TrenchSweep.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
         TrenchSweep.done().onTrue(BackwardsBump.cmd());
@@ -60,7 +60,7 @@ public class AutoRoutines {
         AutoTrajectory BackwardsBump2 = routine.trajectory("BackwardsBump");
         AutoTrajectory BumpToTrenchSOTM = routine.trajectory("BumpToTrenchSOTM");
 
-        TrenchSweep.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement());
+        TrenchSweep.active().onTrue(m_robotCommands.runIntake());
         TrenchSweep.atTime("startintake").onTrue(m_robotCommands.runIntake());
         TrenchSweep.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
         TrenchSweep.done().onTrue(BackwardsBump.cmd());
@@ -88,7 +88,7 @@ public class AutoRoutines {
         AutoRoutine routine = m_autoFactory.newRoutine("HubSwipeLeft");
         AutoTrajectory HubSwipe = routine.trajectory("HubSwipe").mirrorY();
 
-        HubSwipe.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
+        HubSwipe.active().onTrue(m_robotCommands.runIntake().asProxy());
         HubSwipe.atTime("startintake").onTrue(m_robotCommands.runIntake());
         HubSwipe.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
         HubSwipe.done().onTrue(m_robotCommands.shootShooterCommand());
@@ -105,7 +105,7 @@ public class AutoRoutines {
         AutoRoutine routine = m_autoFactory.newRoutine("HubSwipeRight");
         AutoTrajectory HubSwipe = routine.trajectory("HubSwipe");
 
-        HubSwipe.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
+        HubSwipe.active().onTrue(m_robotCommands.runIntake().asProxy());
         HubSwipe.atTime("startintake").onTrue(m_robotCommands.runIntake());
         HubSwipe.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
         HubSwipe.done().onTrue(m_robotCommands.shootShooterCommand());
@@ -125,7 +125,7 @@ public class AutoRoutines {
         AutoTrajectory copy1002left2 = routine.trajectory("copy1002");
         AutoTrajectory trenchLineUp1002 = routine.trajectory("trenchLineUp1002");
 
-        copy1002left.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
+        copy1002left.active().onTrue(m_robotCommands.runIntake().asProxy());
         copy1002left.atTime("startintake").onTrue(m_robotCommands.runIntake());
         copy1002left.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
         copy1002left.done().onTrue(m_robotCommands.shootShooterCommand());
@@ -134,7 +134,7 @@ public class AutoRoutines {
         trenchLineUp1002.active().onTrue(m_robotCommands.stopShooterCommand());
         trenchLineUp1002.done().onTrue(copy1002left2.cmd());
 
-        copy1002left2.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
+        copy1002left2.active().onTrue(m_robotCommands.runIntake().asProxy());
         copy1002left2.atTime("startintake").onTrue(m_robotCommands.runIntake());
         copy1002left2.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
         copy1002left2.done().onTrue(m_robotCommands.shootShooterCommand());
@@ -152,7 +152,7 @@ public class AutoRoutines {
         AutoTrajectory copy1002left2 = routine.trajectory("copy1002").mirrorY();
         AutoTrajectory trenchLineUp1002 = routine.trajectory("trenchLineUp1002").mirrorY();
 
-        copy1002left.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
+        copy1002left.active().onTrue(m_robotCommands.runIntake().asProxy());
         copy1002left.atTime("startintake").onTrue(m_robotCommands.runIntake());
         copy1002left.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
         copy1002left.done().onTrue(m_robotCommands.shootShooterCommand());
@@ -161,7 +161,7 @@ public class AutoRoutines {
         trenchLineUp1002.active().onTrue(m_robotCommands.stopShooterCommand());
         trenchLineUp1002.done().onTrue(copy1002left2.cmd());
 
-        copy1002left2.active().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement().asProxy());
+        copy1002left2.active().onTrue(m_robotCommands.runIntake().asProxy());
         copy1002left2.atTime("startintake").onTrue(m_robotCommands.runIntake());
         copy1002left2.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
         copy1002left2.done().onTrue(m_robotCommands.shootShooterCommand());

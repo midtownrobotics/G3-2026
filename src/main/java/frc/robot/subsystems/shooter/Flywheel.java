@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.LoggedTunableNumber;
@@ -24,25 +25,25 @@ import frc.lib.Watchdawg;
 public class Flywheel extends SubsystemBase {
   private final FlywheelIO m_io;
   private final FlywheelIOInputsAutoLogged m_inputs = new FlywheelIOInputsAutoLogged();
-  private final Alert m_talon1ConnectionAlert = new Alert("Shooter TalonFX motor 1 is not connected",
+  private final Alert m_talon1ConnectionAlert = new Alert("Flywheel TalonFX motor 1 is not connected",
       AlertType.kWarning);
-  private final Alert m_talon2ConnectionAlert = new Alert("Shooter TalonFX motor 2 is not connected",
+  private final Alert m_talon2ConnectionAlert = new Alert("Flywheel TalonFX motor 2 is not connected",
       AlertType.kWarning);
-  private final Alert m_stallAlert1 = new Alert("Shooter motor 1 stalling", AlertType.kWarning);
-  private final Alert m_stallAlert2 = new Alert("Shooter motor 2 stalling", AlertType.kWarning);
+  private final Alert m_stallAlert1 = new Alert("Flywheel motor 1 stalling", AlertType.kWarning);
+  private final Alert m_stallAlert2 = new Alert("Flywheel motor 2 stalling", AlertType.kWarning);
 
   private final Watchdawg m_watchdog;
   private final Trigger m_isNearSetpointTrigger;
 
   private final LoggedTunableNumber m_shooterSetpointSpeed = new LoggedTunableNumber(
-      "Shooter/SetpointRPM", 0);
+      "Flywheel/SetpointRPM", 0);
 
   private final BangBangController m_bangBangController = new BangBangController(RPM.of(200).in(RPM));
 
   public Flywheel(FlywheelIO io) {
     m_io = io;
     m_watchdog = new Watchdawg(getClass());
-    SmartDashboard.putData("TuningModes/Shooter", tuningMode());
+    SmartDashboard.putData("TuningModes/Flywheel", tuningMode());
     m_isNearSetpointTrigger = new Trigger(() -> isNearSetpoint(RPM.of(50)));
   }
 
@@ -51,7 +52,7 @@ public class Flywheel extends SubsystemBase {
     m_watchdog.start();
 
     m_io.updateInputs(m_inputs);
-    Logger.processInputs("Shooter", m_inputs);
+    Logger.processInputs("Flywheel", m_inputs);
 
     boolean motor1HighCurrent = m_inputs.statorCurrent1.gt(Amps.of(68));
     boolean motor1NotMoving = Math.abs(m_inputs.velocity1.in(RotationsPerSecond)) < 2;
@@ -63,7 +64,7 @@ public class Flywheel extends SubsystemBase {
     m_stallAlert1.set(motor1HighCurrent && motor1NotMoving);
     m_stallAlert2.set(motor2HighCurrent && motor2NotMoving);
 
-    Logger.recordOutput("Shooter/isNearSetpoint", isNearSetpointTrigger().getAsBoolean());
+    Logger.recordOutput("Flywheel/isNearSetpoint", isNearSetpointTrigger().getAsBoolean());
 
     m_watchdog.end("periodic");
   }
@@ -96,7 +97,7 @@ public class Flywheel extends SubsystemBase {
     return run(() -> {
       AngularVelocity setpoint = targetSpeedSupplier.get();
       double output = m_bangBangController.calculate(getSpeed().in(RPM), setpoint.in(RPM));
-      Voltage feedForward = Volts.of(1.2).times(output);
+      Voltage feedForward = Volts.of(0.8).times(output);
       m_io.setSpeed(setpoint, feedForward);
     });
   }
@@ -106,7 +107,7 @@ public class Flywheel extends SubsystemBase {
   }
 
   public Command stop() {
-    return run(() -> m_io.stop());
+    return Commands.sequence(Commands.waitSeconds(0.3), run(() -> m_io.stop()));
   }
 
   public Command tuningMode() {

@@ -24,9 +24,21 @@ public interface Controls {
 
   public Trigger setpointShoot();
 
-  public Trigger fullFieldShoot();
+  public Trigger setpointFeed();
 
   public Trigger feedFuel();
+
+  public Trigger fixedShooter();
+
+  public Trigger disableShooting();
+
+  public Trigger increaseHoodAngle();
+
+  public Trigger decreaseHoodAngle();
+
+  public Trigger increaseTurretAngle();
+
+  public Trigger decreaseTurretAngle();
 
   public double getDriveForward();
 
@@ -39,4 +51,6 @@ public interface Controls {
   public Command pulseRumbleCommand(int pulses, double pulseDuration);
 
   public Trigger toggleShootOnTheMove();
+
+  public void perodic();
 }

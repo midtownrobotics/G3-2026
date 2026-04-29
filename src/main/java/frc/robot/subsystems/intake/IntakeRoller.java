@@ -44,6 +44,10 @@ public class IntakeRoller extends SubsystemBase {
     return run(() -> m_io.setVoltage(Volts.of(7)));
   }
 
+  public Command reverseIntake() {
+    return run(() -> m_io.setVoltage(Volts.of(-7)));
+  }
+
   public Command stow() {
     return run(() -> m_io.setVoltage(Volts.of(4)));
   }

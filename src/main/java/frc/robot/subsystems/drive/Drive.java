@@ -75,7 +75,7 @@ public class Drive extends SubsystemBase {
   /** PID controllers for Choreo path following */
   private final PIDController m_pathXController = new PIDController(7, 0, 0);
   private final PIDController m_pathYController = new PIDController(7, 0, 0);
-  private final PIDController m_pathThetaController = new PIDController(0, 0, 0);
+  private final PIDController m_pathThetaController = new PIDController(6, 0, 0);
 
   public Drive(
       GyroIO gyroIO,

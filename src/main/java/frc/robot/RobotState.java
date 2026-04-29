@@ -5,7 +5,6 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
-import java.util.Optional;
 import java.util.function.BooleanSupplier;
 
 import org.littletonrobotics.junction.Logger;
@@ -30,8 +29,10 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.GeometryUtil;
+import frc.robot.ShootingParameters.ShootingParametersMode;
 import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
 import frc.robot.sensors.Vision;
@@ -57,6 +58,7 @@ public class RobotState {
   private final ShootingParameters m_shootingParameters;
 
   private final Trigger m_isPreparedToShootTrigger;
+	private final Trigger m_isFeedingTrigger;
   private final Trigger m_inAllianceZoneTrigger;
 
   private final Field2d m_field2d = new Field2d();
@@ -97,15 +99,23 @@ public class RobotState {
     m_hood = hood;
     m_shootingParameters = new ShootingParameters(this);
 
+		m_inAllianceZoneTrigger = new Trigger(this::inAllianceZone)
+      .debounce(0.2, DebounceType.kFalling);
+
+		m_isFeedingTrigger = m_turret.isNearSetpointTrigger()
+				.and(() -> m_shooter.getSetpointSpeed().gt(RPM.of(500)))
+				.and(m_turret.isNearSetpointTrigger())
+				.and(() -> m_shooterState == ShooterState.kShoot)
+				.and(() -> m_shootingParameters.getMode() == ShootingParametersMode.kPass)
+				.and(RobotModeTriggers.teleop())
+				.and(m_inAllianceZoneTrigger.negate());
+
     m_isPreparedToShootTrigger = m_shooter.isNearSetpointTrigger()
         .and(() -> m_shooterState == ShooterState.kShoot)
         .and(m_hood.isNearSetpointTrigger())
         .and(m_turret.isNearSetpointTrigger())
         .and(() -> m_shooter.getSetpointSpeed().gt(RPM.of(500)))
         .debounce(0.1, DebounceType.kFalling);
-
-    m_inAllianceZoneTrigger = new Trigger(this::inAllianceZone)
-        .debounce(0.2, DebounceType.kFalling);
 
     SmartDashboard.putData("Field", m_field2d);
   }
@@ -116,26 +126,31 @@ public class RobotState {
     double timestamp = Timer.getFPGATimestamp();
     Pose2d robotPose = getRobotPose();
 
-    m_robotPoseBuffer.addSample(timestamp, robotPose);
 
-    double timeslice = 0.04;
+		ChassisSpeeds poseDerivedChassisSpeeds = null;
+		if (m_robotPoseBuffer.getInternalBuffer().isEmpty()) {
+			poseDerivedChassisSpeeds = getRobotRelativeSpeeds();
+		} else {
+			var entry = m_robotPoseBuffer.getInternalBuffer().lastEntry();
 
-    Optional<Pose2d> oldPose = m_robotPoseBuffer.getSample(timestamp - timeslice);
+      Twist2d robotTwist = entry.getValue().log(robotPose);
+			double timeslice = Timer.getFPGATimestamp() - entry.getKey();
 
-    if (oldPose.isPresent()) {
-      Twist2d robotTwist = oldPose.get().log(robotPose);
-
-      ChassisSpeeds speeds = new ChassisSpeeds(robotTwist.dx / timeslice, robotTwist.dy / timeslice,
+      poseDerivedChassisSpeeds = new ChassisSpeeds(robotTwist.dx / timeslice, robotTwist.dy / timeslice,
           robotTwist.dtheta / timeslice);
-      Logger.recordOutput("RobotState/PoseDerivedChassisSpeeds", speeds);
-    }
+		}
+
+    m_robotPoseBuffer.addSample(timestamp, robotPose);
 
     Logger.recordOutput("RobotState/fixedTurretModeEnabled", isFixedTurretModeEnabled());
     Logger.recordOutput("RobotState/shootOnTheMoveEnabled", isShootOnTheMoveEnabled());
     Logger.recordOutput("RobotState/inAllianceZoneTrigger", inAllianceZoneTrigger().getAsBoolean());
     Logger.recordOutput("RobotState/isPreparedToShootTrigger", isPreparedToShootTrigger().getAsBoolean());
     Logger.recordOutput("RobotState/shooterMode", getShooterState());
-    Logger.recordOutput("ClampedChassisSpeeds", clampChassisSpeeds(getFieldRelativeSpeeds()));
+		Logger.recordOutput("RobotState/FieldRelativeRobotSpeeds", getFieldRelativeSpeeds());
+		Logger.recordOutput("RobotState/FieldRelativeTurretSpeeds", getFieldRelativeTurretSpeeds());
+		Logger.recordOutput("RobotState/PoseDerivedRobotRelativeChassisSpeeds", poseDerivedChassisSpeeds);
+		Logger.recordOutput("RobotState/PoseDerivedFieldRelativeChassisSpeeds", ChassisSpeeds.fromRobotRelativeSpeeds(poseDerivedChassisSpeeds, robotPose.getRotation()));
 
     m_field2d.setRobotPose(getRobotPose());
   }
@@ -193,6 +208,10 @@ public class RobotState {
     return getFieldRelativeTurretSpeeds(getRobotPose());
   }
 
+  public void setFixedTurretMode(boolean enabled) {
+    m_fixedTurretModeToggle.set(enabled);
+  }
+
   public ChassisSpeeds getFieldRelativeTurretSpeeds(Pose2d robotPose) {
     ChassisSpeeds robotSpeeds = getFieldRelativeSpeeds();
     double h = Constants.kRobotToTurret.getNorm();
@@ -205,39 +224,13 @@ public class RobotState {
     return robotSpeeds.plus(robotRelativeTurretSpeeds);
   }
 
-  private ChassisSpeeds clampChassisSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
-    Pose2d pose = getRobotPose();
-
-    double cosTheta = Math.abs(pose.getRotation().getCos());
-    double sinTheta = Math.abs(pose.getRotation().getSin());
-    double robotLength = Constants.kRobotLengthWithBumpers.in(Meters);
-    double robotWidth = Constants.kRobotWidthWithBumpers.in(Meters);
-
-    double offsetX = (robotLength * cosTheta + robotWidth * sinTheta) / 2.0 + 0.1;
-    double offsetY = (robotLength * sinTheta + robotWidth * cosTheta) / 2.0 + 0.1;
-
-    double vx = fieldRelativeSpeeds.vxMetersPerSecond;
-    double vy = fieldRelativeSpeeds.vyMetersPerSecond;
-
-    if (fieldRelativeSpeeds.vxMetersPerSecond < 0 && pose.getX() < offsetX) {
-      vx = 0;
-    } else if (fieldRelativeSpeeds.vxMetersPerSecond > 0
-        && pose.getX() > FieldConstants.kFieldLength.in(Meters) - offsetX) {
-      vx = 0;
-    }
-    if (fieldRelativeSpeeds.vyMetersPerSecond < 0 && pose.getY() < offsetY) {
-      vy = 0;
-    } else if (fieldRelativeSpeeds.vyMetersPerSecond > 0
-        && pose.getY() > FieldConstants.kFieldWidth.in(Meters) - offsetY) {
-      vy = 0;
-    }
-
-    return new ChassisSpeeds(vx, vy, fieldRelativeSpeeds.omegaRadiansPerSecond);
-  }
-
   public Trigger isPreparedToShootTrigger() {
     return m_isPreparedToShootTrigger;
   }
+
+	public Trigger isFeedingTrigger() {
+		return m_isFeedingTrigger;
+	}
 
   public Angle getIntakeAngle() {
     return m_intakePivot.getAngle();
