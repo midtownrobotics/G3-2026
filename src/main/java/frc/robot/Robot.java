@@ -6,6 +6,7 @@ import static edu.wpi.first.units.Units.Seconds;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Set;
 
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -18,6 +19,8 @@ import com.ctre.phoenix6.SignalLogger;
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -246,7 +249,7 @@ public class Robot extends LoggedRobot {
 
     m_autoFactory = new AutoFactory(m_drive::getPose, m_drive::resetPose, m_drive::followPath, true, m_drive);
 
-    m_autoRoutines = new AutoRoutines(m_autoFactory, m_robotCommands);
+    m_autoRoutines = new AutoRoutines(m_autoFactory, this, m_robotCommands, m_drive);
     m_autoChooser = new AutoChooser("Do Nothing");
 
     generateAutoChooser();
@@ -368,6 +371,15 @@ public class Robot extends LoggedRobot {
 
     m_controls.toggleShootOnTheMove()
         .onTrue(m_state.setShootOnTheMoveEnabledCommand(() -> !m_state.isShootOnTheMoveEnabled()));
+
+			m_controls.lineUpToWall().whileTrue(
+    Commands.defer(() -> {
+        Pose2d current = m_drive.getPose();
+        double nearestY = current.getY() < (0.58 + 7.49) / 2 ? 0.58 : 7.49;
+        return m_autoRoutines.driveToPose(
+            new Pose2d(current.getX(), nearestY, Rotation2d.fromDegrees(180)));
+    }, Set.of(m_drive)));
+
   }
 
   public void configureTrimControlBindings(TrimControls controls) {

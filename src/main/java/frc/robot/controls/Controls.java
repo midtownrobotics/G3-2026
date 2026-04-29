@@ -32,6 +32,8 @@ public interface Controls {
 
   public Trigger disableShooting();
 
+  public Trigger lineUpToWall();
+
   public Trigger increaseHoodAngle();
 
   public Trigger decreaseHoodAngle();
