@@ -379,7 +379,8 @@ public class Robot extends LoggedRobot {
 				return Commands.parallel(
          m_autoRoutines.driveToPose(
             new Pose2d(current.getX(), nearestY, Rotation2d.fromDegrees(180))),
-						m_robotCommands.haltTurretAndHoodMovement());
+						m_robotCommands.haltTurretAndHoodMovement(),
+						m_robotCommands.runIntake());
     }, Set.of(m_drive)));
 
 		m_controls.bulldoze().whileTrue(
