@@ -395,7 +395,45 @@ public class Robot extends LoggedRobot {
                 new Pose2d(4.7, current.getY(), current.getRotation())),
             m_robotCommands.reverseIntake().repeatedly().asProxy());
     }, Set.of(m_drive)))));
+
+		m_controls.towerTeleopPath().whileTrue(
+    Commands.parallel(
+        m_robotCommands.runIntake().repeatedly().asProxy(),
+        m_robotCommands.feedFuel().repeatedly().asProxy(),
+        Commands.defer(() -> {
+            Pose2d current = m_drive.getPose();
+            return m_autoRoutines.driveToPose(
+                new Pose2d(current.getX(), current.getY(), Rotation2d.fromDegrees(270)));
+        }, Set.of(m_drive)).andThen(Commands.defer(() -> {
+            Pose2d current = m_drive.getPose();
+            return m_autoRoutines.driveToPose(
+                new Pose2d(15.7, current.getY(), current.getRotation()));
+        }, Set.of(m_drive))).andThen(Commands.defer(() -> {
+            Pose2d current = m_drive.getPose();
+            return m_autoRoutines.driveToPose(
+                new Pose2d(14.682709693908691, 5.710740089416504, current.getRotation()));
+        }, Set.of(m_drive))).andThen(Commands.defer(() -> {
+            Pose2d current = m_drive.getPose();
+            return m_autoRoutines.driveToPose(
+                new Pose2d(14.643730163574219, 4.346440315246582, current.getRotation()));
+        }, Set.of(m_drive))).andThen(Commands.defer(() -> {
+            Pose2d current = m_drive.getPose();
+            return m_autoRoutines.driveToPose(
+                new Pose2d(14.62423992156982, 3.11857008934021, current.getRotation()));
+        }, Set.of(m_drive))).andThen(Commands.defer(() -> {
+            Pose2d current = m_drive.getPose();
+            return m_autoRoutines.driveToPose(
+                new Pose2d(15.208940505981445, 1.9686601161956787, current.getRotation()));
+        }, Set.of(m_drive))).andThen(Commands.defer(() -> {
+            Pose2d current = m_drive.getPose();
+            return m_autoRoutines.driveToPose(
+                new Pose2d(15.988540649414062, 0.5653800964355469, current.getRotation()));
+        }, Set.of(m_drive))))
+    .onlyIf(() -> m_drive.getPose().getX() > 12.5)
+);
+
   }
+
 
   public void configureTrimControlBindings(TrimControls controls) {
     controls.increaseFlywheelVelocity().onTrue(m_robotCommands.increaseFlywheelVelocity());

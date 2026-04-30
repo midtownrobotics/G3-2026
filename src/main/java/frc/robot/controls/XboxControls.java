@@ -120,9 +120,14 @@ public class XboxControls implements Controls {
   public Trigger toggleShootOnTheMove() {
     return m_controller.start();
   }
-
+	@Override
 	public Trigger wallAndBulldoze() {
 		return m_controller.start();
+	}
+
+	@Override
+	public Trigger towerTeleopPath() {
+		return m_controller.rightStick();
 	}
 
   public void setRumble(boolean enabled) {

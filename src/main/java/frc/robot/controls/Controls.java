@@ -42,6 +42,8 @@ public interface Controls {
 
 	public Trigger wallAndBulldoze();
 
+	public Trigger towerTeleopPath();
+
   public double getDriveForward();
 
   public double getDriveLeft();
