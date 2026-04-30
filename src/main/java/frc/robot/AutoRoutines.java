@@ -214,4 +214,25 @@ public class AutoRoutines {
                         BumpToDepotLineup.cmd()));
         return routine;
     }
+
+		public AutoRoutine centerHubMiddleLeft() {
+        AutoRoutine routine = m_autoFactory.newRoutine("centerHubMiddleLeft");
+        AutoTrajectory hubToDepotLineup = routine.trajectory("hubToDepotLineUp");
+        AutoTrajectory MiddleTurn = routine.trajectory("MiddleTurn");
+        AutoTrajectory MiddleTurnTrench = routine.trajectory("MiddleTurnTrench");
+
+        hubToDepotLineup.atTime("Intake").onTrue(m_robotCommands.runIntake());
+				hubToDepotLineup.atTime("StopIntake").onTrue(m_robotCommands.stowIntake());
+				hubToDepotLineup.done().onTrue(m_robotCommands.shootShooterCommand());
+				hubToDepotLineup.doneDelayed(7).onTrue(MiddleTurn.cmd());
+
+        MiddleTurn.active().onTrue(m_robotCommands.fill());
+        MiddleTurn.done().onTrue(MiddleTurnTrench.cmd());
+
+        routine.active().onTrue(
+                Commands.sequence(
+                        hubToDepotLineup.resetOdometry(),
+                        hubToDepotLineup.cmd()));
+        return routine;
+    }
 }
