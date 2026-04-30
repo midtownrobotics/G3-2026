@@ -32,24 +32,24 @@ public class AutoRoutines {
         TrenchSweep.active().onTrue(m_robotCommands.runIntake());
 
         TrenchSweep.atTime("startintake").onTrue(m_robotCommands.runIntake());
-        TrenchSweep.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
+        // TrenchSweep.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
         TrenchSweep.done().onTrue(BackwardsBump.cmd());
 
         BackwardsBump.done().onTrue(BumpToTrenchSOTM.cmd());
 
         BumpToTrenchSOTM.active().onTrue(m_robotCommands.shootShooterCommand());
-        BumpToTrenchSOTM.atTime("stopshoot").onTrue(m_robotCommands.stopShooterCommand());
+        BumpToTrenchSOTM.atTime(7.5).onTrue(m_robotCommands.stopShooterCommand());
         BumpToTrenchSOTM.done().onTrue(TrenchSweep2.cmd());
 
         TrenchSweep2.atTime("startintake").onTrue(m_robotCommands.runIntake());
-        TrenchSweep2.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
+        // TrenchSweep2.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
         TrenchSweep2.done().onTrue(BackwardsBump2.cmd());
 
         BackwardsBump2.done().onTrue(m_robotCommands.shootShooterCommand());
 
         routine.active().onTrue(
                 Commands.sequence(
-																					m_robotCommands.runIntake().asProxy().withTimeout(Seconds.of(1)),
+												m_robotCommands.runIntake().asProxy().withTimeout(Seconds.of(1)),
                         TrenchSweep.resetOdometry(),
                         TrenchSweep.cmd()));
         return routine;
@@ -65,25 +65,24 @@ public class AutoRoutines {
 
         TrenchSweep.active().onTrue(m_robotCommands.runIntake());
         TrenchSweep.atTime("startintake").onTrue(m_robotCommands.runIntake());
-        TrenchSweep.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
+        // TrenchSweep.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
         TrenchSweep.done().onTrue(BackwardsBump.cmd());
 
         BackwardsBump.done().onTrue(BumpToTrenchSOTM.cmd());
 
         BumpToTrenchSOTM.active().onTrue(m_robotCommands.shootShooterCommand());
-        BumpToTrenchSOTM.atTime("stopshoot").onTrue(m_robotCommands.stopShooterCommand());
+        BumpToTrenchSOTM.atTime(7.5).onTrue(m_robotCommands.stopShooterCommand());
         BumpToTrenchSOTM.done().onTrue(TrenchSweep2.cmd());
 
         TrenchSweep2.atTime("startintake").onTrue(m_robotCommands.runIntake());
-        TrenchSweep2.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
+        // TrenchSweep2.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
         TrenchSweep2.done().onTrue(BackwardsBump2.cmd());
 
         BackwardsBump2.doneDelayed(0.5).onTrue(m_robotCommands.shootShooterCommand());
 
         routine.active().onTrue(
                 Commands.sequence(
-																																	m_robotCommands.runIntake().asProxy().withTimeout(Seconds.of(1)),
-
+												m_robotCommands.runIntake().asProxy().withTimeout(Seconds.of(1)),
                         TrenchSweep.resetOdometry(),
                         TrenchSweep.cmd()));
         return routine;

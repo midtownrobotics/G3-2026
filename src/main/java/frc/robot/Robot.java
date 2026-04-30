@@ -102,6 +102,9 @@ public class Robot extends LoggedRobot {
   private final LoggedDashboardChooser<Integer> m_cameraPipelineChooser;
 
   public Robot() {
+
+		// CameraServer.addCamera(new VideoSource(""));
+
     DriverStation.silenceJoystickConnectionWarning(Robot.isSimulation());
 
     // m_pdh.setSwitchableChannel(true);
@@ -238,7 +241,7 @@ public class Robot extends LoggedRobot {
       m_vision.setPipelinesToIndex(x);
     });
 
-		SmartDashboard.putData("Vision/setToMainFieldPipeline", Commands.runOnce(() -> m_vision.setPipelinesToIndex(0)));
+		SmartDashboard.putData("Vision/setToMainFieldPipeline", Commands.runOnce(() -> {m_vision.setPipelinesToIndex(0); }).ignoringDisable(true).withName("setToMainFieldPipeline"));
 
     m_autoFactory = new AutoFactory(m_drive::getPose, m_drive::resetPose, m_drive::followPath, true, m_drive);
 
