@@ -22,7 +22,6 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -104,7 +103,11 @@ public class Robot extends LoggedRobot {
 
   public Robot() {
 
+<<<<<<< HEAD
 		RobotController.setBrownoutVoltage(6.5);
+=======
+		// CameraServer.addCamera(new VideoSource(""));
+>>>>>>> temp-branch
 
     DriverStation.silenceJoystickConnectionWarning(Robot.isSimulation());
 
@@ -175,7 +178,7 @@ public class Robot extends LoggedRobot {
       m_turret = new Turret(new TurretIOSim());
     }
 
-    DynamicCamera turretCamera = new DynamicCamera("Turret", 10, () -> m_turret.getAngle().isNear(Degrees.of(130), Degrees.of(55)));
+    DynamicCamera turretCamera = new DynamicCamera("Turret", 3, () -> m_turret.getAngle().isNear(Degrees.of(130), Degrees.of(55)));
 
     Camera rearCamera = new Camera(
         "Rear",
@@ -242,7 +245,7 @@ public class Robot extends LoggedRobot {
       m_vision.setPipelinesToIndex(x);
     });
 		
-		SmartDashboard.putData("Vision/setToMainFieldPipeline", Commands.runOnce(() -> m_vision.setPipelinesToIndex(0)));
+		SmartDashboard.putData("Vision/setToMainFieldPipeline", Commands.runOnce(() -> {m_vision.setPipelinesToIndex(0); }).ignoringDisable(true).withName("setToMainFieldPipeline"));
 
     m_autoFactory = new AutoFactory(m_drive::getPose, m_drive::resetPose, m_drive::followPath, true, m_drive);
 
@@ -314,7 +317,7 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addRoutine("1002 Right", m_autoRoutines::copy1002right);
 		m_autoChooser.addRoutine("Bump Depot Middle Left", m_autoRoutines::bumpDepotMiddleLeft);
 		m_autoChooser.addRoutine("Trench Depot Middle Left", m_autoRoutines::trenchDepotMiddleLeft);
-
+		m_autoChooser.addRoutine("Center Depot Middle Left", m_autoRoutines::centerHubMiddleLeft);
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
     RobotModeTriggers.autonomous().whileTrue(m_autoChooser.selectedCommandScheduler());
   }

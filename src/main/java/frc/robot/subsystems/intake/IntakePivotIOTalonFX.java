@@ -88,10 +88,9 @@ public class IntakePivotIOTalonFX implements IntakePivotIO {
         .withStatorCurrentLimitEnable(true)
         .withStatorCurrentLimit(Amps.of(90));
 
-    // MotionMagic: CruiseVelocity = 180 deg/s, Acceleration = 1000 deg/s², Jerk = 10 rot/s³
     config.MotionMagic = new MotionMagicConfigs()
-        .withMotionMagicCruiseVelocity(DegreesPerSecond.of(180))
-        .withMotionMagicAcceleration(DegreesPerSecondPerSecond.of(1000))
+        .withMotionMagicCruiseVelocity(DegreesPerSecond.of(540))
+        .withMotionMagicAcceleration(DegreesPerSecondPerSecond.of(1200))
         .withMotionMagicJerk(10);
 
     config.SoftwareLimitSwitch = new SoftwareLimitSwitchConfigs()
