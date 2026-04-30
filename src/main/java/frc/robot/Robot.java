@@ -22,6 +22,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -102,6 +103,9 @@ public class Robot extends LoggedRobot {
   private final LoggedDashboardChooser<Integer> m_cameraPipelineChooser;
 
   public Robot() {
+
+		RobotController.setBrownoutVoltage(6.5);
+
     DriverStation.silenceJoystickConnectionWarning(Robot.isSimulation());
 
     // m_pdh.setSwitchableChannel(true);
@@ -393,6 +397,8 @@ public class Robot extends LoggedRobot {
 		
 		Logger.recordOutput("CanBusUsage/Drive", Ports.driveCanBus.getStatus().BusUtilization);
 		Logger.recordOutput("CanBusUsage/Mechs", Ports.primaryCanBus.getStatus().BusUtilization);
+
+		Logger.recordOutput("matchTime", DriverStation.getMatchTime());
 
     // Logger.recordOutput("Pigeon2/accelerationX", m_drive.getPigeon2().getAccelerationX().getValue());
     // Logger.recordOutput("Pigeon2/accelerationY", m_drive.getPigeon2().getAccelerationY().getValue());
