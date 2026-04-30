@@ -127,7 +127,7 @@ public class XboxControls implements Controls {
 
 	@Override
 	public Trigger towerTeleopPath() {
-		return m_controller.rightStick();
+		return m_controller.back();
 	}
 
   public void setRumble(boolean enabled) {

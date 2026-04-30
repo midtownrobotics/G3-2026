@@ -111,15 +111,14 @@ public class PoseEstimator {
     });
 
     // Clamp the odometry pose to the field boundaries to prevent large errors from accumulating
-  //  odometryPose = clampPose2dToFieldBounds(odometryPose);
+    odometryPose = clampPose2dToFieldBounds(odometryPose);
 
     // Add pose to buffer at timestamp
     poseBuffer.addSample(observation.timestamp(), odometryPose);
 
     // Apply odometry delta to the vision-corrected estimated pose
     Twist2d finalTwist = lastOdometryPose.log(odometryPose);
-    estimatedPose = estimatedPose.exp(finalTwist);
-  }
+    estimatedPose = clampPose2dToFieldBounds(estimatedPose.exp(finalTwist));  }
 
   private static Pose2d clampPose2dToFieldBounds(Pose2d pose) {
     // The axis-aligned bounding box half-extents of the rotated robot rectangle.

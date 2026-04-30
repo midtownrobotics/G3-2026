@@ -249,7 +249,7 @@ public class Robot extends LoggedRobot {
 
     m_autoFactory = new AutoFactory(m_drive::getPose, m_drive::resetPose, m_drive::followPath, true, m_drive);
 
-    m_autoRoutines = new AutoRoutines(m_autoFactory, this, m_robotCommands, m_drive);
+    m_autoRoutines = new AutoRoutines(m_autoFactory, this, m_robotCommands);
     m_autoChooser = new AutoChooser("Do Nothing");
 
     generateAutoChooser();
@@ -394,12 +394,13 @@ public class Robot extends LoggedRobot {
             m_autoRoutines.driveToPose(
                 new Pose2d(4.7, current.getY(), current.getRotation())),
             m_robotCommands.reverseIntake().repeatedly().asProxy());
-    }, Set.of(m_drive)))));
+    }, Set.of(m_drive)))).finallyDo(() -> m_robotCommands.fill().schedule()));
 
 		m_controls.towerTeleopPath().whileTrue(
     Commands.parallel(
         m_robotCommands.runIntake().repeatedly().asProxy(),
         m_robotCommands.feedFuel().repeatedly().asProxy(),
+        m_robotCommands.shootShooterCommand().repeatedly().asProxy(),
         Commands.defer(() -> {
             Pose2d current = m_drive.getPose();
             return m_autoRoutines.driveToPose(
@@ -430,6 +431,7 @@ public class Robot extends LoggedRobot {
                 new Pose2d(15.988540649414062, 0.5653800964355469, current.getRotation()));
         }, Set.of(m_drive))))
     .onlyIf(() -> m_drive.getPose().getX() > 12.5)
+    .finallyDo(() -> m_robotCommands.snowBlow().schedule())
 );
 
   }
