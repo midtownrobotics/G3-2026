@@ -87,7 +87,7 @@ public class Feeder extends SubsystemBase {
   }
 
   public Command stop() {
-    return run(() -> m_io.stop());
+    return runOnce(() -> m_io.stop());
   }
 
   public Command runReverse() {

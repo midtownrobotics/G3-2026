@@ -81,12 +81,9 @@ public class RobotCommands {
         .withName("autoAimAndPrepareShootTeleop");
   }
 
-  public Command autoAimAndPrepareShootAutonomous() {
-    return Commands
-        .parallel(shootShooterCommand(), m_intakePivot.stow(),
-            Commands.either(autoAimWithDrivetrainForAutonomous(), driveCommand(), m_state::isFixedTurretModeEnabled))
-        .withName("autoAimAndPrepareShootAutonomous");
-  }
+	public Command stowHood() {
+		return m_hood.setAngleCommand(Degrees.zero());
+	}
 
   public Command hoodAndFlywheelTrackShootingParamters() {
     return Commands.parallel(
@@ -110,16 +107,11 @@ public class RobotCommands {
         m_state.setShooterStateCommand(ShooterState.kRev));
   }
 
-  public Command shootShooterCommand() {
-    return Commands.parallel(hoodAndFlywheelTrackShootingParamters(),
-        m_state.setShooterStateCommand(ShooterState.kShoot));
-  }
-
-	public Command startShooting() {
+	public Command startShootingCommand() {
 		return m_state.setShooterStateCommand(ShooterState.kShoot);
 	}
 
-	public Command stopShooting() {
+	public Command stopShootingCommand() {
 		return m_state.setShooterStateCommand(ShooterState.kIdle);
 	}
 
@@ -164,7 +156,7 @@ public class RobotCommands {
   }
 
   public Command stowIntakeAndHaltTurretMovement() {
-    return Commands.parallel(idle(), m_turret.stop(), zeroTurretHood().andThen(m_hood.stop()))
+    return Commands.parallel(idle(), m_turret.stop(), zeroTurretHood().andThen(stowHood()))
         .withTimeout(Seconds.of(0.5))
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming).withName("stowIntakeAndHaltTurretMovement");
   }
@@ -175,7 +167,7 @@ public class RobotCommands {
 
   public Command fill() {
     return Commands
-        .parallel(m_shooter.stop(), m_feeder.stop(), runIntake(), m_state.setShooterStateCommand(ShooterState.kIdle))
+        .parallel(m_shooter.stop(), m_feeder.stop(), runIntake(), stowHood(), m_state.setShooterStateCommand(ShooterState.kIdle))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("fill");
   }
 
