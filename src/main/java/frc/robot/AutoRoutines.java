@@ -178,66 +178,21 @@ public class AutoRoutines {
         return routine;
     }
 
-		public AutoRoutine bumpDepotMiddleLeft() {
-        AutoRoutine routine = m_autoFactory.newRoutine("bumpDepotMiddleLeft");
-        AutoTrajectory BumpToDepotLineup = routine.trajectory("BumpToDepotLineup");
-        AutoTrajectory MiddleTurn = routine.trajectory("MiddleTurn");
-        AutoTrajectory MiddleTurnBump = routine.trajectory("MiddleTurnBump");
+		public AutoRoutine match13Depot() {
+        AutoRoutine routine = m_autoFactory.newRoutine("match13Depot");
+        AutoTrajectory CenterDepot = routine.trajectory("CenterDepot");
+        AutoTrajectory DepotMiddle = routine.trajectory("CenterDepot");
 
-        BumpToDepotLineup.atTime("Intake").onTrue(m_robotCommands.runIntake());
-				BumpToDepotLineup.atTime("StopIntake").onTrue(m_robotCommands.stowIntake());
-				BumpToDepotLineup.done().onTrue(m_robotCommands.shootShooterCommand());
-				BumpToDepotLineup.doneDelayed(7).onTrue(MiddleTurn.cmd());
+        CenterDepot.active().onTrue(m_robotCommands.runIntake().asProxy());
+        CenterDepot.done().onTrue(m_robotCommands.shootShooterCommand());
+        CenterDepot.doneDelayed(8).onTrue(DepotMiddle.cmd());
 
-        MiddleTurn.active().onTrue(m_robotCommands.stowIntake());
-        MiddleTurn.done().onTrue(MiddleTurnBump.cmd());
+        DepotMiddle.active().onTrue(m_robotCommands.fill());
 
         routine.active().onTrue(
                 Commands.sequence(
-                        BumpToDepotLineup.resetOdometry(),
-                        BumpToDepotLineup.cmd()));
-        return routine;
-    }
-
-		public AutoRoutine trenchDepotMiddleLeft() {
-        AutoRoutine routine = m_autoFactory.newRoutine("trenchDepotMiddleLeft");
-        AutoTrajectory BumpToDepotLineup = routine.trajectory("BumpToDepotLineup");
-        AutoTrajectory MiddleTurn = routine.trajectory("MiddleTurn");
-        AutoTrajectory MiddleTurnTrench = routine.trajectory("MiddleTurnTrench");
-
-        BumpToDepotLineup.atTime("Intake").onTrue(m_robotCommands.runIntake());
-				BumpToDepotLineup.atTime("StopIntake").onTrue(m_robotCommands.stowIntake());
-				BumpToDepotLineup.done().onTrue(m_robotCommands.shootShooterCommand());
-				BumpToDepotLineup.doneDelayed(7).onTrue(MiddleTurn.cmd());
-
-        MiddleTurn.active().onTrue(m_robotCommands.fill());
-        MiddleTurn.done().onTrue(MiddleTurnTrench.cmd());
-
-        routine.active().onTrue(
-                Commands.sequence(
-                        BumpToDepotLineup.resetOdometry(),
-                        BumpToDepotLineup.cmd()));
-        return routine;
-    }
-
-		public AutoRoutine centerHubMiddleLeft() {
-        AutoRoutine routine = m_autoFactory.newRoutine("centerHubMiddleLeft");
-        AutoTrajectory hubToDepotLineup = routine.trajectory("hubToDepotLineUp");
-        AutoTrajectory MiddleTurn = routine.trajectory("MiddleTurn");
-        AutoTrajectory MiddleTurnTrench = routine.trajectory("MiddleTurnTrench");
-
-        hubToDepotLineup.atTime("Intake").onTrue(m_robotCommands.runIntake());
-				hubToDepotLineup.atTime("StopIntake").onTrue(m_robotCommands.stowIntake());
-				hubToDepotLineup.done().onTrue(m_robotCommands.shootShooterCommand());
-				hubToDepotLineup.doneDelayed(7).onTrue(MiddleTurn.cmd());
-
-        MiddleTurn.active().onTrue(m_robotCommands.fill());
-        MiddleTurn.done().onTrue(MiddleTurnTrench.cmd());
-
-        routine.active().onTrue(
-                Commands.sequence(
-                        hubToDepotLineup.resetOdometry(),
-                        hubToDepotLineup.cmd()));
+                        CenterDepot.resetOdometry(),
+                        CenterDepot.cmd()));
         return routine;
     }
 }

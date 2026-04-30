@@ -22,6 +22,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -103,11 +104,7 @@ public class Robot extends LoggedRobot {
 
   public Robot() {
 
-<<<<<<< HEAD
 		RobotController.setBrownoutVoltage(6.5);
-=======
-		// CameraServer.addCamera(new VideoSource(""));
->>>>>>> temp-branch
 
     DriverStation.silenceJoystickConnectionWarning(Robot.isSimulation());
 
@@ -315,9 +312,8 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addRoutine("Hub Swipe Right", m_autoRoutines::HubSwipeRight);
     m_autoChooser.addRoutine("1002 Left", m_autoRoutines::copy1002left);
     m_autoChooser.addRoutine("1002 Right", m_autoRoutines::copy1002right);
-		m_autoChooser.addRoutine("Bump Depot Middle Left", m_autoRoutines::bumpDepotMiddleLeft);
-		m_autoChooser.addRoutine("Trench Depot Middle Left", m_autoRoutines::trenchDepotMiddleLeft);
-		m_autoChooser.addRoutine("Center Depot Middle Left", m_autoRoutines::centerHubMiddleLeft);
+		m_autoChooser.addRoutine("Match 13 Depot", m_autoRoutines::match13Depot);
+
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
     RobotModeTriggers.autonomous().whileTrue(m_autoChooser.selectedCommandScheduler());
   }
