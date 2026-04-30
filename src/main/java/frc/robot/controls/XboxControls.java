@@ -121,16 +121,9 @@ public class XboxControls implements Controls {
     return m_controller.start();
   }
 
-	@Override
-  public Trigger lineUpToWall() {
-    return m_controller.rightStick();
-  }
-
-	@Override
-  public Trigger bulldoze() {
-    return m_controller.leftStick();
-  }
-
+	public Trigger wallAndBulldoze() {
+		return m_controller.start();
+	}
 
   public void setRumble(boolean enabled) {
     m_controller.setRumble(RumbleType.kBothRumble, enabled ? 0.5 : 0);

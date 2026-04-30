@@ -32,10 +32,6 @@ public interface Controls {
 
   public Trigger disableShooting();
 
-  public Trigger lineUpToWall();
-
-	public Trigger bulldoze();
-
   public Trigger increaseHoodAngle();
 
   public Trigger decreaseHoodAngle();
@@ -43,6 +39,8 @@ public interface Controls {
   public Trigger increaseTurretAngle();
 
   public Trigger decreaseTurretAngle();
+
+	public Trigger wallAndBulldoze();
 
   public double getDriveForward();
 

@@ -372,25 +372,29 @@ public class Robot extends LoggedRobot {
     m_controls.toggleShootOnTheMove()
         .onTrue(m_state.setShootOnTheMoveEnabledCommand(() -> !m_state.isShootOnTheMoveEnabled()));
 
-			m_controls.lineUpToWall().whileTrue(
+
+		m_controls.wallAndBulldoze().whileTrue(
+			Commands.defer(() -> {
+        Pose2d current = m_drive.getPose();
+        return Commands.deadline(
+            m_autoRoutines.driveToPose(
+                new Pose2d(current.getX(), current.getY(), Rotation2d.fromDegrees(180))),
+            m_robotCommands.haltTurretAndHoodMovement());
+    }, Set.of(m_drive)).andThen(
     Commands.defer(() -> {
         Pose2d current = m_drive.getPose();
         double nearestY = current.getY() < (0.58 + 7.49) / 2 ? 0.58 : 7.49;
-				return Commands.parallel(
-         m_autoRoutines.driveToPose(
-            new Pose2d(current.getX(), nearestY, Rotation2d.fromDegrees(180))),
-						m_robotCommands.haltTurretAndHoodMovement(),
-						m_robotCommands.runIntake());
-    }, Set.of(m_drive)));
-
-		m_controls.bulldoze().whileTrue(
-    Commands.defer(() -> {
+        return Commands.deadline(
+            m_autoRoutines.driveToPose(
+                new Pose2d(current.getX(), nearestY,  Rotation2d.fromDegrees(180))),
+            m_robotCommands.runIntake());
+    }, Set.of(m_drive)).andThen(Commands.defer(() -> {
         Pose2d current = m_drive.getPose();
-        return Commands.parallel(
+        return Commands.deadline(
             m_autoRoutines.driveToPose(
                 new Pose2d(4.7, current.getY(), current.getRotation())),
-            m_robotCommands.reverseIntake());
-    }, Set.of(m_drive)));
+            m_robotCommands.reverseIntake().repeatedly().asProxy());
+    }, Set.of(m_drive)))));
   }
 
   public void configureTrimControlBindings(TrimControls controls) {
