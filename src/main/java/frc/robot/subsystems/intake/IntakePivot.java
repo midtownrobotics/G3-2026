@@ -93,6 +93,10 @@ public class IntakePivot extends SubsystemBase {
     return m_currentSpikeTrigger;
   }
 
+	public boolean isDown() {
+		return getAngle().isNear(Degrees.of(0), Degrees.of(5));
+	}
+
   public void setLowerSoftLimitEnabled(boolean enabled) {
     m_io.setLowerSoftLimitEnabled(enabled);
   }

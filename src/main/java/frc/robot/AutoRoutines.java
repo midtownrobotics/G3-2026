@@ -8,16 +8,20 @@ import choreo.auto.AutoTrajectory;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.lib.LoggedTunableNumber;
 import frc.robot.commands.RobotCommands;
+import frc.robot.subsystems.intake.IntakePivot;
 
 public class AutoRoutines {
 
     private final AutoFactory m_autoFactory;
     private final RobotCommands m_robotCommands;
+		private final Robot m_robot;
+		private final IntakePivot m_intakePivot;
 		private final LoggedTunableNumber m_hubSwipeDelaySeconds = new LoggedTunableNumber("HubSwipeDelaySeconds", 0.0);
 
     public AutoRoutines(AutoFactory autoFactory, Robot robot, RobotCommands robotCommands) {
         m_autoFactory = autoFactory;
         m_robotCommands = robotCommands;
+				m_intakePivot = robot.m_intakePivot;
     }
 
     public AutoRoutine MadtownLeft() {
@@ -47,6 +51,8 @@ public class AutoRoutines {
 
         routine.active().onTrue(
                 Commands.sequence(
+												m_robotCommands.runIntake(),
+												Commands.waitUntil(m_robot.m_intakePivot.isDown()),
                         TrenchSweep.resetOdometry(),
                         TrenchSweep.cmd()));
         return routine;
@@ -80,7 +86,7 @@ public class AutoRoutines {
         routine.active().onTrue(
                 Commands.sequence(
                         TrenchSweep.resetOdometry(),
-                        TrenchSweep.cmd()));
+												TrenchSweep.cmd()));
         return routine;
     }
 
@@ -95,6 +101,7 @@ public class AutoRoutines {
 
         routine.active().onTrue(
                 Commands.sequence(
+									
 												Commands.defer(() ->  Commands.waitSeconds(m_hubSwipeDelaySeconds.get()), Set.of()),
                         HubSwipe.resetOdometry(),
                         HubSwipe.cmd()));
