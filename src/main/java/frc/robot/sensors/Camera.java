@@ -36,7 +36,7 @@ public class Camera {
   private final double m_stdDevMultiplier;
   private final Supplier<Boolean> m_enabledSupplier;
 
-  private static final double kDefaultStdMultiplier = 25;
+  private static final double kDefaultStdMultiplier = 2;
 
   private static final LoggedTunableNumber kCameraStdDevMultiplier = new LoggedTunableNumber(
       "Vision/CameraStdDevMultiplier", 1.0);

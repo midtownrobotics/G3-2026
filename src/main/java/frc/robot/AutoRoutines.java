@@ -1,5 +1,7 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Seconds;
+
 import java.util.Set;
 
 import choreo.auto.AutoFactory;
@@ -27,8 +29,8 @@ public class AutoRoutines {
         AutoTrajectory BackwardsBump = routine.trajectory("BackwardsBump").mirrorY();
         AutoTrajectory BackwardsBump2 = routine.trajectory("BackwardsBump").mirrorY();
         AutoTrajectory BumpToTrenchSOTM = routine.trajectory("BumpToTrenchSOTM").mirrorY();
-
         TrenchSweep.active().onTrue(m_robotCommands.runIntake());
+
         TrenchSweep.atTime("startintake").onTrue(m_robotCommands.runIntake());
         TrenchSweep.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
         TrenchSweep.done().onTrue(BackwardsBump.cmd());
@@ -47,6 +49,7 @@ public class AutoRoutines {
 
         routine.active().onTrue(
                 Commands.sequence(
+																					m_robotCommands.runIntake().asProxy().withTimeout(Seconds.of(1)),
                         TrenchSweep.resetOdometry(),
                         TrenchSweep.cmd()));
         return routine;
@@ -75,10 +78,12 @@ public class AutoRoutines {
         TrenchSweep2.atTime("stopintake").onTrue(m_robotCommands.stowIntake());
         TrenchSweep2.done().onTrue(BackwardsBump2.cmd());
 
-        BackwardsBump2.done().onTrue(m_robotCommands.shootShooterCommand());
+        BackwardsBump2.doneDelayed(0.5).onTrue(m_robotCommands.shootShooterCommand());
 
         routine.active().onTrue(
                 Commands.sequence(
+																																	m_robotCommands.runIntake().asProxy().withTimeout(Seconds.of(1)),
+
                         TrenchSweep.resetOdometry(),
                         TrenchSweep.cmd()));
         return routine;
