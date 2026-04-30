@@ -172,4 +172,22 @@ public class AutoRoutines {
                         copy1002left.cmd()));
         return routine;
     }
+
+		public AutoRoutine match13Depot() {
+        AutoRoutine routine = m_autoFactory.newRoutine("match13Depot");
+        AutoTrajectory CenterDepot = routine.trajectory("CenterDepot");
+        AutoTrajectory DepotMiddle = routine.trajectory("CenterDepot");
+
+        CenterDepot.active().onTrue(m_robotCommands.runIntake().asProxy());
+        CenterDepot.done().onTrue(m_robotCommands.shootShooterCommand());
+        CenterDepot.doneDelayed(8).onTrue(DepotMiddle.cmd());
+
+        DepotMiddle.active().onTrue(m_robotCommands.fill());
+
+        routine.active().onTrue(
+                Commands.sequence(
+                        CenterDepot.resetOdometry(),
+                        CenterDepot.cmd()));
+        return routine;
+    }
 }

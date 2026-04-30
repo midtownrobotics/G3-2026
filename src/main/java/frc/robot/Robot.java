@@ -308,6 +308,7 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addRoutine("Hub Swipe Right", m_autoRoutines::HubSwipeRight);
     m_autoChooser.addRoutine("1002 Left", m_autoRoutines::copy1002left);
     m_autoChooser.addRoutine("1002 Right", m_autoRoutines::copy1002right);
+		m_autoChooser.addRoutine("Match 13 Depot", m_autoRoutines::match13Depot);
 
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
     RobotModeTriggers.autonomous().whileTrue(m_autoChooser.selectedCommandScheduler());
