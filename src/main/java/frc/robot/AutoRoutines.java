@@ -181,7 +181,7 @@ public class AutoRoutines {
 		public AutoRoutine match13Depot() {
         AutoRoutine routine = m_autoFactory.newRoutine("match13Depot");
         AutoTrajectory CenterDepot = routine.trajectory("CenterDepot");
-        AutoTrajectory DepotMiddle = routine.trajectory("CenterDepot");
+        AutoTrajectory DepotMiddle = routine.trajectory("DepotMiddle");
 
         CenterDepot.active().onTrue(m_robotCommands.runIntake().asProxy());
         CenterDepot.done().onTrue(m_robotCommands.shootShooterCommand());
