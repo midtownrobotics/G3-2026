@@ -1,5 +1,6 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
@@ -105,6 +106,7 @@ public class RobotState {
 		m_isFeedingTrigger = m_turret.isNearSetpointTrigger()
 				.and(() -> m_shooter.isNearSetpoint(RPM.of(500)))
 				.and(() -> m_shooter.getSpeed().gt(RPM.of(1600)))
+				.and(() -> !getRobotPose().getMeasureY().isNear(FieldConstants.getHubPosition2d().getMeasureY(), Feet.of(2.5)))
 				.and(() -> m_shooterState == ShooterState.kShoot)
 				.and(() -> m_shootingParameters.getMode() == ShootingParametersMode.kPass)
 				.and(RobotModeTriggers.teleop())
@@ -114,7 +116,8 @@ public class RobotState {
         .and(() -> m_shooterState == ShooterState.kShoot)
         .and(m_hood.isNearSetpointTrigger())
         .and(m_turret.isNearSetpointTrigger())
-        .and(() -> m_shooter.getSetpointSpeed().gt(RPM.of(500)))
+				.and(() -> m_shootingParameters.getMode() == ShootingParametersMode.kShoot)
+        .and(() -> m_shooter.getSetpointSpeed().gt(RPM.of(1200)))
         .debounce(0.1, DebounceType.kFalling);
 	
 				SmartDashboard.putData("Field", m_field2d);
