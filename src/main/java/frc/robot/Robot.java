@@ -241,12 +241,12 @@ public class Robot extends LoggedRobot {
     m_cameraPipelineChooser.onChange(x -> {
       m_vision.setPipelinesToIndex(x);
     });
-
+		
 		SmartDashboard.putData("Vision/setToMainFieldPipeline", Commands.runOnce(() -> m_vision.setPipelinesToIndex(0)));
 
     m_autoFactory = new AutoFactory(m_drive::getPose, m_drive::resetPose, m_drive::followPath, true, m_drive);
 
-    m_autoRoutines = new AutoRoutines(m_autoFactory, this, m_robotCommands);
+    m_autoRoutines = new AutoRoutines(m_autoFactory, m_robotCommands);
     m_autoChooser = new AutoChooser("Do Nothing");
 
     generateAutoChooser();
