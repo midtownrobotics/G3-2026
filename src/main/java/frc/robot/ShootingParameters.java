@@ -108,6 +108,8 @@ public class ShootingParameters {
   );
 
   private final InterpolatingDoubleTreeMap m_feedingFlywheelVelocityMap = InterpolatingDoubleTreeMap.ofEntries(
+			Map.entry(Feet.of(10).in(Meters), RPM.of(1100).in(RadiansPerSecond)),
+			Map.entry(Feet.of(15).in(Meters), RPM.of(1350).in(RadiansPerSecond)),
       Map.entry(Feet.of(21).in(Meters), RPM.of(1650).in(RadiansPerSecond)),
 			Map.entry(Feet.of(26).in(Meters), RPM.of(2000).in(RadiansPerSecond)),
 			Map.entry(Feet.of(31).in(Meters), RPM.of(2300).in(RadiansPerSecond)),
