@@ -91,6 +91,13 @@ public class RobotCommands {
   public Command hoodAndFlywheelTrackShootingParamters() {
     return Commands.parallel(
         m_hood.setAngleCommand(() -> m_state.getShootingParameters().getParameters().hoodAngle()),
+        m_shooter.bangBangCommand(() -> m_state.getShootingParameters().getParameters().flywheelVelocity()))
+        .withName("hoodAndFlywheelTrackShootingParamters");
+  }
+
+	public Command hoodAndFlywheelTrackShootingParamtersm13() {
+    return Commands.parallel(
+        m_hood.setAngleCommand(() -> m_state.getShootingParameters().getParameters().hoodAngle()),
         m_shooter.setSpeedCommand(() -> m_state.getShootingParameters().getParameters().flywheelVelocity()))
         .withName("hoodAndFlywheelTrackShootingParamters");
   }
@@ -112,6 +119,11 @@ public class RobotCommands {
 
   public Command shootShooterCommand() {
     return Commands.parallel(hoodAndFlywheelTrackShootingParamters(),
+        m_state.setShooterStateCommand(ShooterState.kShoot)).withName("shootShooterCommand");
+  }
+
+	  public Command shootShooterCommandm13() {
+    return Commands.parallel(hoodAndFlywheelTrackShootingParamtersm13(),
         m_state.setShooterStateCommand(ShooterState.kShoot)).withName("shootShooterCommand");
   }
 

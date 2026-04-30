@@ -184,7 +184,7 @@ public class AutoRoutines {
         AutoTrajectory DepotMiddle = routine.trajectory("DepotMiddle");
 
         CenterDepot.active().onTrue(m_robotCommands.runIntake().asProxy());
-        CenterDepot.done().onTrue(m_robotCommands.shootShooterCommand());
+        CenterDepot.done().onTrue(m_robotCommands.shootShooterCommandm13());
         CenterDepot.doneDelayed(8).onTrue(DepotMiddle.cmd());
 
         DepotMiddle.active().onTrue(m_robotCommands.fill());
