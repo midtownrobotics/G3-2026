@@ -121,7 +121,7 @@ public class ShootingParameters {
   private double m_flywheelVelocityModifier = 1;
   private Angle m_hoodAngleModifier = Degrees.of(0);
   private double m_ToFModifier = 1.0;
-  private Angle m_turretAngleModifier = Degrees.of(1);
+  private Angle m_turretAngleModifier = Degrees.of(0);
 
   private final RobotState m_state;
 
@@ -240,8 +240,9 @@ public class ShootingParameters {
     Logger.recordOutput("ShootingParameters/distanceToAdjustedTarget", distanceToTarget);
     Logger.recordOutput("ShootingParameters/distanceToTarget", rawDistanceToTarget);
     Logger.recordOutput("ShootingParameters/tofMultiplier", m_ToFModifier);
-    Logger.recordOutput("ShootingParameters/hoodAngleAdjustment", m_hoodAngleModifier);
+    Logger.recordOutput("ShootingParameters/hoodAngleAdjustment", m_hoodAngleModifier.in(Degrees));
     Logger.recordOutput("ShootingParameters/shooterRPMMultiplier", m_flywheelVelocityModifier);
+		Logger.recordOutput("ShootingParameters/turretAngleAdjustment", m_turretAngleModifier.in(Degrees));
     Logger.recordOutput("ShootingParameters/mode", m_mode);
 
     m_watchdog.end("periodic");
