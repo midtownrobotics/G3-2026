@@ -246,6 +246,10 @@ public class RobotCommands {
         }).withName("zeroTurretHood");
   }
 
+	public Command zeroTurretYaw() {
+		return m_turret.setAngleCommand(Degrees.of(90));
+	}
+
   public Command zeroIntake() {
     return m_intakePivot.setLowerSoftLimitEnabledCommand(false)
         .andThen(m_intakePivot.setVoltage(Volts.of(-3.5)).until(m_intakePivot.getCurrentSpikeTrigger())

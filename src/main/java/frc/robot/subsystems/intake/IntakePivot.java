@@ -67,7 +67,7 @@ public class IntakePivot extends SubsystemBase {
   }
 
   public Command intake() {
-    return run(() -> m_io.setVoltage(Volts.of(5)));
+    return run(() -> m_io.setVoltage(Volts.of(-3)));
   }
 
   public Command tuningMode() {

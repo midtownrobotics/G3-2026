@@ -96,7 +96,7 @@ public class Flywheel extends SubsystemBase {
     return run(() -> {
       AngularVelocity setpoint = targetSpeedSupplier.get();
       double output = m_bangBangController.calculate(getSpeed().in(RPM), setpoint.in(RPM));
-      Voltage feedForward = Volts.of(0.8).times(output);
+      Voltage feedForward = Volts.of(0.4).times(output);
       m_io.setSpeed(setpoint, feedForward);
     });
   }
