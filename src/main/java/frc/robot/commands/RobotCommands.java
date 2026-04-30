@@ -114,6 +114,11 @@ public class RobotCommands {
         m_state.setShooterStateCommand(ShooterState.kRev));
   }
 
+  public Command shootShooterCommand() {
+    return Commands.parallel(hoodAndFlywheelTrackShootingParamters(),
+        m_state.setShooterStateCommand(ShooterState.kShoot));
+  }
+
 	public Command startShootingCommand() {
 		return m_state.setShooterStateCommand(ShooterState.kShoot);
 	}
