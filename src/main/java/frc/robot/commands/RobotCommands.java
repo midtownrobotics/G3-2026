@@ -127,6 +127,14 @@ public class RobotCommands {
         m_state.setShooterStateCommand(ShooterState.kShoot)).withName("shootShooterCommand");
   }
 
+	public Command startShooting() {
+		return m_state.setShooterStateCommand(ShooterState.kShoot);
+	}
+
+	public Command stopShooting() {
+		return m_state.setShooterStateCommand(ShooterState.kIdle);
+	}
+
   public Command stopShooterCommand() {
     return Commands.parallel(m_shooter.stop(), m_state.setShooterStateCommand(ShooterState.kIdle));
   }
