@@ -6,9 +6,12 @@
 // the root directory of this project.
 package frc.robot.util;
 
+import static edu.wpi.first.units.Units.Meters;
+
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 import edu.wpi.first.math.MathUtil;
@@ -19,12 +22,15 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import frc.robot.constants.Constants;
+import frc.robot.constants.FieldConstants;
 import lombok.Getter;
 
 /**
@@ -103,7 +109,8 @@ public class PoseEstimator {
     });
 
     // Clamp the odometry pose to the field boundaries to prevent large errors from accumulating
-    odometryPose = clampPose2dToFieldBounds(odometryPose);
+    // odometryPose = clampPose2dToFieldBounds(odometryPose);
+		Logger.recordOutput("PoseEstimator/odometryPose", odometryPose);
 
     // Add pose to buffer at timestamp
     poseBuffer.addSample(observation.timestamp(), odometryPose);
@@ -114,8 +121,6 @@ public class PoseEstimator {
   }
 
   private static Pose2d clampPose2dToFieldBounds(Pose2d pose) {
-		return pose;
-
     // The axis-aligned bounding box half-extents of the rotated robot rectangle.
     // For a rectangle of dimensions L x W rotated by θ:
     //   halfExtentX = (|L*cosθ| + |W*sinθ|) / 2
@@ -123,19 +128,19 @@ public class PoseEstimator {
 
 		// actual code vvvvvv
 
-    // double cosTheta = Math.abs(pose.getRotation().getCos());
-    // double sinTheta = Math.abs(pose.getRotation().getSin());
-    // double robotLength = Constants.kRobotLengthWithBumpers.in(Meters);
-    // double robotWidth = Constants.kRobotWidthWithBumpers.in(Meters);
+    double cosTheta = Math.abs(pose.getRotation().getCos());
+    double sinTheta = Math.abs(pose.getRotation().getSin());
+    double robotLength = Constants.kRobotLengthWithBumpers.in(Meters);
+    double robotWidth = Constants.kRobotWidthWithBumpers.in(Meters);
 
-    // double offsetX = (robotLength * cosTheta + robotWidth * sinTheta) / 2.0;
-    // double offsetY = (robotLength * sinTheta + robotWidth * cosTheta) / 2.0;
+    double offsetX = (robotLength * cosTheta + robotWidth * sinTheta) / 2.0;
+    double offsetY = (robotLength * sinTheta + robotWidth * cosTheta) / 2.0;
 
-    // return new Pose2d(
-    //     new Translation2d(
-    //         MathUtil.clamp(pose.getX(), offsetX, FieldConstants.kFieldLength.in(Meters) - offsetX),
-    //         MathUtil.clamp(pose.getY(), offsetY, FieldConstants.kFieldWidth.in(Meters) - offsetY)),
-    //     pose.getRotation());
+    return new Pose2d(
+        new Translation2d(
+            MathUtil.clamp(pose.getX(), offsetX, FieldConstants.kFieldLength.in(Meters) - offsetX),
+            MathUtil.clamp(pose.getY(), offsetY, FieldConstants.kFieldWidth.in(Meters) - offsetY)),
+        pose.getRotation());
   }
 
   /** Adds a new vision pose observation from the vision subsystem. */
