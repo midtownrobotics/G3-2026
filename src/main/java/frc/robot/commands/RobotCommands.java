@@ -132,8 +132,8 @@ public class RobotCommands {
   }
 
   public Command shakeIntake() {
-    return Commands.repeatingSequence(m_intakePivot.setAngle(Degrees.of(40)).withTimeout(0.2),
-        m_intakePivot.setAngle(Degrees.of(30)).withTimeout(0.2));
+    return Commands.repeatingSequence(m_intakePivot.setAngle(Degrees.of(45)).withTimeout(0.2),
+        m_intakePivot.setAngle(Degrees.of(20)).withTimeout(0.2));
   }
 
   public Command runIntake() {
