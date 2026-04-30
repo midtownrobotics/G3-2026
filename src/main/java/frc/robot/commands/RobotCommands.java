@@ -92,6 +92,13 @@ public class RobotCommands {
         .withName("hoodAndFlywheelTrackShootingParamters");
   }
 
+	public Command hoodAndFlywheelTrackShootingParamtersm13() {
+    return Commands.parallel(
+        m_hood.setAngleCommand(() -> m_state.getShootingParameters().getParameters().hoodAngle()),
+        m_shooter.setSpeedCommand(() -> m_state.getShootingParameters().getParameters().flywheelVelocity()))
+        .withName("hoodAndFlywheelTrackShootingParamters");
+  }
+
   public Command autoAimWithDrivetrainForTeleop() {
     return m_driveCommands.rotateRobot(() -> m_state.getShootingParameters().getTargetRobotRotation())
         .withName("autoAimForTeleop");
