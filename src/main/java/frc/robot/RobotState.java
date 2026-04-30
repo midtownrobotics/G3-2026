@@ -103,8 +103,8 @@ public class RobotState {
       .debounce(0.2, DebounceType.kFalling);
 
 		m_isFeedingTrigger = m_turret.isNearSetpointTrigger()
-				.and(() -> m_shooter.getSetpointSpeed().gt(RPM.of(500)))
-				.and(m_turret.isNearSetpointTrigger())
+				.and(() -> m_shooter.isNearSetpoint(RPM.of(500)))
+				.and(() -> m_shooter.getSpeed().gt(RPM.of(1600)))
 				.and(() -> m_shooterState == ShooterState.kShoot)
 				.and(() -> m_shootingParameters.getMode() == ShootingParametersMode.kPass)
 				.and(RobotModeTriggers.teleop())
@@ -116,10 +116,8 @@ public class RobotState {
         .and(m_turret.isNearSetpointTrigger())
         .and(() -> m_shooter.getSetpointSpeed().gt(RPM.of(500)))
         .debounce(0.1, DebounceType.kFalling);
-
-		
-
-    SmartDashboard.putData("Field", m_field2d);
+	
+				SmartDashboard.putData("Field", m_field2d);
   }
 
   public void periodic() {

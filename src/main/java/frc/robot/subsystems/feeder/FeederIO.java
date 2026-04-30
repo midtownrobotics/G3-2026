@@ -15,13 +15,18 @@ import edu.wpi.first.units.measure.Voltage;
 public interface FeederIO {
   @AutoLog
   public static class FeederIOInputs {
-    public AngularVelocity velocity = RPM.zero();
-    public Voltage appliedVoltage = Volts.zero();
-    public Current statorCurrent = Amps.zero();
-    public Current supplyCurrent = Amps.zero();
+    public AngularVelocity velocity1 = RPM.zero();
+		public AngularVelocity velocity2 = RPM.zero();
+    public Voltage appliedVoltage1 = Volts.zero();
+		public Voltage appliedVoltage2 = Volts.zero();
+    public Current statorCurrent1 = Amps.zero();
+    public Current supplyCurrent1 = Amps.zero();
+		public Current statorCurrent2 = Amps.zero();
+    public Current supplyCurrent2 = Amps.zero();
     public Distance fuelSensorDistance = Meters.of(Double.MAX_VALUE);
     public AngularVelocity setpoint = RPM.zero();
-    public boolean motorConnected = false;
+    public boolean motorConnected1 = false;
+		public boolean motorConnected2 = false;
   }
 
   default void updateInputs(FeederIOInputs inputs) {
