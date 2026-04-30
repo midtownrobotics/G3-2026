@@ -302,6 +302,8 @@ public class Robot extends LoggedRobot {
     SmartDashboard.putData("StartSignalLogger", Commands.runOnce(() -> SignalLogger.start()));
     SmartDashboard.putData("StopSignalLogger", Commands.runOnce(() -> SignalLogger.stop()));
 
+		
+		SmartDashboard.putData("Commands/ZeroTurretAngle", m_robotCommands.zeroTurretAngle());
     SmartDashboard.putData("Drive/DriveStraightRobotRelative", m_robotCommands.driveStrightRobotRelative());
   }
 

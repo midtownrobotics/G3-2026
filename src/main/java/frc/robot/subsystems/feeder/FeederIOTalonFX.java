@@ -22,6 +22,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
+import frc.lib.PhoenixUtil;
 import frc.robot.constants.Ports;
 
 public class FeederIOTalonFX implements FeederIO {
@@ -58,9 +59,10 @@ public class FeederIOTalonFX implements FeederIO {
         .withStatorCurrentLimitEnable(true)
         .withStatorCurrentLimit(Amps.of(120))
         .withSupplyCurrentLimitEnable(true)
-        .withSupplyCurrentLimit(Amps.of(70));
+        .withSupplyCurrentLimit(Amps.of(40));
 
-    m_motorLeader.getConfigurator().apply(config);
+    PhoenixUtil.tryUntilOk(5, () -> m_motorLeader.getConfigurator().apply(config));
+    PhoenixUtil.tryUntilOk(5, () -> m_motorFollower.getConfigurator().apply(config));
 
     // Configure CANrange
     CANrangeConfiguration fuelSensorConfig = new CANrangeConfiguration();

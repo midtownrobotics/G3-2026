@@ -246,8 +246,8 @@ public class RobotCommands {
         }).withName("zeroTurretHood");
   }
 
-	public Command zeroTurretYaw() {
-		return m_turret.setAngleCommand(Degrees.of(90));
+	public Command zeroTurretAngle() {
+		return m_turret.zeroEncoderAngleCommand().ignoringDisable(true);
 	}
 
   public Command zeroIntake() {

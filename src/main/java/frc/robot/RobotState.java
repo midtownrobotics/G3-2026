@@ -117,6 +117,8 @@ public class RobotState {
         .and(() -> m_shooter.getSetpointSpeed().gt(RPM.of(500)))
         .debounce(0.1, DebounceType.kFalling);
 
+		
+
     SmartDashboard.putData("Field", m_field2d);
   }
 

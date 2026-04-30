@@ -53,6 +53,9 @@ public class PoseEstimator {
   private final LoggedNetworkBoolean m_tiltCompensationEnabled = new LoggedNetworkBoolean(
       "Toggles/OdometryTiltCompensation", false);
 
+	private static LoggedNetworkBoolean m_wallClampEnabled = new LoggedNetworkBoolean(
+      "Toggles/WallClamp", true);
+
   private final SwerveDriveKinematics kinematics;
   private SwerveModulePosition[] lastWheelPositions = new SwerveModulePosition[] {
       new SwerveModulePosition(),
@@ -136,7 +139,8 @@ public class PoseEstimator {
     double offsetX = (robotLength * cosTheta + robotWidth * sinTheta) / 2.0;
     double offsetY = (robotLength * sinTheta + robotWidth * cosTheta) / 2.0;
 
-    return new Pose2d(
+		 
+			return new Pose2d(
         new Translation2d(
             MathUtil.clamp(pose.getX(), offsetX, FieldConstants.kFieldLength.in(Meters) - offsetX),
             MathUtil.clamp(pose.getY(), offsetY, FieldConstants.kFieldWidth.in(Meters) - offsetY)),
@@ -199,7 +203,11 @@ public class PoseEstimator {
 
     // Recalculate the current estimate by applying the scaled transform at sample time,
     // then shifting forward to the present using odometry data
-    estimatedPose = clampPose2dToFieldBounds(estimateAtTime.plus(scaledTransform).plus(sampleToOdometryTransform));
+		estimatedPose = estimateAtTime.plus(scaledTransform).plus(sampleToOdometryTransform);
+
+    if (m_wallClampEnabled.get()) {
+			estimatedPose = clampPose2dToFieldBounds(estimatedPose);
+		}
   }
 
   /**
