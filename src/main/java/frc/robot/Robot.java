@@ -380,7 +380,7 @@ public class Robot extends LoggedRobot {
 
 	m_controls.wallAndBulldoze().whileTrue(
     Commands.defer(() -> {
-        Distance yOffset = Constants.kRobotWidthWithBumpers.div(2).plus(Feet.of(0.3));
+        Distance yOffset = Constants.kRobotWidthWithBumpers.div(2).plus(Feet.of(0.4));
         Pose2d current = m_drive.getPose();
         Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
         boolean isBlue = alliance.equals(Alliance.Blue);
@@ -394,7 +394,7 @@ public class Robot extends LoggedRobot {
         return Commands.parallel(
             Commands.sequence(
                 m_autoRoutines.driveToPose(
-                    new Pose2d(current.getMeasureX(), nearestY.minus(Meters.of(0.2)), bulldozeAngle)),
+                    new Pose2d(current.getMeasureX(), nearestY, bulldozeAngle)),
                 m_autoRoutines.driveToPose(
                     new Pose2d(hubX, nearestY, bulldozeAngle))
             ),
