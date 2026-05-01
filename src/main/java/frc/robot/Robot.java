@@ -1,6 +1,7 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Seconds;
 
@@ -24,7 +25,9 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -37,6 +40,7 @@ import frc.lib.Watchdawg;
 import frc.robot.RobotState.ShooterState;
 import frc.robot.ShootingParameters.ShootingParametersMode;
 import frc.robot.commands.RobotCommands;
+import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.Ports;
 import frc.robot.controls.Controls;
@@ -375,6 +379,27 @@ public class Robot extends LoggedRobot {
 
 		m_controls.wallAndBulldoze().whileTrue(
 			Commands.defer(() -> {
+				Distance yOffset = Constants.kRobotWidthWithBumpers.div(2).plus(Feet.of(1));
+        Pose2d current = m_drive.getPose();
+				Distance nearestY = current.getMeasureY().lt(FieldConstants.getHubPosition2d().getMeasureY()) ? yOffset : FieldConstants.kFieldWidth.minus(yOffset);
+
+				return Commands.parallel(
+					Commands.sequence(
+            m_autoRoutines.driveToPose(
+                new Pose2d(current.getX(), current.getY(), DriverStation.getAlliance().orElseGet(() -> Alliance.Blue).equals(Alliance.Blue) ? Rotation2d.fromDegrees(180): Rotation2d.fromDegrees(0))),
+								            m_autoRoutines.driveToPose(
+                new Pose2d(current.getMeasureX(), nearestY,  Rotation2d.fromDegrees(180))),
+								  m_autoRoutines.driveToPose(
+                new Pose2d(DriverStation.getAlliance().orElseGet(() -> Alliance.Blue).equals(Alliance.Blue) ? 4.7 : 11.8, current.getY(), current.getRotation()))
+					),
+					m_robotCommands.haltTurretAndHoodMovement(),
+					m_robotCommands.reverseIntake()
+				);
+			}, Set.of(m_drive, m_hood, m_turret, m_intakePivot, m_intakeRoller)));
+
+
+		m_controls.wallAndBulldoze().whileTrue(
+			Commands.defer(() -> {
         Pose2d current = m_drive.getPose();
         return Commands.deadline(
             m_autoRoutines.driveToPose(
@@ -395,8 +420,6 @@ public class Robot extends LoggedRobot {
                 new Pose2d(4.7, current.getY(), current.getRotation())),
             m_robotCommands.fill().asProxy());
     }, Set.of(m_drive)))).finallyDo(() -> m_robotCommands.fill().schedule()));
-
-
   }
 
   public void configureTrimControlBindings(TrimControls controls) {
