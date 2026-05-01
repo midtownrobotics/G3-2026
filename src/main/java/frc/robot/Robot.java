@@ -3,6 +3,7 @@ package frc.robot;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Seconds;
 
 import java.net.InetAddress;
@@ -377,50 +378,34 @@ public class Robot extends LoggedRobot {
         .onTrue(m_state.setShootOnTheMoveEnabledCommand(() -> !m_state.isShootOnTheMoveEnabled()));
 
 
-		m_controls.wallAndBulldoze().whileTrue(
-			Commands.defer(() -> {
-				Distance yOffset = Constants.kRobotWidthWithBumpers.div(2).plus(Feet.of(1));
-        Pose2d current = m_drive.getPose();
-				Distance nearestY = current.getMeasureY().lt(FieldConstants.getHubPosition2d().getMeasureY()) ? yOffset : FieldConstants.kFieldWidth.minus(yOffset);
-
-				return Commands.parallel(
-					Commands.sequence(
-            m_autoRoutines.driveToPose(
-                new Pose2d(current.getX(), current.getY(), DriverStation.getAlliance().orElseGet(() -> Alliance.Blue).equals(Alliance.Blue) ? Rotation2d.fromDegrees(180): Rotation2d.fromDegrees(0))),
-								            m_autoRoutines.driveToPose(
-                new Pose2d(current.getMeasureX(), nearestY,  Rotation2d.fromDegrees(180))),
-								  m_autoRoutines.driveToPose(
-                new Pose2d(DriverStation.getAlliance().orElseGet(() -> Alliance.Blue).equals(Alliance.Blue) ? 4.7 : 11.8, current.getY(), current.getRotation()))
-					),
-					m_robotCommands.haltTurretAndHoodMovement(),
-					m_robotCommands.reverseIntake()
-				);
-			}, Set.of(m_drive, m_hood, m_turret, m_intakePivot, m_intakeRoller)));
-
-
-		m_controls.wallAndBulldoze().whileTrue(
-			Commands.defer(() -> {
-        Pose2d current = m_drive.getPose();
-        return Commands.deadline(
-            m_autoRoutines.driveToPose(
-                new Pose2d(current.getX(), current.getY(), Rotation2d.fromDegrees(180))),
-            m_robotCommands.haltTurretAndHoodMovement());
-    }, Set.of(m_drive, m_hood, m_turret)).andThen(
+	m_controls.wallAndBulldoze().whileTrue(
     Commands.defer(() -> {
+        Distance yOffset = Constants.kRobotWidthWithBumpers.div(2).plus(Feet.of(0.3));
         Pose2d current = m_drive.getPose();
-        double nearestY = current.getY() < (0.58 + 7.49) / 2 ? 0.58 : 7.49;
-        return Commands.deadline(
-            m_autoRoutines.driveToPose(
-                new Pose2d(current.getX(), nearestY,  Rotation2d.fromDegrees(180))),
-						m_robotCommands.haltTurretAndHoodMovement());
-    }, Set.of(m_drive)).andThen(Commands.defer(() -> {
-        Pose2d current = m_drive.getPose();
-        return Commands.deadline(
-            m_autoRoutines.driveToPose(
-                new Pose2d(4.7, current.getY(), current.getRotation())),
-            m_robotCommands.fill().asProxy());
-    }, Set.of(m_drive)))).finallyDo(() -> m_robotCommands.fill().schedule()));
-  }
+        Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
+        boolean isBlue = alliance.equals(Alliance.Blue);
+
+        Rotation2d bulldozeAngle = Rotation2d.fromDegrees(isBlue ? 180 : 0);
+        Distance nearestY = current.getMeasureY().lt(FieldConstants.getHubPosition2d().getMeasureY())
+            ? yOffset
+            : FieldConstants.kFieldWidth.minus(yOffset);
+        Distance hubX = isBlue ? Meters.of(4.7) : Meters.of(12.8);
+
+        return Commands.parallel(
+            Commands.sequence(
+                m_autoRoutines.driveToPose(
+                    new Pose2d(current.getMeasureX(), nearestY.minus(Meters.of(0.2)), bulldozeAngle)),
+                m_autoRoutines.driveToPose(
+                    new Pose2d(hubX, nearestY, bulldozeAngle))
+            ),
+            m_robotCommands.haltTurretAndHoodMovement(),
+            m_robotCommands.reverseIntake()
+        );
+    }, Set.of(m_drive, m_hood, m_turret, m_intakePivot, m_intakeRoller)));
+    }
+
+
+		
 
   public void configureTrimControlBindings(TrimControls controls) {
     controls.increaseFlywheelVelocity().onTrue(m_robotCommands.increaseFlywheelVelocity());
