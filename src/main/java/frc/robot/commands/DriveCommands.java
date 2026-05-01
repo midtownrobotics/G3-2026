@@ -38,8 +38,8 @@ public class DriveCommands {
     m_drive = drive;
     m_state = state;
 
-    SlewRateLimiter m_forwardLimiter = new SlewRateLimiter(1.3);
-    SlewRateLimiter m_leftLimiter = new SlewRateLimiter(1.3);
+    SlewRateLimiter m_forwardLimiter = new SlewRateLimiter(1.0);
+    SlewRateLimiter m_leftLimiter = new SlewRateLimiter(1.0);
 
     m_driveLeftSupplier = () -> rateLimitInput(driveLeftSupplier.get(), m_leftLimiter);
     m_driveForwardSupplier = () -> rateLimitInput(driveForwardSupplier.get(), m_forwardLimiter);
@@ -68,7 +68,7 @@ public class DriveCommands {
       return 0.0;
     }
 
-    if (isScoring()) {
+    if (isShooting()) {
       return magnitude;
     }
 
@@ -107,8 +107,8 @@ public class DriveCommands {
     return rotateRobot(rotation);
   }
 
-  private boolean isScoring() {
-    return m_state.inAllianceZone() && m_state.getShooterState() == ShooterState.kShoot;
+  private boolean isShooting() {
+    return m_state.getShooterState() == ShooterState.kShoot;
   }
 
   private Command joyStickDrive() {
@@ -116,7 +116,7 @@ public class DriveCommands {
     return Commands.run(
         () -> {
           watchdog.start();
-          double shootingMultiplier = isScoring() ? 0.3 : 1.0;
+          double shootingMultiplier = isShooting() ? 0.25 : 1.0;
           double maxSpeed = Constants.kMaxLinearSpeed.in(MetersPerSecond)
               * Constants.kLinearSpeedMultiplier * shootingMultiplier;
           ChassisSpeeds fieldRelativeSpeeds = new ChassisSpeeds(
