@@ -91,20 +91,20 @@ public class ShootingParameters {
 			Map.entry(Feet.of(48-6).in(Meters), Degrees.of(28).in(Radians)));
 
   private final InterpolatingDoubleTreeMap m_scoringFlywheelVelocityMap = InterpolatingDoubleTreeMap.ofEntries(
-      Map.entry(Feet.of(4).in(Meters), RPM.of(1450+50+25).in(RadiansPerSecond)),
-      Map.entry(Feet.of(5).in(Meters), RPM.of(1450+50+25).in(RadiansPerSecond)),
-      Map.entry(Feet.of(6).in(Meters), RPM.of(1500+50+25).in(RadiansPerSecond)),
-      Map.entry(Feet.of(7).in(Meters), RPM.of(1600+50+25).in(RadiansPerSecond)),
-      Map.entry(Feet.of(8).in(Meters), RPM.of(1600+50+25).in(RadiansPerSecond)),
-      Map.entry(Feet.of(9).in(Meters), RPM.of(1700+50+25).in(RadiansPerSecond)),
-      Map.entry(Feet.of(10).in(Meters), RPM.of(1700+50+25).in(RadiansPerSecond)),
-      Map.entry(Feet.of(11).in(Meters), RPM.of(1800+50+25).in(RadiansPerSecond)),
-      Map.entry(Feet.of(12).in(Meters), RPM.of(1850+50+25).in(RadiansPerSecond)),
-      Map.entry(Feet.of(13).in(Meters), RPM.of(2000+50+25).in(RadiansPerSecond)),
-      Map.entry(Feet.of(14).in(Meters), RPM.of(2050+50+25).in(RadiansPerSecond)),
-      Map.entry(Feet.of(15).in(Meters), RPM.of(2100+50+25).in(RadiansPerSecond)),
-      Map.entry(Feet.of(16).in(Meters), RPM.of(2200+50+25).in(RadiansPerSecond)),
-      Map.entry(Feet.of(25).in(Meters), RPM.of(2600+50+25).in(RadiansPerSecond)) //
+      Map.entry(Feet.of(4).in(Meters), RPM.of(1450+50+25+50).in(RadiansPerSecond)),
+      Map.entry(Feet.of(5).in(Meters), RPM.of(1450+50+25+50).in(RadiansPerSecond)),
+      Map.entry(Feet.of(6).in(Meters), RPM.of(1500+50+25+50).in(RadiansPerSecond)),
+      Map.entry(Feet.of(7).in(Meters), RPM.of(1600+50+25+50).in(RadiansPerSecond)),
+      Map.entry(Feet.of(8).in(Meters), RPM.of(1600+50+25+50).in(RadiansPerSecond)),
+      Map.entry(Feet.of(9).in(Meters), RPM.of(1700+50+25+50).in(RadiansPerSecond)),
+      Map.entry(Feet.of(10).in(Meters), RPM.of(1700+50+25+50).in(RadiansPerSecond)),
+      Map.entry(Feet.of(11).in(Meters), RPM.of(1800+50+25+50).in(RadiansPerSecond)),
+      Map.entry(Feet.of(12).in(Meters), RPM.of(1850+50+25+50).in(RadiansPerSecond)),
+      Map.entry(Feet.of(13).in(Meters), RPM.of(2000+50+25+50).in(RadiansPerSecond)),
+      Map.entry(Feet.of(14).in(Meters), RPM.of(2050+50+25+50).in(RadiansPerSecond)),
+      Map.entry(Feet.of(15).in(Meters), RPM.of(2100+50+25+50).in(RadiansPerSecond)),
+      Map.entry(Feet.of(16).in(Meters), RPM.of(2200+50+25+50).in(RadiansPerSecond)),
+      Map.entry(Feet.of(25).in(Meters), RPM.of(2600+50+25+50).in(RadiansPerSecond)) //
   );
 
   private final InterpolatingDoubleTreeMap m_feedingFlywheelVelocityMap = InterpolatingDoubleTreeMap.ofEntries(
