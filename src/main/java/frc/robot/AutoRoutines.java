@@ -1,5 +1,7 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.Set;
@@ -45,8 +47,8 @@ public class AutoRoutines {
                 12.044,  
                 682.5,   
                 2945.6,  
-                0.05,    
-                2.0,     
+                Inches.of(3.5).in(Meters),    
+                2.0,
                 0.3));   
 
         pathBuilder = new FollowPath.Builder(
@@ -54,9 +56,9 @@ public class AutoRoutines {
                 drive::getPose,
                 drive::getChassisSpeeds,
                 drive::runVelocity,
+                new PIDController(7.0, 0.0, 0.0),
                 new PIDController(5.0, 0.0, 0.0),
-                new PIDController(3.0, 0.0, 0.0),
-                new PIDController(2.0, 0.0, 0.0));
+                new PIDController(4.0, 0.0, 0.0));
     }
 
     public Command driveToPose(Pose2d target) {
