@@ -14,7 +14,8 @@
  "params":{
   "waypoints":[
     {"x":{"exp":"AllianceBumpFar.x", "val":2.96}, "y":{"exp":"Trench.y", "val":0.5848698616027832}, "heading":{"exp":"Trench.heading", "val":-3.096169361557012}, "intervals":14, "split":false, "fixTranslation":true, "fixHeading":true, "overrideIntervals":false},
-    {"x":{"exp":"Trench.x", "val":4.33351993560791}, "y":{"exp":"Trench.y", "val":0.5848698616027832}, "heading":{"exp":"Trench.heading", "val":-3.096169361557012}, "intervals":14, "split":false, "fixTranslation":true, "fixHeading":true, "overrideIntervals":false}],
+    {"x":{"exp":"Trench.x", "val":4.33351993560791}, "y":{"exp":"Trench.y", "val":0.5848698616027832}, "heading":{"exp":"Trench.heading", "val":-3.096169361557012}, "intervals":14, "split":false, "fixTranslation":true, "fixHeading":true, "overrideIntervals":false},
+    {"x":{"exp":"Trench.x", "val":4.33351993560791}, "y":{"exp":"Trench.y", "val":0.5848698616027832}, "heading":{"exp":"-3.096169361557012 rad", "val":-3.096169361557012}, "intervals":17, "split":false, "fixTranslation":true, "fixHeading":true, "overrideIntervals":false}],
   "constraints":[
     {"from":"first", "to":null, "data":{"type":"StopPoint", "props":{}}, "enabled":true},
     {"from":"last", "to":null, "data":{"type":"StopPoint", "props":{}}, "enabled":true},
