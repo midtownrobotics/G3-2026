@@ -118,7 +118,11 @@ public class PoseEstimator {
 
     // Apply odometry delta to the vision-corrected estimated pose
     Twist2d finalTwist = lastOdometryPose.log(odometryPose);
-    estimatedPose = (estimatedPose.exp(finalTwist));
+    estimatedPose = estimatedPose.exp(finalTwist);
+
+		if (m_wallClampEnabled.get()) {
+			estimatedPose = clampPose2dToFieldBounds(estimatedPose);
+		}
   }
 
   private static Pose2d clampPose2dToFieldBounds(Pose2d pose) {
