@@ -5,6 +5,20 @@
  "variables":{
   "expressions":{},
   "poses":{
+   "AllianceBumpClose":{
+    "x":{
+     "exp":"2.96 m",
+     "val":2.96
+    },
+    "y":{
+     "exp":"5.39 m",
+     "val":5.39
+    },
+    "heading":{
+     "exp":"2.38 rad",
+     "val":2.38
+    }
+   },
    "AllianceBumpFar":{
     "x":{
      "exp":"2.96 m",
@@ -45,6 +59,20 @@
     "heading":{
      "exp":"-2.2411594327053814 rad",
      "val":-2.2411594327053814
+    }
+   },
+   "CenterBumpMirrored":{
+    "x":{
+     "exp":"6.21 m",
+     "val":6.21
+    },
+    "y":{
+     "exp":"5.41 m",
+     "val":5.41
+    },
+    "heading":{
+     "exp":"2.24 rad",
+     "val":2.24
     }
    },
    "CenterBumpStart":{

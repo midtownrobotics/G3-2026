@@ -197,4 +197,27 @@ public class AutoRoutines {
                         CenterDepot.cmd()));
         return routine;
     }
+
+		public AutoRoutine rightHubCleanUp() {
+        AutoRoutine rightHubCleanUp = m_autoFactory.newRoutine("rightHubCleanUp");
+        AutoTrajectory RightTrenchToCenterBack = rightHubCleanUp.trajectory("RightTrenchToCenterBack");
+        AutoTrajectory RightHubCleanup = rightHubCleanUp.trajectory("RightHubCleanup");
+				AutoTrajectory BackwardsBump = rightHubCleanUp.trajectory("BackwardsBump").mirrorY(); 
+				AutoTrajectory LeftBumpToDepot = rightHubCleanUp.trajectory("LeftBumpToDepot");
+
+				RightTrenchToCenterBack.done().onTrue(RightHubCleanup.cmd());
+				RightHubCleanup.done().onTrue(BackwardsBump.cmd());
+				BackwardsBump.atTime(0.7).onTrue(m_robotCommands.revShooterCommand());
+				BackwardsBump.done().onTrue(LeftBumpToDepot.cmd());
+				LeftBumpToDepot.active().onTrue(m_robotCommands.startShootingCommand());
+				LeftBumpToDepot.atTime("stopShooting").onTrue(m_robotCommands.fill());
+				LeftBumpToDepot.atTime("startShooting").onTrue(m_robotCommands.startShootingCommand());
+
+        rightHubCleanUp.active().onTrue(
+                Commands.sequence(
+												m_robotCommands.runIntake().asProxy().withTimeout(Seconds.of(2)),
+                        RightTrenchToCenterBack.resetOdometry(),
+                        RightTrenchToCenterBack.cmd()));
+        return rightHubCleanUp;
+    }
 }
