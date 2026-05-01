@@ -397,32 +397,7 @@ public class Robot extends LoggedRobot {
 					m_robotCommands.reverseIntake()
 				);
 			}, Set.of(m_drive, m_hood, m_turret, m_intakePivot, m_intakeRoller)));
-
-
-		m_controls.wallAndBulldoze().whileTrue(
-			Commands.defer(() -> {
-        Pose2d current = m_drive.getPose();
-        return Commands.deadline(
-            m_autoRoutines.driveToPose(
-                new Pose2d(current.getX(), current.getY(), Rotation2d.fromDegrees(180))),
-            m_robotCommands.haltTurretAndHoodMovement());
-    }, Set.of(m_drive, m_hood, m_turret)).andThen(
-    Commands.defer(() -> {
-        Pose2d current = m_drive.getPose();
-        double nearestY = current.getY() < (0.58 + 7.49) / 2 ? 0.58 : 7.49;
-        return Commands.deadline(
-            m_autoRoutines.driveToPose(
-                new Pose2d(current.getX(), nearestY,  Rotation2d.fromDegrees(180))),
-						m_robotCommands.haltTurretAndHoodMovement());
-    }, Set.of(m_drive)).andThen(Commands.defer(() -> {
-        Pose2d current = m_drive.getPose();
-        return Commands.deadline(
-            m_autoRoutines.driveToPose(
-                new Pose2d(4.7, current.getY(), current.getRotation())),
-            m_robotCommands.fill().asProxy());
-    }, Set.of(m_drive)))).finallyDo(() -> m_robotCommands.fill().schedule()));
-  }
-
+		}
   public void configureTrimControlBindings(TrimControls controls) {
     controls.increaseFlywheelVelocity().onTrue(m_robotCommands.increaseFlywheelVelocity());
     controls.decreaseFlywheelVelocity().onTrue(m_robotCommands.decreaseFlywheelVelocity());
