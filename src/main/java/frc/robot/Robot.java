@@ -249,7 +249,7 @@ public class Robot extends LoggedRobot {
 
     m_autoFactory = new AutoFactory(m_drive::getPose, m_drive::resetPose, m_drive::followPath, true, m_drive);
 
-    m_autoRoutines = new AutoRoutines(m_autoFactory, this, m_robotCommands);
+    m_autoRoutines = new AutoRoutines(m_autoFactory, this, m_robotCommands, m_drive);
     m_autoChooser = new AutoChooser("Do Nothing");
 
     generateAutoChooser();
@@ -435,7 +435,6 @@ public class Robot extends LoggedRobot {
 );
 
   }
-
 
   public void configureTrimControlBindings(TrimControls controls) {
     controls.increaseFlywheelVelocity().onTrue(m_robotCommands.increaseFlywheelVelocity());

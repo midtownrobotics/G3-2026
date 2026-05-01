@@ -118,7 +118,8 @@ public class PoseEstimator {
 
     // Apply odometry delta to the vision-corrected estimated pose
     Twist2d finalTwist = lastOdometryPose.log(odometryPose);
-    estimatedPose = clampPose2dToFieldBounds(estimatedPose.exp(finalTwist));  }
+    estimatedPose = (estimatedPose.exp(finalTwist));
+  }
 
   private static Pose2d clampPose2dToFieldBounds(Pose2d pose) {
     // The axis-aligned bounding box half-extents of the rotated robot rectangle.
