@@ -88,7 +88,7 @@ public class RobotCommands {
   public Command hoodAndFlywheelTrackShootingParamters() {
     return Commands.parallel(
         m_hood.setAngleCommand(() -> m_state.getShootingParameters().getParameters().hoodAngle()),
-        m_shooter.bangBangCommand(() -> m_state.getShootingParameters().getParameters().flywheelVelocity()))
+        m_shooter.setSpeedCommandWithFeedForward(() -> m_state.getShootingParameters().getParameters().flywheelVelocity()))
         .withName("hoodAndFlywheelTrackShootingParamters");
   }
 
@@ -215,7 +215,7 @@ public class RobotCommands {
 
   public Command setPointShoot() {
     return Commands.parallel(
-        m_shooter.bangBangCommand(() -> RPM.of(1800)), m_hood.setAngleCommand(Degrees.of(2)))
+        m_shooter.setSpeedCommandWithFeedForward(() -> RPM.of(1800)), m_hood.setAngleCommand(Degrees.of(2)))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("setPointShoot");
   }
 
