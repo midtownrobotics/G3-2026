@@ -110,9 +110,6 @@ public class PoseEstimator {
       odometryPose = new Pose2d(odometryPose.getTranslation(), angle);
     });
 
-    // Clamp the odometry pose to the field boundaries to prevent large errors from accumulating
-    odometryPose = clampPose2dToFieldBounds(odometryPose);
-
     // Add pose to buffer at timestamp
     poseBuffer.addSample(observation.timestamp(), odometryPose);
 
