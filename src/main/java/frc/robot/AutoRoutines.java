@@ -34,7 +34,7 @@ public class AutoRoutines {
     private static final Pose2d kTrenchEntryRight = new Pose2d(4.334, 0.585, kTrenchHeading);
     private static final Pose2d kTrenchExitRight = new Pose2d(6.589, 0.795, kTrenchHeading);
 
-    public AutoRoutines(AutoFactory autoFactory, Robot robot, RobotCommands robotCommands,
+    public AutoRoutines(AutoFactory autoFactory, RobotCommands robotCommands,
             Drive drive) {
         m_autoFactory = autoFactory;
         m_robotCommands = robotCommands;
