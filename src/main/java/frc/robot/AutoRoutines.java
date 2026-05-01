@@ -56,9 +56,9 @@ public class AutoRoutines {
                 drive::getPose,
                 drive::getChassisSpeeds,
                 drive::runVelocity,
+                new PIDController(7.0, 0.0, 0.0),
                 new PIDController(5.0, 0.0, 0.0),
-                new PIDController(3.0, 0.0, 0.0),
-                new PIDController(2.0, 0.0, 0.0));
+                new PIDController(4.0, 0.0, 0.0));
     }
 
     public Command driveToPose(Pose2d target) {
