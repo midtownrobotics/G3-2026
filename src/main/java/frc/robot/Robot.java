@@ -383,21 +383,22 @@ public class Robot extends LoggedRobot {
 				Distance yOffset = Constants.kRobotWidthWithBumpers.div(2).plus(Feet.of(1));
         Pose2d current = m_drive.getPose();
 				Distance nearestY = current.getMeasureY().lt(FieldConstants.getHubPosition2d().getMeasureY()) ? yOffset : FieldConstants.kFieldWidth.minus(yOffset);
-
+				Rotation2d angle = DriverStation.getAlliance().orElseGet(() -> Alliance.Blue).equals(Alliance.Blue) ? Rotation2d.fromDegrees(180): Rotation2d.fromDegrees(0);
 				return Commands.parallel(
 					Commands.sequence(
             m_autoRoutines.driveToPose(
-                new Pose2d(current.getX(), current.getY(), DriverStation.getAlliance().orElseGet(() -> Alliance.Blue).equals(Alliance.Blue) ? Rotation2d.fromDegrees(180): Rotation2d.fromDegrees(0))),
+                new Pose2d(current.getX(), current.getY(), angle)),
 								            m_autoRoutines.driveToPose(
-                new Pose2d(current.getMeasureX(), nearestY,  Rotation2d.fromDegrees(180))),
+                new Pose2d(current.getMeasureX(), nearestY,  angle)),
 								  m_autoRoutines.driveToPose(
-                new Pose2d(DriverStation.getAlliance().orElseGet(() -> Alliance.Blue).equals(Alliance.Blue) ? 4.7 : 11.8, current.getY(), current.getRotation()))
+                new Pose2d(FieldConstants.getHubPosition2d().getMeasureX(), nearestY, angle))
 					),
 					m_robotCommands.haltTurretAndHoodMovement(),
 					m_robotCommands.reverseIntake()
 				);
 			}, Set.of(m_drive, m_hood, m_turret, m_intakePivot, m_intakeRoller)));
 		}
+
   public void configureTrimControlBindings(TrimControls controls) {
     controls.increaseFlywheelVelocity().onTrue(m_robotCommands.increaseFlywheelVelocity());
     controls.decreaseFlywheelVelocity().onTrue(m_robotCommands.decreaseFlywheelVelocity());

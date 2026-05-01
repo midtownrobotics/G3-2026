@@ -47,7 +47,7 @@ public class AutoRoutines {
                 12.044,  
                 682.5,   
                 2945.6,  
-                Inches.of(3.5).in(Meters),    
+                Inches.of(1).in(Meters),    
                 2.0,
                 0.3));   
 
