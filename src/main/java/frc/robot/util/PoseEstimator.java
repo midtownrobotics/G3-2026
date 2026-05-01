@@ -11,6 +11,7 @@ import static edu.wpi.first.units.Units.Meters;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 import edu.wpi.first.math.MathUtil;
@@ -109,6 +110,10 @@ public class PoseEstimator {
       Rotation2d angle = gyroAngle.plus(gyroOffset);
       odometryPose = new Pose2d(odometryPose.getTranslation(), angle);
     });
+
+    // Clamp the odometry pose to the field boundaries to prevent large errors from accumulating
+    // odometryPose = clampPose2dToFieldBounds(odometryPose);
+		Logger.recordOutput("PoseEstimator/odometryPose", odometryPose);
 
     // Add pose to buffer at timestamp
     poseBuffer.addSample(observation.timestamp(), odometryPose);
