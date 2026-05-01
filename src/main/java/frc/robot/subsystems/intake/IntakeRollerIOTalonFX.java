@@ -43,7 +43,9 @@ public class IntakeRollerIOTalonFX implements IntakeRollerIO {
 
     config.CurrentLimits = new CurrentLimitsConfigs()
         .withStatorCurrentLimitEnable(true)
-        .withStatorCurrentLimit(Amps.of(90));
+        .withStatorCurrentLimit(Amps.of(90))
+				.withSupplyCurrentLimitEnable(true)
+				.withSupplyCurrentLimit(Amps.of(30));
 
     config.OpenLoopRamps = new OpenLoopRampsConfigs().withVoltageOpenLoopRampPeriod(Seconds.of(2.0));
 
