@@ -43,14 +43,14 @@ public class IntakePivotIOSim implements IntakePivotIO {
         true, // simulate gravity
         Math.toRadians(0)); // starting angle
 
-    // MotionMagic equivalent: cruise velocity 180 deg/s, accel 1000 deg/s²
+    // MotionMagic equivalent: cruise velocity 180 deg/s, accel 1000 deg/s^2
     m_controller = new ProfiledPIDController(
         3.0,
         0,
         0,
         new TrapezoidProfile.Constraints(
             Math.toRadians(180), // max velocity rad/s
-            Math.toRadians(1000) // max accel rad/s²
+            Math.toRadians(1000) // max accel rad/s^2
         ));
     m_controller.setTolerance(Math.toRadians(1));
   }

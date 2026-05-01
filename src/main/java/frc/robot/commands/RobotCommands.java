@@ -174,12 +174,12 @@ public class RobotCommands {
   }
 
   public Command haltTurretAndHoodMovement() {
-    return Commands.parallel(m_turret.stop(), m_hood.stop()).withInterruptBehavior(InterruptionBehavior.kCancelSelf);
+    return Commands.parallel(m_turret.stop(), stowHood()).withInterruptBehavior(InterruptionBehavior.kCancelSelf);
   }
 
   public Command fill() {
     return Commands
-        .parallel(m_shooter.stop(), m_feeder.stop(), runIntake(), stowHood(), m_state.setShooterStateCommand(ShooterState.kIdle))
+        .parallel(m_shooter.stop(), m_turret.stop(), m_feeder.stop(), runIntake(), stowHood(), m_state.setShooterStateCommand(ShooterState.kIdle))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("fill");
   }
 

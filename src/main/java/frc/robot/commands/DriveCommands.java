@@ -49,7 +49,7 @@ public class DriveCommands {
 
   /**
    * Gets the robot heading adjusted for alliance perspective.
-   * On red alliance, rotates by 180° so that "forward" on the joystick
+   * On red alliance, rotates by 180 deg so that "forward" on the joystick
    * always means "away from the driver" regardless of alliance color.
    */
   private Rotation2d getAllianceAdjustedRotation() {

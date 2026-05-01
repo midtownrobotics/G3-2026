@@ -40,6 +40,8 @@ public interface Controls {
 
   public Trigger decreaseTurretAngle();
 
+	public Trigger wallAndBulldoze();
+
   public double getDriveForward();
 
   public double getDriveLeft();
