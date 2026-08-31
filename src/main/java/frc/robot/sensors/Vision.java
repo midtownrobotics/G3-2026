@@ -61,7 +61,7 @@ public class Vision extends SubsystemBase {
     if (Robot.isSimulation()) {
       m_visionSim = new VisionSystemSim("main");
       m_visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded));
-      m_cameras.forEach(c -> m_visionSim.addCamera(c.getSimCamera(), c.getRobotToCamera()));
+      // m_cameras.forE\ach(c -> m_visionSim.addCamera(c.getSimCamera(), c.getRobotToCamera()));
     }
 
     m_hasVisionUpdateTrigger = new Trigger(this::hasVisionUpdate);
@@ -124,6 +124,7 @@ public class Vision extends SubsystemBase {
     Logger.recordOutput("Vision/hasVisionUpdate", m_hasVisionUpdate);
     Logger.recordOutput("Vision/hasAcceptedVisionUpdate", m_hasAcceptedVisionUpdate);
     Logger.recordOutput("Vision/hasRecentAcceptedVision", hasRecentAcceptedVision());
+		Logger.recordOutput("Vision/arePipelinesReady", areAllPipelinesReady());
 
     m_watchdog.end("periodic");
   }
@@ -169,4 +170,12 @@ public class Vision extends SubsystemBase {
   public Command resetRobotPoseToLatestVisionPoseCommand() {
     return Commands.runOnce(this::resetRobotPoseToVision);
   }
+
+	public boolean areAllPipelinesReady() {
+		return m_cameras.stream().allMatch(c -> c.getCamera().getPipelineIndex() == 0);
+	}
+
+	public void setPipelinesToIndex(int index) {
+			m_cameras.forEach(c -> c.getCamera().setPipelineIndex(index));
+	}
 }

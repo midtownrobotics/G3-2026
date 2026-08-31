@@ -42,14 +42,19 @@ public class FeederIOSim implements FeederIO {
     m_sim.setInputVoltage(m_appliedVolts);
     m_sim.update(0.02);
 
-    inputs.velocity = RPM.of(m_sim.getAngularVelocityRPM());
-    inputs.appliedVoltage = Volts.of(m_appliedVolts);
-    inputs.statorCurrent = Amps.of(m_sim.getCurrentDrawAmps());
-    inputs.supplyCurrent = Amps.of(m_sim.getCurrentDrawAmps());
+    inputs.velocity1 = RPM.of(m_sim.getAngularVelocityRPM());
+		inputs.velocity2 = RPM.of(m_sim.getAngularVelocityRPM());
+    inputs.appliedVoltage1 = Volts.of(m_appliedVolts);
+		inputs.appliedVoltage2 = Volts.of(m_appliedVolts);
+    inputs.statorCurrent1 = Amps.of(m_sim.getCurrentDrawAmps());
+		inputs.statorCurrent2 = Amps.of(m_sim.getCurrentDrawAmps());
+    inputs.supplyCurrent1 = Amps.of(m_sim.getCurrentDrawAmps());
+		inputs.supplyCurrent2 = Amps.of(m_sim.getCurrentDrawAmps());
     // Simulated fuel sensor - always reports no fuel detected (far distance)
     inputs.fuelSensorDistance = Meters.of(Double.MAX_VALUE);
     inputs.setpoint = m_setpoint;
-    inputs.motorConnected = true;
+    inputs.motorConnected1 = true;
+		inputs.motorConnected2 = true;
   }
 
   @Override

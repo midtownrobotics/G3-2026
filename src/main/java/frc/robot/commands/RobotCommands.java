@@ -81,17 +81,21 @@ public class RobotCommands {
         .withName("autoAimAndPrepareShootTeleop");
   }
 
-  public Command autoAimAndPrepareShootAutonomous() {
-    return Commands
-        .parallel(shootShooterCommand(), m_intakePivot.stow(),
-            Commands.either(autoAimWithDrivetrainForAutonomous(), driveCommand(), m_state::isFixedTurretModeEnabled))
-        .withName("autoAimAndPrepareShootAutonomous");
-  }
+	public Command stowHood() {
+		return m_hood.setAngleCommand(Degrees.zero());
+	}
 
   public Command hoodAndFlywheelTrackShootingParamters() {
     return Commands.parallel(
         m_hood.setAngleCommand(() -> m_state.getShootingParameters().getParameters().hoodAngle()),
-        m_shooter.bangBangCommand(() -> m_state.getShootingParameters().getParameters().flywheelVelocity()))
+        m_shooter.setSpeedCommandWithFeedForward(() -> m_state.getShootingParameters().getParameters().flywheelVelocity()))
+        .withName("hoodAndFlywheelTrackShootingParamters");
+  }
+
+	public Command hoodAndFlywheelTrackShootingParamtersm13() {
+    return Commands.parallel(
+        m_hood.setAngleCommand(() -> m_state.getShootingParameters().getParameters().hoodAngle()),
+        m_shooter.setSpeedCommand(() -> m_state.getShootingParameters().getParameters().flywheelVelocity()))
         .withName("hoodAndFlywheelTrackShootingParamters");
   }
 
@@ -115,13 +119,21 @@ public class RobotCommands {
         m_state.setShooterStateCommand(ShooterState.kShoot));
   }
 
+	public Command startShootingCommand() {
+		return m_state.setShooterStateCommand(ShooterState.kShoot);
+	}
+
+	public Command stopShootingCommand() {
+		return m_state.setShooterStateCommand(ShooterState.kIdle);
+	}
+
   public Command stopShooterCommand() {
     return Commands.parallel(m_shooter.stop(), m_state.setShooterStateCommand(ShooterState.kIdle));
   }
 
   public Command shakeIntake() {
-    return Commands.repeatingSequence(m_intakePivot.setAngle(Degrees.of(10)).withTimeout(0.2),
-        m_intakePivot.setAngle(Degrees.of(25)).withTimeout(0.2));
+    return Commands.repeatingSequence(m_intakePivot.setAngle(Degrees.of(45)).withTimeout(0.2),
+        m_intakePivot.setAngle(Degrees.of(20)).withTimeout(0.2));
   }
 
   public Command runIntake() {
@@ -156,18 +168,18 @@ public class RobotCommands {
   }
 
   public Command stowIntakeAndHaltTurretMovement() {
-    return Commands.parallel(idle(), m_turret.stop(), zeroTurretHood().andThen(m_hood.stop()))
+    return Commands.parallel(idle(), m_turret.stop(), zeroTurretHood().andThen(stowHood()))
         .withTimeout(Seconds.of(0.5))
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming).withName("stowIntakeAndHaltTurretMovement");
   }
 
   public Command haltTurretAndHoodMovement() {
-    return Commands.parallel(m_turret.stop(), m_hood.stop()).withInterruptBehavior(InterruptionBehavior.kCancelSelf);
+    return Commands.parallel(m_turret.stop(), stowHood()).withInterruptBehavior(InterruptionBehavior.kCancelSelf);
   }
 
   public Command fill() {
     return Commands
-        .parallel(m_shooter.stop(), m_feeder.stop(), runIntake(), m_state.setShooterStateCommand(ShooterState.kIdle))
+        .parallel(m_shooter.stop(), m_turret.stop(), m_feeder.stop(), runIntake(), stowHood(), m_state.setShooterStateCommand(ShooterState.kIdle))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("fill");
   }
 
@@ -203,7 +215,7 @@ public class RobotCommands {
 
   public Command setPointShoot() {
     return Commands.parallel(
-        m_shooter.bangBangCommand(() -> RPM.of(1800)), m_hood.setAngleCommand(Degrees.of(2)))
+        m_shooter.setSpeedCommandWithFeedForward(() -> RPM.of(1800)), m_hood.setAngleCommand(Degrees.of(2)))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("setPointShoot");
   }
 
@@ -233,6 +245,10 @@ public class RobotCommands {
           m_hood.setEncoderPosition(Degrees.zero());
         }).withName("zeroTurretHood");
   }
+
+	public Command zeroTurretAngle() {
+		return m_turret.zeroEncoderAngleCommand().ignoringDisable(true);
+	}
 
   public Command zeroIntake() {
     return m_intakePivot.setLowerSoftLimitEnabledCommand(false)

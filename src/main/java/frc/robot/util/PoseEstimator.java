@@ -11,6 +11,7 @@ import static edu.wpi.first.units.Units.Meters;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 import edu.wpi.first.math.MathUtil;
@@ -51,6 +52,9 @@ public class PoseEstimator {
 
   private final LoggedNetworkBoolean m_tiltCompensationEnabled = new LoggedNetworkBoolean(
       "Toggles/OdometryTiltCompensation", false);
+
+	private static LoggedNetworkBoolean m_wallClampEnabled = new LoggedNetworkBoolean(
+      "Toggles/WallClamp", true);
 
   private final SwerveDriveKinematics kinematics;
   private SwerveModulePosition[] lastWheelPositions = new SwerveModulePosition[] {
@@ -108,14 +112,19 @@ public class PoseEstimator {
     });
 
     // Clamp the odometry pose to the field boundaries to prevent large errors from accumulating
-    odometryPose = clampPose2dToFieldBounds(odometryPose);
+    // odometryPose = clampPose2dToFieldBounds(odometryPose);
+		Logger.recordOutput("PoseEstimator/odometryPose", odometryPose);
 
     // Add pose to buffer at timestamp
     poseBuffer.addSample(observation.timestamp(), odometryPose);
 
     // Apply odometry delta to the vision-corrected estimated pose
     Twist2d finalTwist = lastOdometryPose.log(odometryPose);
-    estimatedPose = clampPose2dToFieldBounds(estimatedPose.exp(finalTwist));
+    estimatedPose = estimatedPose.exp(finalTwist);
+
+		if (m_wallClampEnabled.get()) {
+			estimatedPose = clampPose2dToFieldBounds(estimatedPose);
+		}
   }
 
   private static Pose2d clampPose2dToFieldBounds(Pose2d pose) {
@@ -123,6 +132,9 @@ public class PoseEstimator {
     // For a rectangle of dimensions L x W rotated by θ:
     //   halfExtentX = (|L*cosθ| + |W*sinθ|) / 2
     //   halfExtentY = (|L*sinθ| + |W*cosθ|) / 2
+
+		// actual code vvvvvv
+
     double cosTheta = Math.abs(pose.getRotation().getCos());
     double sinTheta = Math.abs(pose.getRotation().getSin());
     double robotLength = Constants.kRobotLengthWithBumpers.in(Meters);
@@ -131,7 +143,8 @@ public class PoseEstimator {
     double offsetX = (robotLength * cosTheta + robotWidth * sinTheta) / 2.0;
     double offsetY = (robotLength * sinTheta + robotWidth * cosTheta) / 2.0;
 
-    return new Pose2d(
+		 
+			return new Pose2d(
         new Translation2d(
             MathUtil.clamp(pose.getX(), offsetX, FieldConstants.kFieldLength.in(Meters) - offsetX),
             MathUtil.clamp(pose.getY(), offsetY, FieldConstants.kFieldWidth.in(Meters) - offsetY)),
@@ -194,7 +207,11 @@ public class PoseEstimator {
 
     // Recalculate the current estimate by applying the scaled transform at sample time,
     // then shifting forward to the present using odometry data
-    estimatedPose = clampPose2dToFieldBounds(estimateAtTime.plus(scaledTransform).plus(sampleToOdometryTransform));
+		estimatedPose = estimateAtTime.plus(scaledTransform).plus(sampleToOdometryTransform);
+
+    if (m_wallClampEnabled.get()) {
+			estimatedPose = clampPose2dToFieldBounds(estimatedPose);
+		}
   }
 
   /**

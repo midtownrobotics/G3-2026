@@ -1,11 +1,13 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Seconds;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Set;
 
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -18,10 +20,15 @@ import com.ctre.phoenix6.SignalLogger;
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -33,7 +40,9 @@ import frc.lib.Watchdawg;
 import frc.robot.RobotState.ShooterState;
 import frc.robot.ShootingParameters.ShootingParametersMode;
 import frc.robot.commands.RobotCommands;
+import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
+import frc.robot.constants.Ports;
 import frc.robot.controls.Controls;
 import frc.robot.controls.TrimControls;
 import frc.robot.controls.TrimXboxControls;
@@ -101,6 +110,9 @@ public class Robot extends LoggedRobot {
   private final LoggedDashboardChooser<Integer> m_cameraPipelineChooser;
 
   public Robot() {
+
+		RobotController.setBrownoutVoltage(6.5);
+
     DriverStation.silenceJoystickConnectionWarning(Robot.isSimulation());
 
     // m_pdh.setSwitchableChannel(true);
@@ -170,7 +182,7 @@ public class Robot extends LoggedRobot {
       m_turret = new Turret(new TurretIOSim());
     }
 
-    DynamicCamera turretCamera = new DynamicCamera("Turret", 10, () -> m_turret.getAngle().isNear(Degrees.of(130), Degrees.of(55)));
+    DynamicCamera turretCamera = new DynamicCamera("Turret", 3, () -> m_turret.getAngle().isNear(Degrees.of(130), Degrees.of(55)));
 
     Camera rearCamera = new Camera(
         "Rear",
@@ -234,15 +246,14 @@ public class Robot extends LoggedRobot {
     m_cameraPipelineChooser.addOption("Johnson", 1);
 
     m_cameraPipelineChooser.onChange(x -> {
-      rearCamera.getCamera().setPipelineIndex(x);
-      leftCamera.getCamera().setPipelineIndex(x);
-      rightCamera.getCamera().setPipelineIndex(x);
-      turretCamera.getCamera().setPipelineIndex(x);
+      m_vision.setPipelinesToIndex(x);
     });
+		
+		SmartDashboard.putData("Vision/setToMainFieldPipeline", Commands.runOnce(() -> {m_vision.setPipelinesToIndex(0); }).ignoringDisable(true).withName("setToMainFieldPipeline"));
 
     m_autoFactory = new AutoFactory(m_drive::getPose, m_drive::resetPose, m_drive::followPath, true, m_drive);
 
-    m_autoRoutines = new AutoRoutines(m_autoFactory, this, m_robotCommands);
+    m_autoRoutines = new AutoRoutines(m_autoFactory, m_robotCommands, m_drive);
     m_autoChooser = new AutoChooser("Do Nothing");
 
     generateAutoChooser();
@@ -298,6 +309,8 @@ public class Robot extends LoggedRobot {
     SmartDashboard.putData("StartSignalLogger", Commands.runOnce(() -> SignalLogger.start()));
     SmartDashboard.putData("StopSignalLogger", Commands.runOnce(() -> SignalLogger.stop()));
 
+		
+		SmartDashboard.putData("Commands/ZeroTurretAngle", m_robotCommands.zeroTurretAngle());
     SmartDashboard.putData("Drive/DriveStraightRobotRelative", m_robotCommands.driveStrightRobotRelative());
   }
 
@@ -308,6 +321,8 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addRoutine("Hub Swipe Right", m_autoRoutines::HubSwipeRight);
     m_autoChooser.addRoutine("1002 Left", m_autoRoutines::copy1002left);
     m_autoChooser.addRoutine("1002 Right", m_autoRoutines::copy1002right);
+		m_autoChooser.addRoutine("Match 13 Depot", m_autoRoutines::match13Depot);
+		m_autoChooser.addRoutine("Right Hub Clean Up", m_autoRoutines::rightHubCleanUp);
 
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
     RobotModeTriggers.autonomous().whileTrue(m_autoChooser.selectedCommandScheduler());
@@ -361,7 +376,28 @@ public class Robot extends LoggedRobot {
 
     m_controls.toggleShootOnTheMove()
         .onTrue(m_state.setShootOnTheMoveEnabledCommand(() -> !m_state.isShootOnTheMoveEnabled()));
-  }
+
+
+		m_controls.wallAndBulldoze().whileTrue(
+			Commands.defer(() -> {
+				Distance yOffset = Constants.kRobotWidthWithBumpers.div(2).plus(Feet.of(1));
+        Pose2d current = m_drive.getPose();
+				Distance nearestY = current.getMeasureY().lt(FieldConstants.getHubPosition2d().getMeasureY()) ? yOffset : FieldConstants.kFieldWidth.minus(yOffset);
+				Rotation2d angle = DriverStation.getAlliance().orElseGet(() -> Alliance.Blue).equals(Alliance.Blue) ? Rotation2d.fromDegrees(180): Rotation2d.fromDegrees(0);
+				return Commands.parallel(
+					Commands.sequence(
+            m_autoRoutines.driveToPose(
+                new Pose2d(current.getX(), current.getY(), angle)),
+								            m_autoRoutines.driveToPose(
+                new Pose2d(current.getMeasureX(), nearestY,  angle)),
+								  m_autoRoutines.driveToPose(
+                new Pose2d(FieldConstants.getHubPosition2d().getMeasureX(), nearestY, angle))
+					),
+					m_robotCommands.haltTurretAndHoodMovement(),
+					m_robotCommands.reverseIntake()
+				);
+			}, Set.of(m_drive, m_hood, m_turret, m_intakePivot, m_intakeRoller)));
+		}
 
   public void configureTrimControlBindings(TrimControls controls) {
     controls.increaseFlywheelVelocity().onTrue(m_robotCommands.increaseFlywheelVelocity());
@@ -388,6 +424,11 @@ public class Robot extends LoggedRobot {
     m_watchdog.end("robotVizPeriodic");
 
     m_state.periodic();
+		
+		Logger.recordOutput("CanBusUsage/Drive", Ports.driveCanBus.getStatus().BusUtilization);
+		Logger.recordOutput("CanBusUsage/Mechs", Ports.primaryCanBus.getStatus().BusUtilization);
+
+		Logger.recordOutput("matchTime", DriverStation.getMatchTime());
 
     // Logger.recordOutput("Pigeon2/accelerationX", m_drive.getPigeon2().getAccelerationX().getValue());
     // Logger.recordOutput("Pigeon2/accelerationY", m_drive.getPigeon2().getAccelerationY().getValue());

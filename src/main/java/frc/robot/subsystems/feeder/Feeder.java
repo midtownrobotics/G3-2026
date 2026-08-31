@@ -59,10 +59,10 @@ public class Feeder extends SubsystemBase {
 
     Logger.recordOutput("Feeder/sensorFilteredDistance", m_filteredSensorDistance);
 
-    boolean highCurrent = m_inputs.statorCurrent.gt(Amps.of(30));
-    boolean notMoving = m_inputs.velocity.abs(RPM) < 120;
+    boolean highCurrent = m_inputs.statorCurrent1.gt(Amps.of(30));
+    boolean notMoving = m_inputs.velocity1.abs(RPM) < 120;
 
-    m_talonConnectionAlert.set(!m_inputs.motorConnected);
+    m_talonConnectionAlert.set(!m_inputs.motorConnected1);
     m_stallAlert.set(highCurrent && notMoving);
 
     Logger.recordOutput("Feeder/sensorTripped", getFuelSensorTripped());
@@ -87,7 +87,7 @@ public class Feeder extends SubsystemBase {
   }
 
   public Command stop() {
-    return run(() -> m_io.stop());
+    return runOnce(() -> m_io.stop());
   }
 
   public Command runReverse() {

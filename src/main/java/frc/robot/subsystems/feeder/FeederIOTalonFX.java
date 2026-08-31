@@ -22,6 +22,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
+import frc.lib.PhoenixUtil;
 import frc.robot.constants.Ports;
 
 public class FeederIOTalonFX implements FeederIO {
@@ -31,10 +32,14 @@ public class FeederIOTalonFX implements FeederIO {
   private final TalonFX m_motorFollower;
   // private final CANrange m_fuelSensor;
 
-  private final StatusSignal<edu.wpi.first.units.measure.AngularVelocity> m_velocitySignal;
-  private final StatusSignal<edu.wpi.first.units.measure.Voltage> m_appliedVoltsSignal;
-  private final StatusSignal<edu.wpi.first.units.measure.Current> m_statorCurrentSignal;
-  private final StatusSignal<edu.wpi.first.units.measure.Current> m_supplyCurrentSignal;
+  private final StatusSignal<edu.wpi.first.units.measure.AngularVelocity> m_velocitySignal1;
+  private final StatusSignal<edu.wpi.first.units.measure.Voltage> m_appliedVoltsSignal1;
+  private final StatusSignal<edu.wpi.first.units.measure.Current> m_statorCurrentSignal1;
+  private final StatusSignal<edu.wpi.first.units.measure.Current> m_supplyCurrentSignal1;
+	  private final StatusSignal<edu.wpi.first.units.measure.AngularVelocity> m_velocitySignal2;
+  private final StatusSignal<edu.wpi.first.units.measure.Voltage> m_appliedVoltsSignal2;
+  private final StatusSignal<edu.wpi.first.units.measure.Current> m_statorCurrentSignal2;
+  private final StatusSignal<edu.wpi.first.units.measure.Current> m_supplyCurrentSignal2;
   // private final StatusSignal<Distance> m_fuelSensorDistanceSignal;
 
   private final VelocityVoltage m_velocityRequest = new VelocityVoltage(0).withEnableFOC(true);
@@ -58,27 +63,37 @@ public class FeederIOTalonFX implements FeederIO {
         .withStatorCurrentLimitEnable(true)
         .withStatorCurrentLimit(Amps.of(120))
         .withSupplyCurrentLimitEnable(true)
-        .withSupplyCurrentLimit(Amps.of(70));
+        .withSupplyCurrentLimit(Amps.of(40));
 
-    m_motorLeader.getConfigurator().apply(config);
+    PhoenixUtil.tryUntilOk(5, () -> m_motorLeader.getConfigurator().apply(config));
+    PhoenixUtil.tryUntilOk(5, () -> m_motorFollower.getConfigurator().apply(config));
 
     // Configure CANrange
     CANrangeConfiguration fuelSensorConfig = new CANrangeConfiguration();
     // m_fuelSensor.getConfigurator().apply(fuelSensorConfig);
 
     // Cache status signals
-    m_velocitySignal = m_motorLeader.getVelocity();
-    m_appliedVoltsSignal = m_motorLeader.getMotorVoltage();
-    m_statorCurrentSignal = m_motorLeader.getStatorCurrent();
-    m_supplyCurrentSignal = m_motorLeader.getSupplyCurrent();
+    m_velocitySignal1 = m_motorLeader.getVelocity();
+    m_appliedVoltsSignal1 = m_motorLeader.getMotorVoltage();
+    m_statorCurrentSignal1 = m_motorLeader.getStatorCurrent();
+    m_supplyCurrentSignal1 = m_motorLeader.getSupplyCurrent();
+
+		m_velocitySignal2 = m_motorFollower.getVelocity();
+    m_appliedVoltsSignal2 = m_motorFollower.getMotorVoltage();
+    m_statorCurrentSignal2 = m_motorFollower.getStatorCurrent();
+    m_supplyCurrentSignal2 = m_motorFollower.getSupplyCurrent();
     // m_fuelSensorDistanceSignal = m_fuelSensor.getDistance();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
         50,
-        m_velocitySignal,
-        m_appliedVoltsSignal,
-        m_statorCurrentSignal,
-        m_supplyCurrentSignal);
+        m_velocitySignal1,
+        m_appliedVoltsSignal1,
+        m_statorCurrentSignal1,
+        m_supplyCurrentSignal1,
+				m_velocitySignal2,
+        m_appliedVoltsSignal2,
+        m_statorCurrentSignal2,
+        m_supplyCurrentSignal2);
     // m_fuelSensorDistanceSignal);
 
     m_motorFollower.setControl(new Follower(m_motorLeader.getDeviceID(), MotorAlignmentValue.Aligned));
@@ -87,19 +102,28 @@ public class FeederIOTalonFX implements FeederIO {
   @Override
   public void updateInputs(FeederIOInputs inputs) {
     BaseStatusSignal.refreshAll(
-        m_velocitySignal,
-        m_appliedVoltsSignal,
-        m_statorCurrentSignal,
-        m_supplyCurrentSignal);
+        m_velocitySignal1,
+        m_appliedVoltsSignal1,
+        m_statorCurrentSignal1,
+        m_supplyCurrentSignal1,
+				m_velocitySignal2,
+        m_appliedVoltsSignal2,
+        m_statorCurrentSignal2,
+        m_supplyCurrentSignal2);
     // m_fuelSensorDistanceSignal);
 
-    inputs.velocity = m_velocitySignal.getValue();
-    inputs.appliedVoltage = m_appliedVoltsSignal.getValue();
-    inputs.statorCurrent = m_statorCurrentSignal.getValue();
-    inputs.supplyCurrent = m_supplyCurrentSignal.getValue();
+		inputs.appliedVoltage1 = m_appliedVoltsSignal1.getValue();
+		inputs.appliedVoltage2 = m_appliedVoltsSignal2.getValue();
+    inputs.velocity1 = m_velocitySignal1.getValue();
+		inputs.velocity2 = m_velocitySignal2.getValue();
+    inputs.statorCurrent1 = m_statorCurrentSignal1.getValue();
+		inputs.statorCurrent2 = m_statorCurrentSignal2.getValue();
+    inputs.supplyCurrent1 = m_supplyCurrentSignal1.getValue();
+		inputs.supplyCurrent2 = m_supplyCurrentSignal2.getValue();
     // inputs.fuelSensorDistance = m_fuelSensorDistanceSignal.getValue();
     inputs.setpoint = m_setpoint;
-    inputs.motorConnected = m_motorLeader.isAlive();
+    inputs.motorConnected1 = m_motorLeader.isAlive();
+		inputs.motorConnected2 = m_motorFollower.isAlive();
   }
 
   @Override

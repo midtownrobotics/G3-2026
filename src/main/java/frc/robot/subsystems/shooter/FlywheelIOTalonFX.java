@@ -48,7 +48,7 @@ public class FlywheelIOTalonFX implements FlywheelIO {
     TalonFXConfiguration config = new TalonFXConfiguration();
 
     config.Slot0 = new Slot0Configs()
-        .withKP(0.35)
+        .withKP(0.38)
         .withKI(0)
         .withKD(0)
         .withKS(0.29)

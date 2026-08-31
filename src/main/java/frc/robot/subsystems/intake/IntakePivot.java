@@ -2,6 +2,7 @@ package frc.robot.subsystems.intake;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Volts;
 
 import java.util.function.Supplier;
 
@@ -66,7 +67,7 @@ public class IntakePivot extends SubsystemBase {
   }
 
   public Command intake() {
-    return run(() -> m_io.setPosition(Degrees.of(0)));
+    return run(() -> m_io.setVoltage(Volts.of(-3)));
   }
 
   public Command tuningMode() {
@@ -92,6 +93,10 @@ public class IntakePivot extends SubsystemBase {
   public Trigger getCurrentSpikeTrigger() {
     return m_currentSpikeTrigger;
   }
+
+	public boolean isDown() {
+		return getAngle().isNear(Degrees.of(0), Degrees.of(5));
+	}
 
   public void setLowerSoftLimitEnabled(boolean enabled) {
     m_io.setLowerSoftLimitEnabled(enabled);

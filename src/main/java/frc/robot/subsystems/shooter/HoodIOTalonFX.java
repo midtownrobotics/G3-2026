@@ -2,9 +2,7 @@ package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
@@ -13,13 +11,12 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.ClosedLoopRampsConfigs;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
-import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.OpenLoopRampsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -46,7 +43,8 @@ public class HoodIOTalonFX implements HoodIO {
   private final StatusSignal<edu.wpi.first.units.measure.Current> m_supplyCurrentSignal;
   private final StatusSignal<Angle> m_encoderAbsolutePosition;
 
-  private final MotionMagicVoltage m_positionRequest = new MotionMagicVoltage(0).withEnableFOC(true);
+  private final PositionVoltage m_positionRequest = new PositionVoltage(0).withEnableFOC(true);
+	
   private final VoltageOut m_voltageRequest = new VoltageOut(0);
 
   private Angle m_setpoint = Degrees.zero();
@@ -60,10 +58,10 @@ public class HoodIOTalonFX implements HoodIO {
     config.Slot0 = new Slot0Configs()
         .withKP(800)
         .withKI(0)
-        .withKD(18)
-        .withKS(0.395)
-        .withKV(30)
-        .withKG(0.015)
+        .withKD(70)
+        .withKS(0)
+        .withKV(0)
+        .withKG(0)
         .withGravityArmPositionOffset(Degrees.of(11))
         .withGravityType(GravityTypeValue.Arm_Cosine);
 
@@ -78,11 +76,6 @@ public class HoodIOTalonFX implements HoodIO {
         .withStatorCurrentLimitEnable(true)
         .withStatorCurrentLimit(Amps.of(40));
 
-    // MotionMagic: CruiseVelocity = 300 RPM, Acceleration = 500 RPM/s
-    config.MotionMagic = new MotionMagicConfigs()
-        .withMotionMagicCruiseVelocity(RPM.of(600))
-        .withMotionMagicAcceleration(RPM.per(Second).of(700));
-
     config.SoftwareLimitSwitch = new SoftwareLimitSwitchConfigs()
         .withForwardSoftLimitEnable(true)
         .withForwardSoftLimitThreshold(Degrees.of(40))
@@ -93,7 +86,7 @@ public class HoodIOTalonFX implements HoodIO {
 
     config.ClosedLoopRamps = new ClosedLoopRampsConfigs().withVoltageClosedLoopRampPeriod(Seconds.of(0.25));
 
-    m_motor.getConfigurator().apply(config);
+    PhoenixUtil.tryUntilOk(5,  () -> m_motor.getConfigurator().apply(config));
 
     // Cache status signals
     m_positionSignal = m_motor.getPosition();

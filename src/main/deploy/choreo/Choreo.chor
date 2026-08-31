@@ -5,6 +5,20 @@
  "variables":{
   "expressions":{},
   "poses":{
+   "AllianceBumpClose":{
+    "x":{
+     "exp":"2.96 m",
+     "val":2.96
+    },
+    "y":{
+     "exp":"5.46 m",
+     "val":5.46
+    },
+    "heading":{
+     "exp":"2.38 rad",
+     "val":2.38
+    }
+   },
    "AllianceBumpFar":{
     "x":{
      "exp":"2.96 m",
@@ -47,6 +61,20 @@
      "val":-2.2411594327053814
     }
    },
+   "CenterBumpMirrored":{
+    "x":{
+     "exp":"6.21 m",
+     "val":6.21
+    },
+    "y":{
+     "exp":"5.48 m",
+     "val":5.48
+    },
+    "heading":{
+     "exp":"2.24 rad",
+     "val":2.24
+    }
+   },
    "CenterBumpStart":{
     "x":{
      "exp":"CenterBump.x",
@@ -59,6 +87,34 @@
     "heading":{
      "exp":"CenterBump.heading - 90 deg",
      "val":-3.811955759500278
+    }
+   },
+   "End2ndPick":{
+    "x":{
+     "exp":"7.805795669555664 m",
+     "val":7.805795669555664
+    },
+    "y":{
+     "exp":"7.363856792449951 m",
+     "val":7.363856792449951
+    },
+    "heading":{
+     "exp":"-1.8490961718147154 rad",
+     "val":-1.8490961718147152
+    }
+   },
+   "Middle":{
+    "x":{
+     "exp":"1.4060087203979492 m",
+     "val":1.4060087203979492
+    },
+    "y":{
+     "exp":"5.986536979675293 m",
+     "val":5.986536979675293
+    },
+    "heading":{
+     "exp":"180 deg",
+     "val":3.141592653589793
     }
    },
    "TestStart":{

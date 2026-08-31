@@ -8,11 +8,11 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.LoggedTunableNumber;
@@ -71,6 +71,14 @@ public class Turret extends SubsystemBase {
   public Command setAngleCommand(Angle angle) {
     return run(() -> m_io.setPosition(angle));
   }
+
+	public Command setEncoderAngleCommand(Angle angle) {
+		return Commands.runOnce(() -> m_io.setEncoderPosition(angle));
+	}
+
+	public Command zeroEncoderAngleCommand() {
+		return setEncoderAngleCommand(Degrees.of(90));
+	}
 
   public Command setAngleCommand(Supplier<Angle> angle) {
     return run(() -> m_io.setPosition(angle.get()));
