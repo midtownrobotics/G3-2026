@@ -14,6 +14,7 @@ import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import frc.lib.Gains;
 
 public class TurretIOSim implements TurretIO {
   private static final double kGearRatio = 48.0;
@@ -80,7 +81,8 @@ public class TurretIOSim implements TurretIO {
   }
 
   @Override
-  public void setPID(double kP, double kI, double kD) {
-    m_controller.setPID(kP, kI, kD);
+  public void setGains(Gains gains) {
+    // Sim runs a plain voltage PID, so the amp-unit feedforward terms have no equivalent here.
+    m_controller.setPID(gains.kP(), gains.kI(), gains.kD());
   }
 }

@@ -12,6 +12,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
+import frc.lib.Gains;
 
 public interface HoodIO {
   @AutoLog
@@ -21,8 +22,12 @@ public interface HoodIO {
     public Voltage appliedVoltage = Volts.zero();
     public Current statorCurrent = Amps.zero();
     public Current supplyCurrent = Amps.zero();
+    /** Signed torque-producing current. This is what the closed loop commands under torque FOC. */
+    public Current torqueCurrent = Amps.zero();
     public Angle encoderAbsolutePosition = Rotations.zero();
     public Angle setpoint = Degrees.zero();
+    public Angle closedLoopReference = Degrees.zero();
+    public Angle closedLoopError = Degrees.zero();
     public boolean motorConnected = false;
   }
 
@@ -35,6 +40,10 @@ public interface HoodIO {
   default void setVoltage(Voltage voltage) {
   }
 
+  /** Open-loop torque-current control, used to characterize kS and kG. */
+  default void setTorqueCurrent(Current current) {
+  }
+
   default void stop() {
   }
 
@@ -44,6 +53,6 @@ public interface HoodIO {
   default void setLowerSoftLimitEnabled(boolean enabled) {
   }
 
-  default void setPID(double kP, double kI, double kD, double kS, double kG) {
+  default void setGains(Gains gains) {
   }
 }

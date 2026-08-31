@@ -3,8 +3,6 @@ package frc.robot.subsystems.shooter;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
-import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -13,21 +11,28 @@ import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.ClosedLoopRampsConfigs;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.OpenLoopRampsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.configs.TorqueCurrentConfigs;
+import com.ctre.phoenix6.controls.MotionMagicTorqueCurrentFOC;
+import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
+import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
+import frc.lib.Gains;
+import frc.lib.MotionProfile;
 import frc.lib.PhoenixUtil;
 import frc.robot.constants.Ports;
 
@@ -38,6 +43,23 @@ public class TurretIOTalonFX implements TurretIO {
   private static final Angle kLowSoftLimit = Degrees.of(-90);
   private static final Angle kHighSoftLimit = Degrees.of(270);
 
+  /**
+   * Ceiling on closed-loop output. Under torque-current FOC this, not the stator current limit, is
+   * what bounds the loop, so it is kept at the stator limit the mechanism was already validated at.
+   */
+  private static final Current kPeakTorqueCurrent = Amps.of(60);
+
+  /**
+   * Starting gains, in amps, converted from the voltage gains this turret was tuned with
+   * (kP 59, kI 2, kD 3.5, kS 1.5, kV 3.7). Verify these on the robot — the conversion is a
+   * first-order estimate. kV is deliberately zero: under torque control a zero output already holds
+   * a constant velocity, so kV is unnecessary.
+   */
+  public static final Gains kDefaultGains =
+      Gains.fromKrakenVoltageGains(new Gains(0, 0, 0, 0, 0, 0, 0));
+
+  public static final MotionProfile kDefaultMotionProfile = new MotionProfile(8, 9);
+
   private final TalonFX m_motor;
   private final CANcoder m_encoder1;
   // private final CANcoder m_encoder2;
@@ -47,10 +69,14 @@ public class TurretIOTalonFX implements TurretIO {
   private final StatusSignal<edu.wpi.first.units.measure.Voltage> m_appliedVoltsSignal;
   private final StatusSignal<edu.wpi.first.units.measure.Current> m_statorCurrentSignal;
   private final StatusSignal<edu.wpi.first.units.measure.Current> m_supplyCurrentSignal;
+  private final StatusSignal<edu.wpi.first.units.measure.Current> m_torqueCurrentSignal;
+  private final StatusSignal<Double> m_closedLoopReferenceSignal;
+  private final StatusSignal<Double> m_closedLoopErrorSignal;
   private final StatusSignal<Angle> m_encoder1AbsolutePosition;
   // private final StatusSignal<Angle> m_encoder2AbsolutePosition;
 
-  private final MotionMagicVoltage m_positionRequest = new MotionMagicVoltage(0).withEnableFOC(true);
+  private final MotionMagicTorqueCurrentFOC m_positionRequest = new MotionMagicTorqueCurrentFOC(0);
+  private final TorqueCurrentFOC m_torqueCurrentRequest = new TorqueCurrentFOC(0);
   private final VoltageOut m_voltageRequest = new VoltageOut(0);
 
   private Angle m_setpoint = Degrees.zero();
@@ -62,12 +88,7 @@ public class TurretIOTalonFX implements TurretIO {
 
     TalonFXConfiguration config = new TalonFXConfiguration();
 
-    config.Slot0 = new Slot0Configs()
-        .withKP(59)
-        .withKI(2)
-        .withKD(3.5)
-        .withKS(1.5)
-        .withKV(3.7);
+    config.Slot0 = toSlot0(kDefaultGains);
 
     config.Feedback = new FeedbackConfigs()
         // .withRotorToSensorRatio(kRotorToSensorRatio)
@@ -78,9 +99,7 @@ public class TurretIOTalonFX implements TurretIO {
         .withNeutralMode(NeutralModeValue.Brake)
         .withInverted(InvertedValue.CounterClockwise_Positive);
 
-    config.MotionMagic
-        .withMotionMagicCruiseVelocity(RotationsPerSecond.of(8))
-        .withMotionMagicAcceleration(RotationsPerSecondPerSecond.of(9));
+    config.MotionMagic = toMotionMagic(kDefaultMotionProfile);
 
     config.CurrentLimits = new CurrentLimitsConfigs()
         .withStatorCurrentLimitEnable(true)
@@ -88,9 +107,17 @@ public class TurretIOTalonFX implements TurretIO {
         .withSupplyCurrentLimitEnable(true)
         .withSupplyCurrentLimit(Amps.of(40));
 
-    config.OpenLoopRamps = new OpenLoopRampsConfigs().withVoltageOpenLoopRampPeriod(Seconds.of(0.25));
+    config.TorqueCurrent = new TorqueCurrentConfigs()
+        .withPeakForwardTorqueCurrent(kPeakTorqueCurrent)
+        .withPeakReverseTorqueCurrent(kPeakTorqueCurrent.unaryMinus());
 
-    config.ClosedLoopRamps = new ClosedLoopRampsConfigs().withVoltageClosedLoopRampPeriod(Seconds.of(0.25));
+    // The voltage ramps only bound the open-loop setVoltage path; torque requests need their own.
+    config.OpenLoopRamps = new OpenLoopRampsConfigs()
+        .withVoltageOpenLoopRampPeriod(Seconds.of(0.25))
+        .withTorqueOpenLoopRampPeriod(Seconds.of(0.25));
+
+    config.ClosedLoopRamps = new ClosedLoopRampsConfigs()
+        .withTorqueClosedLoopRampPeriod(Seconds.of(0.05));
 
     config.SoftwareLimitSwitch = new SoftwareLimitSwitchConfigs()
         .withForwardSoftLimitEnable(true)
@@ -118,6 +145,9 @@ public class TurretIOTalonFX implements TurretIO {
     m_appliedVoltsSignal = m_motor.getMotorVoltage();
     m_statorCurrentSignal = m_motor.getStatorCurrent();
     m_supplyCurrentSignal = m_motor.getSupplyCurrent();
+    m_torqueCurrentSignal = m_motor.getTorqueCurrent();
+    m_closedLoopReferenceSignal = m_motor.getClosedLoopReference();
+    m_closedLoopErrorSignal = m_motor.getClosedLoopError();
     m_encoder1AbsolutePosition = m_encoder1.getAbsolutePosition();
     // m_encoder2AbsolutePosition = m_encoder2.getAbsolutePosition();
 
@@ -128,6 +158,9 @@ public class TurretIOTalonFX implements TurretIO {
         m_appliedVoltsSignal,
         m_statorCurrentSignal,
         m_supplyCurrentSignal,
+        m_torqueCurrentSignal,
+        m_closedLoopReferenceSignal,
+        m_closedLoopErrorSignal,
         m_encoder1AbsolutePosition);
     // m_encoder2AbsolutePosition);
 
@@ -164,6 +197,9 @@ public class TurretIOTalonFX implements TurretIO {
         m_appliedVoltsSignal,
         m_statorCurrentSignal,
         m_supplyCurrentSignal,
+        m_torqueCurrentSignal,
+        m_closedLoopReferenceSignal,
+        m_closedLoopErrorSignal,
         m_encoder1AbsolutePosition);
     // m_encoder2AbsolutePosition);
 
@@ -172,6 +208,9 @@ public class TurretIOTalonFX implements TurretIO {
     inputs.appliedVoltage = m_appliedVoltsSignal.getValue();
     inputs.statorCurrent = m_statorCurrentSignal.getValue();
     inputs.supplyCurrent = m_supplyCurrentSignal.getValue();
+    inputs.torqueCurrent = m_torqueCurrentSignal.getValue();
+    inputs.closedLoopReference = Rotations.of(m_closedLoopReferenceSignal.getValue());
+    inputs.closedLoopError = Rotations.of(m_closedLoopErrorSignal.getValue());
     inputs.encoder1AbsolutePosition = m_encoder1AbsolutePosition.getValue();
     // inputs.encoder2AbsolutePosition = m_encoder2AbsolutePosition.getValue();
     inputs.setpoint = m_setpoint;
@@ -187,6 +226,11 @@ public class TurretIOTalonFX implements TurretIO {
   @Override
   public void setVoltage(Voltage voltage) {
     m_motor.setControl(m_voltageRequest.withOutput(voltage));
+  }
+
+  @Override
+  public void setTorqueCurrent(Current current) {
+    m_motor.setControl(m_torqueCurrentRequest.withOutput(current));
   }
 
   @Override
@@ -211,9 +255,34 @@ public class TurretIOTalonFX implements TurretIO {
     return Degrees.of(mappedDegrees);
   }
 
+  private static Slot0Configs toSlot0(Gains gains) {
+    return new Slot0Configs()
+        .withKP(gains.kP())
+        .withKI(gains.kI())
+        .withKD(gains.kD())
+        .withKS(gains.kS())
+        .withKV(gains.kV())
+        .withKA(gains.kA())
+        // Motion Magic always has a velocity setpoint to take the sign of, which avoids the
+        // dithering that closed-loop-sign kS can cause when sitting on target.
+        .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseVelocitySign);
+  }
+
+  /** Constraints are in mechanism rotations, matching the configured sensor-to-mechanism ratio. */
+  private static MotionMagicConfigs toMotionMagic(MotionProfile profile) {
+    return new MotionMagicConfigs()
+        .withMotionMagicCruiseVelocity(profile.cruiseVelocity())
+        .withMotionMagicAcceleration(profile.acceleration())
+        .withMotionMagicJerk(profile.jerk());
+  }
+
   @Override
-  public void setPID(double kP, double kI, double kD) {
-    var slot0 = new Slot0Configs().withKP(kP).withKI(kI).withKD(kD);
-    m_motor.getConfigurator().apply(slot0);
+  public void setGains(Gains gains) {
+    PhoenixUtil.tryUntilOk(5, () -> m_motor.getConfigurator().apply(toSlot0(gains)));
+  }
+
+  @Override
+  public void setMotionProfile(MotionProfile profile) {
+    PhoenixUtil.tryUntilOk(5, () -> m_motor.getConfigurator().apply(toMotionMagic(profile)));
   }
 }

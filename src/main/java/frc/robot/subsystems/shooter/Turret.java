@@ -16,6 +16,8 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.LoggedTunableNumber;
+import frc.lib.TunableGains;
+import frc.lib.TunableMotionProfile;
 import frc.lib.Watchdawg;
 
 public class Turret extends SubsystemBase {
@@ -28,11 +30,18 @@ public class Turret extends SubsystemBase {
 
   private final LoggedTunableNumber m_turretSetpointAngleDegrees = new LoggedTunableNumber(
       "Turret/SetpointDegrees", 0);
+  private final LoggedTunableNumber m_openLoopTorqueAmps = new LoggedTunableNumber(
+      "Turret/OpenLoopTorqueAmps", 0);
+
+  private final TunableGains m_gains = new TunableGains("Turret", TurretIOTalonFX.kDefaultGains);
+  private final TunableMotionProfile m_motionProfile = new TunableMotionProfile(
+      "Turret", TurretIOTalonFX.kDefaultMotionProfile);
 
   public Turret(TurretIO io) {
     m_io = io;
     m_watchdog = new Watchdawg(getClass());
     SmartDashboard.putData("TuningModes/Turret", tuningMode());
+    SmartDashboard.putData("TuningModes/TurretOpenLoopTorque", openLoopTorqueTuningMode());
     m_isNearSetpointTrigger = new Trigger(() -> isNearSetpoint(Degrees.of(5)));
   }
 
@@ -42,6 +51,9 @@ public class Turret extends SubsystemBase {
 
     m_io.updateInputs(m_inputs);
     Logger.processInputs("Turret", m_inputs);
+
+    m_gains.poll(hashCode(), m_io::setGains);
+    m_motionProfile.poll(hashCode(), m_io::setMotionProfile);
 
     m_talonConnectionAlert.set(!m_inputs.motorConnected);
     m_stallAlert.set(m_inputs.statorCurrent.gt(Amps.of(68)));
@@ -88,7 +100,20 @@ public class Turret extends SubsystemBase {
     return run(() -> m_io.stop());
   }
 
+  /** Drives to {@code /Tuning/Turret/SetpointDegrees} so the closed loop can be tuned live. */
   public Command tuningMode() {
-    return setAngleCommand(() -> Degrees.of(m_turretSetpointAngleDegrees.getAsDouble()));
+    return setAngleCommand(() -> Degrees.of(m_turretSetpointAngleDegrees.getAsDouble()))
+        .withName("turretTuningMode");
+  }
+
+  /**
+   * Commands raw torque current from {@code /Tuning/Turret/OpenLoopTorqueAmps}, bypassing the closed
+   * loop. Ramp it up until the turret just breaks free to read off kS, then watch acceleration at a
+   * fixed current to estimate kA.
+   */
+  public Command openLoopTorqueTuningMode() {
+    return run(() -> m_io.setTorqueCurrent(Amps.of(m_openLoopTorqueAmps.getAsDouble())))
+        .finallyDo(m_io::stop)
+        .withName("turretOpenLoopTorqueTuning");
   }
 }

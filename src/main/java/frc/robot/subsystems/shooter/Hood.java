@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.LoggedTunableNumber;
+import frc.lib.TunableGains;
 import frc.lib.Watchdawg;
 
 public class Hood extends SubsystemBase {
@@ -31,6 +32,9 @@ public class Hood extends SubsystemBase {
   private final Trigger m_isNearSetpointTrigger;
 
   private final LoggedTunableNumber m_setpointAngle = new LoggedTunableNumber("Hood/SetpointAngleDegrees", 0);
+  private final LoggedTunableNumber m_openLoopTorqueAmps = new LoggedTunableNumber("Hood/OpenLoopTorqueAmps", 0);
+
+  private final TunableGains m_gains = new TunableGains("Hood", HoodIOTalonFX.kDefaultGains);
 
   public Hood(HoodIO io) {
     m_io = io;
@@ -38,6 +42,7 @@ public class Hood extends SubsystemBase {
     m_currentSpikeTrigger = new Trigger(this::getIsCurrentSpiking);
     m_watchdog = new Watchdawg(getClass());
     SmartDashboard.putData("TuningModes/Hood", tuningMode());
+    SmartDashboard.putData("TuningModes/HoodOpenLoopTorque", openLoopTorqueTuningMode());
     m_isNearSetpointTrigger = new Trigger(() -> isNearSetpoint(Degrees.of(1)));
   }
 
@@ -51,6 +56,8 @@ public class Hood extends SubsystemBase {
 
     m_io.updateInputs(m_inputs);
     Logger.processInputs("Hood", m_inputs);
+
+    m_gains.poll(hashCode(), m_io::setGains);
 
     m_talonConnectionAlert.set(!m_inputs.motorConnected);
     m_stallAlert.set(m_inputs.statorCurrent.gt(Amps.of(30)));
@@ -121,7 +128,19 @@ public class Hood extends SubsystemBase {
     return runOnce(() -> m_io.stop());
   }
 
+  /** Drives to {@code /Tuning/Hood/SetpointAngleDegrees} so the closed loop can be tuned live. */
   public Command tuningMode() {
-    return setAngleCommand(() -> Degrees.of(m_setpointAngle.getAsDouble()));
+    return setAngleCommand(() -> Degrees.of(m_setpointAngle.getAsDouble())).withName("hoodTuningMode");
+  }
+
+  /**
+   * Commands raw torque current from {@code /Tuning/Hood/OpenLoopTorqueAmps}, bypassing the closed
+   * loop. Find the current that just holds the hood level to read off kG, then the extra current
+   * needed to start it moving for kS.
+   */
+  public Command openLoopTorqueTuningMode() {
+    return run(() -> m_io.setTorqueCurrent(Amps.of(m_openLoopTorqueAmps.getAsDouble())))
+        .finallyDo(m_io::stop)
+        .withName("hoodOpenLoopTorqueTuning");
   }
 }

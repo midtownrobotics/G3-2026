@@ -9,8 +9,10 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import frc.lib.Gains;
 
 public class FlywheelIOSim implements FlywheelIO {
   private static final double kGearRatio = 2.0 / 3.0;
@@ -24,6 +26,7 @@ public class FlywheelIOSim implements FlywheelIO {
   private double m_appliedVolts = 0.0;
   private boolean m_closedLoop = false;
   private AngularVelocity m_setpoint = RPM.zero();
+  private Current m_feedForward = Amps.zero();
 
   public FlywheelIOSim() {
     m_sim = new DCMotorSim(LinearSystemId.createDCMotorSystem(MOTOR, MOI, kGearRatio), MOTOR);
@@ -51,6 +54,7 @@ public class FlywheelIOSim implements FlywheelIO {
     inputs.velocity1 = RPM.of(m_sim.getAngularVelocityRPM());
     inputs.velocity2 = RPM.of(m_sim.getAngularVelocityRPM());
     inputs.setpoint = m_setpoint;
+    inputs.feedForwardCurrent = m_feedForward;
     inputs.motor1Connected = true;
     inputs.motor2Connected = true;
   }
@@ -59,6 +63,14 @@ public class FlywheelIOSim implements FlywheelIO {
   public void setSpeed(AngularVelocity speed) {
     m_closedLoop = true;
     m_setpoint = speed;
+  }
+
+  @Override
+  public void setSpeed(AngularVelocity speed, Current feedForward) {
+    // The arbitrary feedforward is in amps on the real robot; sim's PID output is volts, so it is
+    // logged but not applied.
+    m_feedForward = feedForward;
+    setSpeed(speed);
   }
 
   @Override
@@ -74,8 +86,8 @@ public class FlywheelIOSim implements FlywheelIO {
   }
 
   @Override
-  public void setPID(double kP, double kI, double kD, double kS, double kV) {
-    m_controller.setPID(kP, kI, kD);
-    // kS and kV are feedforward terms, not directly applicable to sim PIDController
+  public void setGains(Gains gains) {
+    // Sim runs a plain voltage PID, so the amp-unit feedforward terms have no equivalent here.
+    m_controller.setPID(gains.kP(), gains.kI(), gains.kD());
   }
 }
