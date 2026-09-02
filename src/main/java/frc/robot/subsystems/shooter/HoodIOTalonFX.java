@@ -52,7 +52,7 @@ public class HoodIOTalonFX implements HoodIO {
    * (kP 800, kD 70). Verify these on the robot — the conversion is a first-order estimate.
    */
   public static final Gains kDefaultGains =
-      Gains.fromKrakenVoltageGains(new Gains(0, 0, 0, 0, 0, 0, 0));
+      Gains.fromKrakenVoltageGains(new Gains(18000, 0, 400, 0, 0, 0, 0));
 
   private final TalonFX m_motor;
   private final CANcoder m_encoder;
