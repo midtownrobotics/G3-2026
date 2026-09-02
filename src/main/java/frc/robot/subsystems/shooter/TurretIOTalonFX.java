@@ -56,7 +56,7 @@ public class TurretIOTalonFX implements TurretIO {
    * a constant velocity, so kV is unnecessary.
    */
   public static final Gains kDefaultGains =
-      Gains.fromKrakenVoltageGains(new Gains(5000, 0, 80, 5, 0, 0, 0));
+      Gains.fromKrakenVoltageGains(new Gains(7000, 0, 80, 5, 0, 0, 0));
 
   public static final MotionProfile kDefaultMotionProfile = new MotionProfile(8, 9);
 
