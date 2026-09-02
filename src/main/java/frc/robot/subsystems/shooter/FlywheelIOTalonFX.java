@@ -36,14 +36,12 @@ public class FlywheelIOTalonFX implements FlywheelIO {
   private static final Current kPeakTorqueCurrent = Amps.of(120);
 
   /**
-   * Starting gains, in amps, converted from the voltage gains this flywheel was tuned with
-   * (kP 0.38, kS 0.29, kV 0.13). Verify these on the robot — the conversion is a first-order
-   * estimate. kV is deliberately zero: under torque control a zero output already holds a constant
-   * velocity. If the wheel settles below its target under load, add kA or a little kI rather than
-   * reintroducing kV.
+   * Gains in amps, tuned on the robot under torque-current FOC — not voltage gains, so nothing
+   * rescales them. kV is deliberately zero: under torque control a zero output already holds a
+   * constant velocity. If the wheel settles below its target under load, add kA or a little kI
+   * rather than reintroducing kV.
    */
-  public static final Gains kDefaultGains =
-      Gains.fromKrakenVoltageGains(new Gains(0, 0, 0, 0, 0, 0, 0));
+  public static final Gains kDefaultGains = new Gains(0, 0, 0, 0, 0, 0, 0);
 
   private final TalonFX m_motor1;
   private final TalonFX m_motor2;

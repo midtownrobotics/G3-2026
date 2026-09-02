@@ -48,11 +48,10 @@ public class HoodIOTalonFX implements HoodIO {
   private static final Current kPeakTorqueCurrent = Amps.of(40);
 
   /**
-   * Starting gains, in amps, converted from the voltage gains this hood was tuned with
-   * (kP 800, kD 70). Verify these on the robot — the conversion is a first-order estimate.
+   * Gains in amps, as tuned on the robot under torque-current FOC. These are already in output
+   * units — they are not voltage gains and must not be rescaled again.
    */
-  public static final Gains kDefaultGains =
-      Gains.fromKrakenVoltageGains(new Gains(18000, 0, 400, 0, 0, 0, 0));
+  public static final Gains kDefaultGains = new Gains(18000, 0, 400, 0, 0, 0, 0);
 
   private final TalonFX m_motor;
   private final CANcoder m_encoder;

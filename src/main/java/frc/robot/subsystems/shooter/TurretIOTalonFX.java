@@ -50,13 +50,11 @@ public class TurretIOTalonFX implements TurretIO {
   private static final Current kPeakTorqueCurrent = Amps.of(60);
 
   /**
-   * Starting gains, in amps, converted from the voltage gains this turret was tuned with
-   * (kP 59, kI 2, kD 3.5, kS 1.5, kV 3.7). Verify these on the robot — the conversion is a
-   * first-order estimate. kV is deliberately zero: under torque control a zero output already holds
-   * a constant velocity, so kV is unnecessary.
+   * Gains in amps, as tuned on the robot under torque-current FOC. These are already in output
+   * units — they are not voltage gains and must not be rescaled again. kV is deliberately zero:
+   * under torque control a zero output already holds a constant velocity, so kV is unnecessary.
    */
-  public static final Gains kDefaultGains =
-      Gains.fromKrakenVoltageGains(new Gains(7000, 0, 80, 5, 0, 0, 0));
+  public static final Gains kDefaultGains = new Gains(7000, 0, 80, 5, 0, 0, 0);
 
   public static final MotionProfile kDefaultMotionProfile = new MotionProfile(8, 9);
 
