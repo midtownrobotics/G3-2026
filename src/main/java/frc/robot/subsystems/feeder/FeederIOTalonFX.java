@@ -13,20 +13,33 @@ import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.configs.TorqueCurrentConfigs;
 import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
+import frc.lib.Gains;
 import frc.lib.PhoenixUtil;
 import frc.robot.constants.Ports;
 
 public class FeederIOTalonFX implements FeederIO {
   private static final double kGearRatio = 2.0;
+
+  /**
+   * Ceiling on closed-loop output. Under torque-current FOC this, not the stator current limit, is
+   * what bounds the loop, so it is kept at the stator limit the mechanism was already validated at.
+   */
+  private static final Current kPeakTorqueCurrent = Amps.of(120);
+
+  /** Starting gains, in amps. Tune these on the robot. */
+  public static final Gains kDefaultGains = new Gains(0, 0, 0, 0, 0, 0, 0);
 
   private final TalonFX m_motorLeader;
   private final TalonFX m_motorFollower;
@@ -40,9 +53,11 @@ public class FeederIOTalonFX implements FeederIO {
   private final StatusSignal<edu.wpi.first.units.measure.Voltage> m_appliedVoltsSignal2;
   private final StatusSignal<edu.wpi.first.units.measure.Current> m_statorCurrentSignal2;
   private final StatusSignal<edu.wpi.first.units.measure.Current> m_supplyCurrentSignal2;
+  private final StatusSignal<edu.wpi.first.units.measure.Current> m_torqueCurrentSignal1;
+  private final StatusSignal<edu.wpi.first.units.measure.Current> m_torqueCurrentSignal2;
   // private final StatusSignal<Distance> m_fuelSensorDistanceSignal;
 
-  private final VelocityVoltage m_velocityRequest = new VelocityVoltage(0).withEnableFOC(true);
+  private final VelocityTorqueCurrentFOC m_velocityRequest = new VelocityTorqueCurrentFOC(0);
   private final VoltageOut m_voltageRequest = new VoltageOut(0);
 
   private AngularVelocity m_setpoint = RPM.zero();
@@ -65,6 +80,12 @@ public class FeederIOTalonFX implements FeederIO {
         .withSupplyCurrentLimitEnable(true)
         .withSupplyCurrentLimit(Amps.of(40));
 
+    config.Slot0 = toSlot0(kDefaultGains);
+
+    config.TorqueCurrent = new TorqueCurrentConfigs()
+        .withPeakForwardTorqueCurrent(kPeakTorqueCurrent)
+        .withPeakReverseTorqueCurrent(kPeakTorqueCurrent.unaryMinus());
+
     PhoenixUtil.tryUntilOk(5, () -> m_motorLeader.getConfigurator().apply(config));
     PhoenixUtil.tryUntilOk(5, () -> m_motorFollower.getConfigurator().apply(config));
 
@@ -82,10 +103,14 @@ public class FeederIOTalonFX implements FeederIO {
     m_appliedVoltsSignal2 = m_motorFollower.getMotorVoltage();
     m_statorCurrentSignal2 = m_motorFollower.getStatorCurrent();
     m_supplyCurrentSignal2 = m_motorFollower.getSupplyCurrent();
+    m_torqueCurrentSignal1 = m_motorLeader.getTorqueCurrent();
+    m_torqueCurrentSignal2 = m_motorFollower.getTorqueCurrent();
     // m_fuelSensorDistanceSignal = m_fuelSensor.getDistance();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
         50,
+        m_torqueCurrentSignal1,
+        m_torqueCurrentSignal2,
         m_velocitySignal1,
         m_appliedVoltsSignal1,
         m_statorCurrentSignal1,
@@ -102,6 +127,8 @@ public class FeederIOTalonFX implements FeederIO {
   @Override
   public void updateInputs(FeederIOInputs inputs) {
     BaseStatusSignal.refreshAll(
+        m_torqueCurrentSignal1,
+        m_torqueCurrentSignal2,
         m_velocitySignal1,
         m_appliedVoltsSignal1,
         m_statorCurrentSignal1,
@@ -120,6 +147,8 @@ public class FeederIOTalonFX implements FeederIO {
 		inputs.statorCurrent2 = m_statorCurrentSignal2.getValue();
     inputs.supplyCurrent1 = m_supplyCurrentSignal1.getValue();
 		inputs.supplyCurrent2 = m_supplyCurrentSignal2.getValue();
+    inputs.torqueCurrent1 = m_torqueCurrentSignal1.getValue();
+    inputs.torqueCurrent2 = m_torqueCurrentSignal2.getValue();
     // inputs.fuelSensorDistance = m_fuelSensorDistanceSignal.getValue();
     inputs.setpoint = m_setpoint;
     inputs.motorConnected1 = m_motorLeader.isAlive();
@@ -139,12 +168,24 @@ public class FeederIOTalonFX implements FeederIO {
 
   @Override
   public void stop() {
+    m_setpoint = RPM.zero();
     m_motorLeader.stopMotor();
   }
 
+  private static Slot0Configs toSlot0(Gains gains) {
+    return new Slot0Configs()
+        .withKP(gains.kP())
+        .withKI(gains.kI())
+        .withKD(gains.kD())
+        .withKS(gains.kS())
+        .withKV(gains.kV())
+        .withKA(gains.kA())
+        // A velocity loop always has a velocity setpoint for kS to take its sign from.
+        .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseVelocitySign);
+  }
+
   @Override
-  public void setPID(double kP, double kI, double kD) {
-    var slot0 = new Slot0Configs().withKP(kP).withKI(kI).withKD(kD);
-    m_motorLeader.getConfigurator().apply(slot0);
+  public void setGains(Gains gains) {
+    PhoenixUtil.tryUntilOk(5, () -> m_motorLeader.getConfigurator().apply(toSlot0(gains)));
   }
 }

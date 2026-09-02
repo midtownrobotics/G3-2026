@@ -11,6 +11,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Voltage;
+import frc.lib.Gains;
 
 public interface FeederIO {
   @AutoLog
@@ -23,6 +24,8 @@ public interface FeederIO {
     public Current supplyCurrent1 = Amps.zero();
 		public Current statorCurrent2 = Amps.zero();
     public Current supplyCurrent2 = Amps.zero();
+    public Current torqueCurrent1 = Amps.zero();
+    public Current torqueCurrent2 = Amps.zero();
     public Distance fuelSensorDistance = Meters.of(Double.MAX_VALUE);
     public AngularVelocity setpoint = RPM.zero();
     public boolean motorConnected1 = false;
@@ -41,6 +44,6 @@ public interface FeederIO {
   default void stop() {
   }
 
-  default void setPID(double kP, double kI, double kD) {
+  default void setGains(Gains gains) {
   }
 }

@@ -4,7 +4,6 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.Volts;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -19,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.LoggedTunableNumber;
+import frc.lib.TunableGains;
 import frc.lib.Watchdawg;
 
 public class Feeder extends SubsystemBase {
@@ -30,12 +30,11 @@ public class Feeder extends SubsystemBase {
   private final Alert m_stallAlert = new Alert("Feeder stalling", AlertType.kWarning);
   private final Watchdawg m_watchdog;
 
-  private final LoggedTunableNumber m_kP = new LoggedTunableNumber("Feeder/kP", 0);
-  private final LoggedTunableNumber m_kI = new LoggedTunableNumber("Feeder/kI", 0);
-  private final LoggedTunableNumber m_kD = new LoggedTunableNumber("Feeder/kD", 0);
   private final LoggedTunableNumber m_speedSetpoint = new LoggedTunableNumber("Feeder/SpeedSetpointRPM", 0);
-  private final LoggedTunableNumber m_voltageSetpoint = new LoggedTunableNumber("Feeder/voltageSetpoint", 0);
-  private final LoggedTunableNumber m_feedVoltage = new LoggedTunableNumber("Feeder/feedVoltage", 10);
+  private final LoggedTunableNumber m_feedSpeed = new LoggedTunableNumber("Feeder/feedSpeedRPM", 2500);
+  private final LoggedTunableNumber m_reverseSpeed = new LoggedTunableNumber("Feeder/reverseSpeedRPM", -2500);
+
+  private final TunableGains m_gains = new TunableGains("Feeder", FeederIOTalonFX.kDefaultGains);
 
   private Distance m_filteredSensorDistance = Meters.zero();
 
@@ -54,6 +53,8 @@ public class Feeder extends SubsystemBase {
 
     m_io.updateInputs(m_inputs);
     Logger.processInputs("Feeder", m_inputs);
+
+    m_gains.poll(hashCode(), m_io::setGains);
 
     m_filteredSensorDistance = Meters.of(m_fuelSensorFilter.calculate(m_inputs.fuelSensorDistance.in(Meters)));
 
@@ -83,7 +84,7 @@ public class Feeder extends SubsystemBase {
   }
 
   public Command runForward() {
-    return run(() -> m_io.setVoltage(Volts.of(m_feedVoltage.get()))).finallyDo(() -> m_io.stop());
+    return run(() -> m_io.setSpeed(RPM.of(m_feedSpeed.get()))).finallyDo(() -> m_io.stop());
   }
 
   public Command stop() {
@@ -91,10 +92,11 @@ public class Feeder extends SubsystemBase {
   }
 
   public Command runReverse() {
-    return run(() -> m_io.setVoltage(Volts.of(-10))).finallyDo(() -> m_io.stop());
+    return run(() -> m_io.setSpeed(RPM.of(m_reverseSpeed.get()))).finallyDo(() -> m_io.stop());
   }
 
+  /** Spins to {@code /Tuning/Feeder/SpeedSetpointRPM} so the velocity loop can be tuned live. */
   public Command tuningMode() {
-    return run(() -> m_io.setVoltage(Volts.of(m_voltageSetpoint.get())));
+    return run(() -> m_io.setSpeed(RPM.of(m_speedSetpoint.get()))).finallyDo(() -> m_io.stop());
   }
 }

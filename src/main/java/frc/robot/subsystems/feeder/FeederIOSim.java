@@ -12,6 +12,7 @@ import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import frc.lib.Gains;
 
 public class FeederIOSim implements FeederIO {
   private static final double kGearRatio = 2.0;
@@ -76,7 +77,7 @@ public class FeederIOSim implements FeederIO {
   }
 
   @Override
-  public void setPID(double kP, double kI, double kD) {
-    m_controller.setPID(kP, kI, kD);
+  public void setGains(Gains gains) {
+    m_controller.setPID(gains.kP(), gains.kI(), gains.kD());
   }
 }
