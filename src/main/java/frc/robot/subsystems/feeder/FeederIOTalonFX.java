@@ -39,7 +39,7 @@ public class FeederIOTalonFX implements FeederIO {
   private static final Current kPeakTorqueCurrent = Amps.of(120);
 
   /** Starting gains, in amps. Tune these on the robot. */
-  public static final Gains kDefaultGains = new Gains(0, 0, 0, 0, 0, 0, 0);
+  public static final Gains kDefaultGains = new Gains(10, 0, 0, 4.7, 0.06, 0, 0);
 
   private final TalonFX m_motorLeader;
   private final TalonFX m_motorFollower;
