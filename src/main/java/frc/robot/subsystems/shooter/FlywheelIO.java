@@ -24,8 +24,6 @@ public interface FlywheelIO {
     /** Signed torque-producing current. This is what the closed loop commands under torque FOC. */
     public Current torqueCurrent1 = Amps.zero();
     public Current torqueCurrent2 = Amps.zero();
-    /** Arbitrary feedforward added on top of the velocity loop, in amps under torque FOC. */
-    public Current feedForwardCurrent = Amps.zero();
     public AngularVelocity velocity1 = RotationsPerSecond.zero();
     public AngularVelocity velocity2 = RotationsPerSecond.zero();
     public AngularVelocity setpoint = RPM.zero();
@@ -39,9 +37,6 @@ public interface FlywheelIO {
   }
 
   default void setSpeed(AngularVelocity speed) {
-  }
-
-  default void setSpeed(AngularVelocity speed, Current feedForward) {
   }
 
   default void setVoltage(Voltage voltage) {

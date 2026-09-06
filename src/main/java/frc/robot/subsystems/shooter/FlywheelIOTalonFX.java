@@ -63,7 +63,6 @@ public class FlywheelIOTalonFX implements FlywheelIO {
   private final VoltageOut m_voltageRequest = new VoltageOut(0);
 
   private AngularVelocity m_setpoint = RPM.zero();
-  private Current m_feedForward = Amps.zero();
 
   public FlywheelIOTalonFX() {
     m_motor1 = new TalonFX(Ports.kTurretShooter1.canId(), Ports.kTurretShooter1.canbus());
@@ -143,7 +142,6 @@ public class FlywheelIOTalonFX implements FlywheelIO {
     inputs.setpoint = m_setpoint;
     inputs.closedLoopReference = RotationsPerSecond.of(m_closedLoopReferenceSignal.getValue());
     inputs.closedLoopError = RotationsPerSecond.of(m_closedLoopErrorSignal.getValue());
-    inputs.feedForwardCurrent = m_feedForward;
     inputs.motor1Connected = m_motor1.isAlive();
     inputs.motor2Connected = m_motor2.isAlive();
   }
@@ -152,13 +150,6 @@ public class FlywheelIOTalonFX implements FlywheelIO {
   public void setSpeed(AngularVelocity speed) {
     m_setpoint = speed;
     m_motor1.setControl(m_velocityRequest.withVelocity(speed.in(RotationsPerSecond)));
-  }
-
-  @Override
-  public void setSpeed(AngularVelocity speed, Current feedForward) {
-    m_setpoint = speed;
-    m_feedForward = feedForward;
-    m_motor1.setControl(m_velocityRequest.withVelocity(speed.in(RotationsPerSecond)).withFeedForward(feedForward));
   }
 
   @Override
