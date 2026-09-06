@@ -210,7 +210,10 @@ public class RobotCommands {
         m_shooter.setSpeedCommand(() -> RPM.of(m_shotSpreadFlywheelRPM.get())),
         m_turret.setAngleCommand(() -> Degrees.of(m_shotSpreadTurretDegrees.get())),
         m_hood.setAngleCommand(() -> Degrees.of(m_shotSpreadHoodDegrees.get())),
-        feedFuel())
+        Commands.waitUntil(() -> m_shooter.isNearSetpointTrigger().getAsBoolean()
+            && m_turret.isNearSetpointTrigger().getAsBoolean()
+            && m_hood.isNearSetpointTrigger().getAsBoolean())
+            .andThen(feedFuel()))
         .withName("shotSpreadCharacterization");
   }
 
