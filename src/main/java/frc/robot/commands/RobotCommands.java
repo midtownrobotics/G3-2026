@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.lib.LoggedTunableNumber;
 import frc.robot.RobotState;
 import frc.robot.RobotState.ShooterState;
 import frc.robot.constants.Constants;
@@ -35,6 +36,13 @@ public class RobotCommands {
   private final Hood m_hood;
   private final RobotState m_state;
   private final DriveCommands m_driveCommands;
+
+  private final LoggedTunableNumber m_shotSpreadFlywheelRPM = new LoggedTunableNumber(
+      "ShotSpread/FlywheelRPM", 2000);
+  private final LoggedTunableNumber m_shotSpreadTurretDegrees = new LoggedTunableNumber(
+      "ShotSpread/TurretDegrees", 90);
+  private final LoggedTunableNumber m_shotSpreadHoodDegrees = new LoggedTunableNumber(
+      "ShotSpread/HoodDegrees", 10);
 
   public RobotCommands(
       Drive drive,
@@ -191,6 +199,19 @@ public class RobotCommands {
   public Command feedFuel() {
     return Commands.parallel(m_feeder.runForward(), m_indexer.runForward())
         .withName("feedFuel");
+  }
+
+  /**
+   * Fires balls at a fixed flywheel speed, turret angle, and hood angle so shot spread can be
+   * characterized. Each setting is tunable under {@code /Tuning/ShotSpread/*}.
+   */
+  public Command shotSpreadCharacterization() {
+    return Commands.parallel(
+        m_shooter.setSpeedCommand(() -> RPM.of(m_shotSpreadFlywheelRPM.get())),
+        m_turret.setAngleCommand(() -> Degrees.of(m_shotSpreadTurretDegrees.get())),
+        m_hood.setAngleCommand(() -> Degrees.of(m_shotSpreadHoodDegrees.get())),
+        feedFuel())
+        .withName("shotSpreadCharacterization");
   }
 
   public Command defense() {

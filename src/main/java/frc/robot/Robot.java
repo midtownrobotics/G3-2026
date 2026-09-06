@@ -312,6 +312,7 @@ public class Robot extends LoggedRobot {
 		
 		SmartDashboard.putData("Commands/ZeroTurretAngle", m_robotCommands.zeroTurretAngle());
     SmartDashboard.putData("Drive/DriveStraightRobotRelative", m_robotCommands.driveStrightRobotRelative());
+    SmartDashboard.putData("TuningModes/ShotSpreadCharacterization", m_robotCommands.shotSpreadCharacterization());
   }
 
   private void generateAutoChooser() {
