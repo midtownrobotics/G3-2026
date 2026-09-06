@@ -41,7 +41,7 @@ public class FlywheelIOTalonFX implements FlywheelIO {
    * constant velocity. If the wheel settles below its target under load, add kA or a little kI
    * rather than reintroducing kV.
    */
-  public static final Gains kDefaultGains = new Gains(0, 0, 0, 0, 0, 0, 0);
+  public static final Gains kDefaultGains = new Gains(10, 0, 0, 11.75, 0.2, 0, 0);
 
   private final TalonFX m_motor1;
   private final TalonFX m_motor2;
