@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -37,6 +38,14 @@ public class Turret extends SubsystemBase {
   private final TunableMotionProfile m_motionProfile = new TunableMotionProfile(
       "Turret", TurretIOTalonFX.kDefaultMotionProfile);
 
+  /**
+   * Latest polled values of the tuning numbers above. Polled from {@link #periodic()} like the
+   * gains, so the dashboard value is picked up every loop whether or not a tuning command happens to
+   * be running, and the value the tuning command uses is logged.
+   */
+  private Angle m_tuningSetpoint = Degrees.zero();
+  private Current m_tuningTorqueCurrent = Amps.zero();
+
   public Turret(TurretIO io) {
     m_io = io;
     m_watchdog = new Watchdawg(getClass());
@@ -54,6 +63,14 @@ public class Turret extends SubsystemBase {
 
     m_gains.poll(hashCode(), m_io::setGains);
     m_motionProfile.poll(hashCode(), m_io::setMotionProfile);
+
+    LoggedTunableNumber.ifChanged(
+        hashCode(), values -> m_tuningSetpoint = Degrees.of(values[0]), m_turretSetpointAngleDegrees);
+    LoggedTunableNumber.ifChanged(
+        hashCode(), values -> m_tuningTorqueCurrent = Amps.of(values[0]), m_openLoopTorqueAmps);
+
+    Logger.recordOutput("Turret/tuningSetpoint", m_tuningSetpoint);
+    Logger.recordOutput("Turret/tuningTorqueCurrent", m_tuningTorqueCurrent);
 
     m_talonConnectionAlert.set(!m_inputs.motorConnected);
     m_stallAlert.set(m_inputs.statorCurrent.gt(Amps.of(68)));
@@ -102,8 +119,7 @@ public class Turret extends SubsystemBase {
 
   /** Drives to {@code /Tuning/Turret/SetpointDegrees} so the closed loop can be tuned live. */
   public Command tuningMode() {
-    return setAngleCommand(() -> Degrees.of(m_turretSetpointAngleDegrees.getAsDouble()))
-        .withName("turretTuningMode");
+    return setAngleCommand(() -> m_tuningSetpoint).withName("turretTuningMode");
   }
 
   /**
@@ -112,7 +128,7 @@ public class Turret extends SubsystemBase {
    * fixed current to estimate kA.
    */
   public Command openLoopTorqueTuningMode() {
-    return run(() -> m_io.setTorqueCurrent(Amps.of(m_openLoopTorqueAmps.getAsDouble())))
+    return run(() -> m_io.setTorqueCurrent(m_tuningTorqueCurrent))
         .finallyDo(m_io::stop)
         .withName("turretOpenLoopTorqueTuning");
   }

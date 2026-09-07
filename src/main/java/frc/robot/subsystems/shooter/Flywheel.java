@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -39,6 +40,14 @@ public class Flywheel extends SubsystemBase {
 
   private final TunableGains m_gains = new TunableGains("Flywheel", FlywheelIOTalonFX.kDefaultGains);
 
+  /**
+   * Latest polled values of the tuning numbers above. Polled from {@link #periodic()} like the
+   * gains, so the dashboard value is picked up every loop whether or not a tuning command happens to
+   * be running, and the value the tuning command uses is logged.
+   */
+  private AngularVelocity m_tuningSetpoint = RPM.zero();
+  private Current m_tuningTorqueCurrent = Amps.zero();
+
   public Flywheel(FlywheelIO io) {
     m_io = io;
     m_watchdog = new Watchdawg(getClass());
@@ -55,6 +64,14 @@ public class Flywheel extends SubsystemBase {
     Logger.processInputs("Flywheel", m_inputs);
 
     m_gains.poll(hashCode(), m_io::setGains);
+
+    LoggedTunableNumber.ifChanged(
+        hashCode(), values -> m_tuningSetpoint = RPM.of(values[0]), m_shooterSetpointSpeed);
+    LoggedTunableNumber.ifChanged(
+        hashCode(), values -> m_tuningTorqueCurrent = Amps.of(values[0]), m_openLoopTorqueAmps);
+
+    Logger.recordOutput("Flywheel/tuningSetpoint", m_tuningSetpoint);
+    Logger.recordOutput("Flywheel/tuningTorqueCurrent", m_tuningTorqueCurrent);
 
     boolean motor1HighCurrent = m_inputs.statorCurrent1.gt(Amps.of(68));
     boolean motor1NotMoving = Math.abs(m_inputs.velocity1.in(RotationsPerSecond)) < 2;
@@ -105,8 +122,7 @@ public class Flywheel extends SubsystemBase {
 
   /** Spins to {@code /Tuning/Flywheel/SetpointRPM} so the velocity loop can be tuned live. */
   public Command tuningMode() {
-    return setSpeedCommand(() -> RPM.of(m_shooterSetpointSpeed.getAsDouble()))
-        .withName("flywheelTuningMode");
+    return setSpeedCommand(() -> m_tuningSetpoint).withName("flywheelTuningMode");
   }
 
   /**
@@ -115,7 +131,7 @@ public class Flywheel extends SubsystemBase {
    * speed reached at a fixed current characterizes the wheel's drag.
    */
   public Command openLoopTorqueTuningMode() {
-    return run(() -> m_io.setTorqueCurrent(Amps.of(m_openLoopTorqueAmps.getAsDouble())))
+    return run(() -> m_io.setTorqueCurrent(m_tuningTorqueCurrent))
         .finallyDo(m_io::stop)
         .withName("flywheelOpenLoopTorqueTuning");
   }

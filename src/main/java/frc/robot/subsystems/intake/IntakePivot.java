@@ -33,6 +33,13 @@ public class IntakePivot extends SubsystemBase {
 
   private final LoggedTunableNumber m_setpointAngle = new LoggedTunableNumber("IntakePivot/SetpointAngleDegrees", 0);
 
+  /**
+   * Latest polled value of {@link #m_setpointAngle}. Polled from {@link #periodic()}, so the
+   * dashboard value is picked up every loop whether or not the tuning command happens to be running,
+   * and the value the tuning command uses is logged.
+   */
+  private Angle m_tuningSetpoint = Degrees.zero();
+
   public IntakePivot(IntakePivotIO io) {
     m_io = io;
     m_currentSpikeFilter = LinearFilter.movingAverage(5);
@@ -48,7 +55,11 @@ public class IntakePivot extends SubsystemBase {
     m_io.updateInputs(m_inputs);
     Logger.processInputs("IntakePivot", m_inputs);
 
+    LoggedTunableNumber.ifChanged(
+        hashCode(), values -> m_tuningSetpoint = Degrees.of(values[0]), m_setpointAngle);
+
     Logger.recordOutput("IntakePivot/currentSpike", getIsCurrentSpiking());
+    Logger.recordOutput("IntakePivot/tuningSetpoint", m_tuningSetpoint);
 
     boolean highCurrent = m_inputs.statorCurrent.gt(Amps.of(68));
 
@@ -71,7 +82,7 @@ public class IntakePivot extends SubsystemBase {
   }
 
   public Command tuningMode() {
-    return run(() -> m_io.setPosition(Degrees.of(m_setpointAngle.getAsDouble())));
+    return run(() -> m_io.setPosition(m_tuningSetpoint)).withName("intakePivotTuningMode");
   }
 
   public Angle getAngle() {

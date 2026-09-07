@@ -38,6 +38,13 @@ public class Feeder extends SubsystemBase {
 
   private Distance m_filteredSensorDistance = Meters.zero();
 
+  /**
+   * Latest polled value of {@link #m_speedSetpoint}. Polled from {@link #periodic()} like the gains,
+   * so the dashboard value is picked up every loop whether or not the tuning command happens to be
+   * running, and the value the tuning command uses is logged.
+   */
+  private AngularVelocity m_tuningSetpoint = RPM.zero();
+
   public Feeder(FeederIO io) {
     m_io = io;
     m_fuelSensorFilter = LinearFilter.movingAverage(4);
@@ -55,6 +62,11 @@ public class Feeder extends SubsystemBase {
     Logger.processInputs("Feeder", m_inputs);
 
     m_gains.poll(hashCode(), m_io::setGains);
+
+    LoggedTunableNumber.ifChanged(
+        hashCode(), values -> m_tuningSetpoint = RPM.of(values[0]), m_speedSetpoint);
+
+    Logger.recordOutput("Feeder/tuningSetpoint", m_tuningSetpoint);
 
     m_filteredSensorDistance = Meters.of(m_fuelSensorFilter.calculate(m_inputs.fuelSensorDistance.in(Meters)));
 
@@ -97,6 +109,6 @@ public class Feeder extends SubsystemBase {
 
   /** Spins to {@code /Tuning/Feeder/SpeedSetpointRPM} so the velocity loop can be tuned live. */
   public Command tuningMode() {
-    return run(() -> m_io.setSpeed(RPM.of(m_speedSetpoint.get()))).finallyDo(() -> m_io.stop());
+    return run(() -> m_io.setSpeed(m_tuningSetpoint)).finallyDo(() -> m_io.stop());
   }
 }

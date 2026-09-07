@@ -9,6 +9,7 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
@@ -36,6 +37,14 @@ public class Hood extends SubsystemBase {
 
   private final TunableGains m_gains = new TunableGains("Hood", HoodIOTalonFX.kDefaultGains);
 
+  /**
+   * Latest polled values of the tuning numbers above. Polled from {@link #periodic()} like the
+   * gains, so the dashboard value is picked up every loop whether or not a tuning command happens to
+   * be running, and the value the tuning command uses is logged.
+   */
+  private Angle m_tuningSetpoint = Degrees.zero();
+  private Current m_tuningTorqueCurrent = Amps.zero();
+
   public Hood(HoodIO io) {
     m_io = io;
     m_currentSpikeFilter = LinearFilter.movingAverage(5);
@@ -58,6 +67,14 @@ public class Hood extends SubsystemBase {
     Logger.processInputs("Hood", m_inputs);
 
     m_gains.poll(hashCode(), m_io::setGains);
+
+    LoggedTunableNumber.ifChanged(
+        hashCode(), values -> m_tuningSetpoint = Degrees.of(values[0]), m_setpointAngle);
+    LoggedTunableNumber.ifChanged(
+        hashCode(), values -> m_tuningTorqueCurrent = Amps.of(values[0]), m_openLoopTorqueAmps);
+
+    Logger.recordOutput("Hood/tuningSetpoint", m_tuningSetpoint);
+    Logger.recordOutput("Hood/tuningTorqueCurrent", m_tuningTorqueCurrent);
 
     m_talonConnectionAlert.set(!m_inputs.motorConnected);
     m_stallAlert.set(m_inputs.statorCurrent.gt(Amps.of(30)));
@@ -130,7 +147,7 @@ public class Hood extends SubsystemBase {
 
   /** Drives to {@code /Tuning/Hood/SetpointAngleDegrees} so the closed loop can be tuned live. */
   public Command tuningMode() {
-    return setAngleCommand(() -> Degrees.of(m_setpointAngle.getAsDouble())).withName("hoodTuningMode");
+    return setAngleCommand(() -> m_tuningSetpoint).withName("hoodTuningMode");
   }
 
   /**
@@ -139,7 +156,7 @@ public class Hood extends SubsystemBase {
    * needed to start it moving for kS.
    */
   public Command openLoopTorqueTuningMode() {
-    return run(() -> m_io.setTorqueCurrent(Amps.of(m_openLoopTorqueAmps.getAsDouble())))
+    return run(() -> m_io.setTorqueCurrent(m_tuningTorqueCurrent))
         .finallyDo(m_io::stop)
         .withName("hoodOpenLoopTorqueTuning");
   }
