@@ -109,11 +109,13 @@ public class Robot extends LoggedRobot {
 
   private final LoggedDashboardChooser<Integer> m_cameraPipelineChooser;
 
+  private int m_canBusCounter = 0;
+
   public Robot() {
 
 		RobotController.setBrownoutVoltage(6.5);
 
-    DriverStation.silenceJoystickConnectionWarning(Robot.isSimulation());
+    DriverStation.silenceJoystickConnectionWarning(true);
 
     // m_pdh.setSwitchableChannel(true);
 
@@ -426,8 +428,11 @@ public class Robot extends LoggedRobot {
 
     m_state.periodic();
 		
-		Logger.recordOutput("CanBusUsage/Drive", Ports.driveCanBus.getStatus().BusUtilization);
-		Logger.recordOutput("CanBusUsage/Mechs", Ports.primaryCanBus.getStatus().BusUtilization);
+		m_canBusCounter++;
+		if (m_canBusCounter % 25 == 0) {
+			Logger.recordOutput("CanBusUsage/Drive", Ports.driveCanBus.getStatus().BusUtilization);
+			Logger.recordOutput("CanBusUsage/Mechs", Ports.primaryCanBus.getStatus().BusUtilization);
+		}
 
 		Logger.recordOutput("matchTime", DriverStation.getMatchTime());
 

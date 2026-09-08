@@ -30,6 +30,7 @@ public class Camera {
   private static final double kAmbiguityThreshold = 0.4;
 
   private PhotonCamera m_camera;
+  private boolean m_wasConnected = false;
   protected Transform3d m_robotToCamera;
   private String m_name;
   private final Alert m_connectionAlert;
@@ -48,6 +49,7 @@ public class Camera {
   public Camera(String name, Transform3d robotToCamera, double stdDevMultiplier, Supplier<Boolean> enabledSupplier) {
     m_name = name;
     m_camera = new PhotonCamera(name);
+    PhotonCamera.setVersionCheckEnabled(false);
     m_robotToCamera = robotToCamera;
     m_connectionAlert = new Alert("Camera " + name + " is not connected!", AlertType.kWarning);
     m_stdDevMultiplier = stdDevMultiplier;
@@ -93,6 +95,16 @@ public class Camera {
 
   public List<PoseObservation> getLatestObservations() {
     List<PoseObservation> observations = new LinkedList<>();
+
+    if (m_camera.isConnected() && !m_wasConnected) {
+      m_camera.getAllUnreadResults(); // discard results buffered while disconnected
+    }
+    m_wasConnected = m_camera.isConnected();
+
+    if (!m_camera.isConnected()) {
+      Logger.recordOutput("Vision/" + m_camera.getName() + "/numberOfObservations", 0);
+      return observations;
+    }
 
     for (var result : m_camera.getAllUnreadResults()) {
       Logger.recordOutput("Vision/" + m_camera.getName() + "/timeStamp", result.getTimestampSeconds());
