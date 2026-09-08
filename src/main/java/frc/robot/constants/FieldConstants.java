@@ -41,4 +41,24 @@ public class FieldConstants {
   public static Translation2d getHubPosition2d() {
     return GeometryUtil.flip(kHubPosition.toTranslation2d());
   }
+
+  /**
+   * Distance from the center of the hub to one of its flat faces (the apothem). Derived from the
+   * 2026 Rebuilt welded AprilTag layout: the hub face tags (e.g. 20 and 26) sit 0.6035m from
+   * {@link #kHubPosition}.
+   */
+  public static final Distance kHubFaceRadius = Meters.of(0.6035);
+
+  /**
+   * Pose to reset odometry to when the robot is physically staged against the driverstation-facing
+   * face of the hub, centered on the field's short axis, with the intake pointed away from the hub
+   * (toward our driverstation). Blue-origin; flipped for red.
+   */
+  public static Pose2d getHubZeroPose() {
+    // Intake is the +x side of the robot, so the back bumper is what touches the hub.
+    double robotCenterToBackBumper = Constants.kRobotLengthWithBumpers.in(Meters) / 2.0;
+    double x = kHubPosition.getX() - kHubFaceRadius.in(Meters) - robotCenterToBackBumper;
+
+    return GeometryUtil.flip(new Pose2d(x, kHubPosition.getY(), Rotation2d.k180deg));
+  }
 }

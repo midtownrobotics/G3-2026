@@ -72,6 +72,7 @@ public class Vision extends SubsystemBase {
 
     SmartDashboard.putData("Commands/Vision/ResetRobotPoseToLatestVisionPose",
         resetRobotPoseToLatestVisionPoseCommand());
+    SmartDashboard.putData("Commands/Vision/OdometryOnlyMode", odometryOnlyModeCommand());
   }
 
   @Override
@@ -169,6 +170,26 @@ public class Vision extends SubsystemBase {
 
   public Command resetRobotPoseToLatestVisionPoseCommand() {
     return Commands.runOnce(this::resetRobotPoseToVision);
+  }
+
+  public boolean areVisionObservationsEnabled() {
+    return m_enableVisionObservations.get();
+  }
+
+  public void setVisionObservationsEnabled(boolean enabled) {
+    m_enableVisionObservations.set(enabled);
+  }
+
+  /**
+   * Toggle-style dashboard button: while scheduled, no vision measurements are fused into the pose
+   * estimator, so the robot runs on wheel odometry + gyro only. Press again to re-enable vision.
+   */
+  public Command odometryOnlyModeCommand() {
+    return Commands.startEnd(
+        () -> setVisionObservationsEnabled(false),
+        () -> setVisionObservationsEnabled(true))
+        .ignoringDisable(true)
+        .withName("OdometryOnlyMode");
   }
 
 	public boolean areAllPipelinesReady() {

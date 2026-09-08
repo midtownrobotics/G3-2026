@@ -311,6 +311,10 @@ public class Robot extends LoggedRobot {
 
 		
 		SmartDashboard.putData("Commands/ZeroTurretAngle", m_robotCommands.zeroTurretAngle());
+    SmartDashboard.putData("Commands/ZeroPoseAtHub",
+        Commands.runOnce(() -> m_drive.resetPose(FieldConstants.getHubZeroPose()))
+            .ignoringDisable(true)
+            .withName("ZeroPoseAtHub"));
     SmartDashboard.putData("Drive/DriveStraightRobotRelative", m_robotCommands.driveStrightRobotRelative());
     SmartDashboard.putData("TuningModes/ShotSpreadCharacterization", m_robotCommands.shotSpreadCharacterization());
   }
