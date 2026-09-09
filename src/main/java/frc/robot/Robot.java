@@ -37,6 +37,7 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.lib.LoggedCommandScheduler;
 import frc.lib.Watchdawg;
+import frc.robot.LoopToggles.LoopToggle;
 import frc.robot.RobotState.ShooterState;
 import frc.robot.ShootingParameters.ShootingParametersMode;
 import frc.robot.commands.RobotCommands;
@@ -104,6 +105,12 @@ public class Robot extends LoggedRobot {
   private final RobotViz m_viz;
 
   private final Watchdawg m_watchdog;
+
+  private final LoopToggle m_commandSchedulerToggle = LoopToggles.create("CommandScheduler");
+  private final LoopToggle m_robotVizToggle = LoopToggles.create("RobotViz");
+  private final LoopToggle m_robotStateToggle = LoopToggles.create("RobotState");
+  private final LoopToggle m_canBusUsageToggle = LoopToggles.create("CanBusUsage");
+  private final LoopToggle m_loggedCommandSchedulerToggle = LoopToggles.create("LoggedCommandScheduler");
 
   private final RobotCommands m_robotCommands;
 
@@ -415,32 +422,89 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void robotPeriodic() {
+    Watchdawg.newLoop();
+    LoopToggles.periodic();
+
+    m_watchdog.start();
 
     Logger.recordOutput("Vision/isSOTMEnabled", m_state.isShootOnTheMoveEnabled());
+    m_watchdog.lap("preamble");
 
-    m_watchdog.start();
-    CommandScheduler.getInstance().run();
-    m_watchdog.end("commandScheduler");
+    if (m_commandSchedulerToggle.get()) {
+      CommandScheduler.getInstance().run();
+    }
+    m_watchdog.lap("commandScheduler");
 
-    m_watchdog.start();
-    m_viz.periodic();
-    m_watchdog.end("robotVizPeriodic");
+    if (m_robotVizToggle.get()) {
+      m_viz.periodic();
+    }
+    m_watchdog.lap("robotVizPeriodic");
 
-    m_state.periodic();
-		
+    if (m_robotStateToggle.get()) {
+      m_state.periodic();
+    }
+    m_watchdog.lap("robotStatePeriodic");
+
 		m_canBusCounter++;
-		if (m_canBusCounter % 25 == 0) {
+		if (m_canBusUsageToggle.get() && m_canBusCounter % 25 == 0) {
 			Logger.recordOutput("CanBusUsage/Drive", Ports.driveCanBus.getStatus().BusUtilization);
 			Logger.recordOutput("CanBusUsage/Mechs", Ports.primaryCanBus.getStatus().BusUtilization);
 		}
+    m_watchdog.lap("canBusUsage");
 
 		Logger.recordOutput("matchTime", DriverStation.getMatchTime());
+    m_watchdog.lap("matchTime");
 
     // Logger.recordOutput("Pigeon2/accelerationX", m_drive.getPigeon2().getAccelerationX().getValue());
     // Logger.recordOutput("Pigeon2/accelerationY", m_drive.getPigeon2().getAccelerationY().getValue());
     // Logger.recordOutput("Pigeon2/accelerationZ", m_drive.getPigeon2().getAccelerationZ().getValue());
 
-    LoggedCommandScheduler.periodic();
+    if (m_loggedCommandSchedulerToggle.get()) {
+      LoggedCommandScheduler.periodic();
+    }
+    m_watchdog.lap("loggedCommandScheduler");
+
+    m_watchdog.total("robotPeriodicTotal");
+    recordLoopSummary();
+
+    Watchdawg.endLoop();
+  }
+
+  /**
+   * Derived timing numbers that would otherwise have to be subtracted by hand in AdvantageScope.
+   * Everything here reads epochs recorded earlier this same loop.
+   */
+  private void recordLoopSummary() {
+    double robotPeriodicTotal = Watchdawg.last(Robot.class, "robotPeriodicTotal");
+
+    double subsystemPeriodicTotal = Watchdawg.sumPeriodics(
+        Drive.class,
+        Vision.class,
+        Turret.class,
+        Flywheel.class,
+        Hood.class,
+        Feeder.class,
+        Indexer.class,
+        IntakePivot.class,
+        IntakeRoller.class);
+
+    // WPILib exposes no onCommandExecute hook, so subtracting the subsystem periodics from the
+    // scheduler's total is the only way to see what running commands actually cost.
+    double commandExecuteOverhead = Watchdawg.last(Robot.class, "commandScheduler") - subsystemPeriodicTotal;
+
+    double laps = Watchdawg.last(Robot.class, "preamble")
+        + Watchdawg.last(Robot.class, "commandScheduler")
+        + Watchdawg.last(Robot.class, "robotVizPeriodic")
+        + Watchdawg.last(Robot.class, "robotStatePeriodic")
+        + Watchdawg.last(Robot.class, "canBusUsage")
+        + Watchdawg.last(Robot.class, "matchTime")
+        + Watchdawg.last(Robot.class, "loggedCommandScheduler");
+
+    Logger.recordOutput("Watchdog/_Summary/robotPeriodicTotal", robotPeriodicTotal);
+    Logger.recordOutput("Watchdog/_Summary/subsystemPeriodicTotal", subsystemPeriodicTotal);
+    Logger.recordOutput("Watchdog/_Summary/commandExecuteOverhead", commandExecuteOverhead);
+    // Sanity check: should sit near zero. Anything else means a block was added without a lap().
+    Logger.recordOutput("Watchdog/_Summary/unaccounted", robotPeriodicTotal - laps);
   }
 
   @Override

@@ -24,6 +24,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.lib.LoggedTunableNumber;
+import frc.lib.Watchdawg;
 import frc.robot.constants.FieldConstants;
 
 public class Camera {
@@ -36,6 +37,7 @@ public class Camera {
   private final Alert m_connectionAlert;
   private final double m_stdDevMultiplier;
   private final Supplier<Boolean> m_enabledSupplier;
+  private final Watchdawg m_watchdog = new Watchdawg(Camera.class);
 
   private static final double kDefaultStdMultiplier = 2;
 
@@ -65,9 +67,13 @@ public class Camera {
   }
 
   public void periodic() {
+    m_watchdog.start();
+
     Logger.recordOutput("Vision/" + m_camera.getName() + "/enabled", m_enabledSupplier.get());
     Logger.recordOutput("Vision/" + m_camera.getName() + "/connected", m_camera.isConnected());
     m_connectionAlert.set(!m_camera.isConnected());
+
+    m_watchdog.end(m_name + "/periodic");
   }
 
   public String getName() {
@@ -94,6 +100,15 @@ public class Camera {
   }
 
   public List<PoseObservation> getLatestObservations() {
+    m_watchdog.start();
+    try {
+      return getLatestObservationsInternal();
+    } finally {
+      m_watchdog.end(m_name + "/getLatestObservations");
+    }
+  }
+
+  private List<PoseObservation> getLatestObservationsInternal() {
     List<PoseObservation> observations = new LinkedList<>();
 
     if (m_camera.isConnected() && !m_wasConnected) {

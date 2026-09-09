@@ -20,6 +20,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.LoggedTunableNumber;
 import frc.lib.TunableGains;
 import frc.lib.Watchdawg;
+import frc.robot.LoopToggles;
+import frc.robot.LoopToggles.LoopToggle;
 
 public class Feeder extends SubsystemBase {
   private final FeederIO m_io;
@@ -29,6 +31,7 @@ public class Feeder extends SubsystemBase {
   private final Alert m_talonConnectionAlert = new Alert("Feeder TalonFX motor is not connected", AlertType.kWarning);
   private final Alert m_stallAlert = new Alert("Feeder stalling", AlertType.kWarning);
   private final Watchdawg m_watchdog;
+  private final LoopToggle m_loopEnabled = LoopToggles.create("Feeder");
 
   private final LoggedTunableNumber m_speedSetpoint = new LoggedTunableNumber("Feeder/SpeedSetpointRPM", 0);
   private final LoggedTunableNumber m_feedSpeed = new LoggedTunableNumber("Feeder/feedSpeedRPM", 2500);
@@ -56,6 +59,10 @@ public class Feeder extends SubsystemBase {
 
   @Override
   public void periodic() {
+    if (!m_loopEnabled.get()) {
+      return;
+    }
+
     m_watchdog.start();
 
     m_io.updateInputs(m_inputs);

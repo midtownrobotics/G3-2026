@@ -12,11 +12,13 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import frc.lib.Watchdawg;
 
 public class Module {
   private final ModuleIO io;
   private final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();
   private final int index;
+  private final Watchdawg watchdog = new Watchdawg(Module.class);
   private final SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> constants;
 
   private final Alert driveDisconnectedAlert;
@@ -42,8 +44,11 @@ public class Module {
   }
 
   public void periodic() {
+    watchdog.start();
+
     io.updateInputs(inputs);
     Logger.processInputs("Drive/Module" + Integer.toString(index), inputs);
+    watchdog.lap("updateInputs/" + index);
 
     // Calculate positions for odometry
     int sampleCount = inputs.odometryTimestamps.length;
@@ -58,6 +63,8 @@ public class Module {
     driveDisconnectedAlert.set(!inputs.driveConnected);
     turnDisconnectedAlert.set(!inputs.turnConnected);
     turnEncoderDisconnectedAlert.set(!inputs.turnEncoderConnected);
+
+    watchdog.total("periodic/" + index);
   }
 
   /** Runs the module with the specified setpoint state. Mutates the state to optimize it. */

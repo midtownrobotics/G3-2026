@@ -20,6 +20,8 @@ import frc.lib.LoggedTunableNumber;
 import frc.lib.TunableGains;
 import frc.lib.TunableMotionProfile;
 import frc.lib.Watchdawg;
+import frc.robot.LoopToggles;
+import frc.robot.LoopToggles.LoopToggle;
 
 public class Turret extends SubsystemBase {
   private final TurretIO m_io;
@@ -27,6 +29,7 @@ public class Turret extends SubsystemBase {
   private final Alert m_talonConnectionAlert = new Alert("Turret TalonFX motor is not connected", AlertType.kWarning);
   private final Alert m_stallAlert = new Alert("Turret motor stalling", AlertType.kWarning);
   private final Watchdawg m_watchdog;
+  private final LoopToggle m_loopEnabled = LoopToggles.create("Turret");
   private final Trigger m_isNearSetpointTrigger;
 
   private final LoggedTunableNumber m_turretSetpointAngleDegrees = new LoggedTunableNumber(
@@ -56,6 +59,10 @@ public class Turret extends SubsystemBase {
 
   @Override
   public void periodic() {
+    if (!m_loopEnabled.get()) {
+      return;
+    }
+
     m_watchdog.start();
 
     m_io.updateInputs(m_inputs);

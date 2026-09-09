@@ -21,6 +21,8 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.Watchdawg;
+import frc.robot.LoopToggles;
+import frc.robot.LoopToggles.LoopToggle;
 import frc.robot.Robot;
 import frc.robot.sensors.Camera.PoseObservation;
 
@@ -34,6 +36,7 @@ public class Vision extends SubsystemBase {
   private final Consumer<Pose2d> m_resetPoseConsumer;
   private VisionSystemSim m_visionSim;
   private final Watchdawg m_watchdog;
+  private final LoopToggle m_loopEnabled = LoopToggles.create("Vision");
   private final TimeInterpolatableBuffer<Pose2d> m_acceptedObservations;
 
   private final LoggedNetworkBoolean m_enableVisionObservations = new LoggedNetworkBoolean(
@@ -76,6 +79,10 @@ public class Vision extends SubsystemBase {
 
   @Override
   public void periodic() {
+    if (!m_loopEnabled.get()) {
+      return;
+    }
+
     m_watchdog.start();
 
     Pose2d robotPose = m_poseSupplier.get();
@@ -135,6 +142,10 @@ public class Vision extends SubsystemBase {
 
   @Override
   public void simulationPeriodic() {
+    if (!m_loopEnabled.get()) {
+      return;
+    }
+
     m_visionSim.update(m_poseSupplier.get());
   }
 

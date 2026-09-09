@@ -19,6 +19,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.LoggedTunableNumber;
 import frc.lib.TunableGains;
 import frc.lib.Watchdawg;
+import frc.robot.LoopToggles;
+import frc.robot.LoopToggles.LoopToggle;
 
 public class Flywheel extends SubsystemBase {
   private final FlywheelIO m_io;
@@ -31,6 +33,7 @@ public class Flywheel extends SubsystemBase {
   private final Alert m_stallAlert2 = new Alert("Flywheel motor 2 stalling", AlertType.kWarning);
 
   private final Watchdawg m_watchdog;
+  private final LoopToggle m_loopEnabled = LoopToggles.create("Flywheel");
   private final Trigger m_isNearSetpointTrigger;
 
   private final LoggedTunableNumber m_shooterSetpointSpeed = new LoggedTunableNumber(
@@ -58,6 +61,10 @@ public class Flywheel extends SubsystemBase {
 
   @Override
   public void periodic() {
+    if (!m_loopEnabled.get()) {
+      return;
+    }
+
     m_watchdog.start();
 
     m_io.updateInputs(m_inputs);

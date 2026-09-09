@@ -36,6 +36,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.lib.Watchdawg;
+import frc.robot.LoopToggles;
+import frc.robot.LoopToggles.LoopToggle;
 import frc.robot.generated.TunerConstants;
 import frc.robot.util.PoseEstimator;
 import frc.robot.util.PoseEstimator.OdometryObservation;
@@ -74,6 +76,7 @@ public class Drive extends SubsystemBase {
   private PoseEstimator poseEstimator = new PoseEstimator(kinematics);
 
   private final Watchdawg m_watchdog = new Watchdawg(getClass());
+  private final LoopToggle m_loopEnabled = LoopToggles.create("Drive");
 
   private final SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[4];
 
@@ -122,6 +125,10 @@ public class Drive extends SubsystemBase {
 
   @Override
   public void periodic() {
+    if (!m_loopEnabled.get()) {
+      return;
+    }
+
     m_watchdog.start();
 
     odometryLock.lock(); // Prevents odometry updates while reading data
@@ -131,6 +138,8 @@ public class Drive extends SubsystemBase {
       module.periodic();
     }
     odometryLock.unlock();
+    // Includes contention with PhoenixOdometryThread, which holds this lock at 250 Hz.
+    m_watchdog.lap("odometryLockedInputs");
 
     // Stop moving when disabled
     if (DriverStation.isDisabled()) {
@@ -185,6 +194,8 @@ public class Drive extends SubsystemBase {
       poseEstimator.addOdometryObservation(odometryObservation);
     }
 
+    m_watchdog.lap("odometryIntegration");
+
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected && !DriverStation.isTest());
 
@@ -193,8 +204,9 @@ public class Drive extends SubsystemBase {
     Logger.recordOutput("Drive/chassisSpeeds", getChassisSpeeds());
     Logger.recordOutput("Drive/moduleStates", getModuleStates());
     Logger.recordOutput("Drive/modulePositions", getModulePositions());
+    m_watchdog.lap("logging");
 
-    m_watchdog.end("periodic");
+    m_watchdog.total("periodic");
   }
 
   /**

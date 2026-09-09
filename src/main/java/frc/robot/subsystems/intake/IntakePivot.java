@@ -20,6 +20,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.LoggedTunableNumber;
 import frc.lib.Watchdawg;
+import frc.robot.LoopToggles;
+import frc.robot.LoopToggles.LoopToggle;
 
 public class IntakePivot extends SubsystemBase {
   private final IntakePivotIO m_io;
@@ -30,6 +32,7 @@ public class IntakePivot extends SubsystemBase {
       AlertType.kWarning);
   private final Alert m_stallAlert = new Alert("IntakePivot stalling", AlertType.kWarning);
   private final Watchdawg m_watchdog;
+  private final LoopToggle m_loopEnabled = LoopToggles.create("IntakePivot");
 
   private final LoggedTunableNumber m_setpointAngle = new LoggedTunableNumber("IntakePivot/SetpointAngleDegrees", 0);
 
@@ -50,6 +53,10 @@ public class IntakePivot extends SubsystemBase {
 
   @Override
   public void periodic() {
+    if (!m_loopEnabled.get()) {
+      return;
+    }
+
     m_watchdog.start();
 
     m_io.updateInputs(m_inputs);

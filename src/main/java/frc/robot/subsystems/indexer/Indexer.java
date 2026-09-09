@@ -12,6 +12,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.LoggedTunableNumber;
 import frc.lib.Watchdawg;
+import frc.robot.LoopToggles;
+import frc.robot.LoopToggles.LoopToggle;
 
 public class Indexer extends SubsystemBase {
   private final InexerIO m_io;
@@ -20,6 +22,7 @@ public class Indexer extends SubsystemBase {
       AlertType.kWarning);
   private final Alert m_stallAlert = new Alert("Indexer stalling", AlertType.kWarning);
   private final Watchdawg m_watchdog;
+  private final LoopToggle m_loopEnabled = LoopToggles.create("Indexer");
 
   private final LoggedTunableNumber m_kP = new LoggedTunableNumber("Indexer/kP", 0);
   private final LoggedTunableNumber m_kI = new LoggedTunableNumber("Indexer/kI", 0);
@@ -32,6 +35,10 @@ public class Indexer extends SubsystemBase {
 
   @Override
   public void periodic() {
+    if (!m_loopEnabled.get()) {
+      return;
+    }
+
     m_watchdog.start();
 
     m_io.updateInputs(m_inputs);
