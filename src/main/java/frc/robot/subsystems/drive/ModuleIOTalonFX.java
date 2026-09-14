@@ -30,6 +30,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
+import frc.lib.Watchdawg;
 import frc.robot.generated.TunerConstants;
 
 /**
@@ -79,9 +80,15 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final Debouncer turnConnectedDebounce = new Debouncer(0.5, Debouncer.DebounceType.kFalling);
   private final Debouncer turnEncoderConnectedDebounce = new Debouncer(0.5, Debouncer.DebounceType.kFalling);
 
+  // Loop timing. Epochs are suffixed with the drive motor ID so the four modules don't overwrite
+  // each other's values under the shared per-class path.
+  private final Watchdawg watchdog = new Watchdawg(ModuleIOTalonFX.class);
+  private final String watchdogSuffix;
+
   public ModuleIOTalonFX(
       SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> constants) {
     this.constants = constants;
+    watchdogSuffix = "/" + constants.DriveMotorId;
     driveTalon = new TalonFX(constants.DriveMotorId, TunerConstants.kCANBus);
     turnTalon = new TalonFX(constants.SteerMotorId, TunerConstants.kCANBus);
     cancoder = new CANcoder(constants.EncoderId, TunerConstants.kCANBus);
@@ -151,7 +158,7 @@ public class ModuleIOTalonFX implements ModuleIO {
     turnVelocity = turnTalon.getVelocity();
     turnAppliedVolts = turnTalon.getMotorVoltage();
     turnCurrent = turnTalon.getStatorCurrent();
-		turnCurrentSupply = driveTalon.getSupplyCurrent();
+		turnCurrentSupply = turnTalon.getSupplyCurrent();
 
     // Configure periodic frames
     BaseStatusSignal.setUpdateFrequencyForAll(
@@ -161,37 +168,62 @@ public class ModuleIOTalonFX implements ModuleIO {
         driveVelocity,
         driveAppliedVolts,
         driveCurrent,
+        driveCurrentSupply,
         turnAbsolutePosition,
         turnVelocity,
         turnAppliedVolts,
-        turnCurrent);
-    ParentDevice.optimizeBusUtilizationForAll(driveTalon, turnTalon);
+        turnCurrent,
+        turnCurrentSupply);
+    // The CANcoder must be included, or it keeps broadcasting its full default signal set even
+    // though only the absolute position is read from it.
+    ParentDevice.optimizeBusUtilizationForAll(driveTalon, turnTalon, cancoder);
   }
 
   @Override
   public void updateInputs(ModuleIOInputs inputs) {
-    // Refresh all signals
-    var driveStatus = BaseStatusSignal.refreshAll(drivePosition, driveVelocity, driveAppliedVolts, driveCurrent);
-    var turnStatus = BaseStatusSignal.refreshAll(turnPosition, turnVelocity, turnAppliedVolts, turnCurrent);
-    var turnEncoderStatus = BaseStatusSignal.refreshAll(turnAbsolutePosition);
+    watchdog.start();
+
+    // Refresh every signal in a single batch. Splitting this by device costs an extra JNI round
+    // trip per group for no benefit; per-device health comes from the cached per-signal statuses
+    // below, which isAllGood reads without re-refreshing.
+    BaseStatusSignal.refreshAll(
+        drivePosition,
+        driveVelocity,
+        driveAppliedVolts,
+        driveCurrent,
+        driveCurrentSupply,
+        turnPosition,
+        turnVelocity,
+        turnAppliedVolts,
+        turnCurrent,
+        turnCurrentSupply,
+        turnAbsolutePosition);
+    watchdog.lap("refreshAll" + watchdogSuffix);
 
     // Update drive inputs
-    inputs.driveConnected = driveConnectedDebounce.calculate(driveStatus.isOK());
+    inputs.driveConnected = driveConnectedDebounce.calculate(
+        BaseStatusSignal.isAllGood(
+            drivePosition, driveVelocity, driveAppliedVolts, driveCurrent, driveCurrentSupply));
     inputs.drivePositionRad = Units.rotationsToRadians(drivePosition.getValueAsDouble());
     inputs.driveVelocityRadPerSec = Units.rotationsToRadians(driveVelocity.getValueAsDouble());
     inputs.driveAppliedVolts = driveAppliedVolts.getValueAsDouble();
     inputs.driveCurrentAmps = driveCurrent.getValueAsDouble();
 		inputs.driveCurrentAmpsSupply = driveCurrentSupply.getValueAsDouble();
+    watchdog.lap("driveInputs" + watchdogSuffix);
 
     // Update turn inputs
-    inputs.turnConnected = turnConnectedDebounce.calculate(turnStatus.isOK());
-    inputs.turnEncoderConnected = turnEncoderConnectedDebounce.calculate(turnEncoderStatus.isOK());
+    inputs.turnConnected = turnConnectedDebounce.calculate(
+        BaseStatusSignal.isAllGood(
+            turnPosition, turnVelocity, turnAppliedVolts, turnCurrent, turnCurrentSupply));
+    inputs.turnEncoderConnected = turnEncoderConnectedDebounce.calculate(
+        BaseStatusSignal.isAllGood(turnAbsolutePosition));
     inputs.turnAbsolutePosition = Rotation2d.fromRotations(turnAbsolutePosition.getValueAsDouble());
     inputs.turnPosition = Rotation2d.fromRotations(turnPosition.getValueAsDouble());
     inputs.turnVelocityRadPerSec = Units.rotationsToRadians(turnVelocity.getValueAsDouble());
     inputs.turnAppliedVolts = turnAppliedVolts.getValueAsDouble();
     inputs.turnCurrentAmps = turnCurrent.getValueAsDouble();
 		inputs.turnCurrentAmpsSupply = turnCurrentSupply.getValueAsDouble();
+    watchdog.lap("turnInputs" + watchdogSuffix);
 
     // Update odometry inputs
     inputs.odometryTimestamps = timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
@@ -204,6 +236,9 @@ public class ModuleIOTalonFX implements ModuleIO {
     timestampQueue.clear();
     drivePositionQueue.clear();
     turnPositionQueue.clear();
+    watchdog.lap("odometryInputs" + watchdogSuffix);
+
+    watchdog.total("updateInputs" + watchdogSuffix);
   }
 
   @Override
