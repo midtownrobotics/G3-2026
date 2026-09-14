@@ -21,6 +21,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.LoggedTunableNumber;
 import frc.lib.TunableGains;
 import frc.lib.Watchdawg;
+import frc.robot.LoopToggles;
+import frc.robot.LoopToggles.LoopToggle;
 
 public class Hood extends SubsystemBase {
   private final HoodIO m_io;
@@ -30,6 +32,7 @@ public class Hood extends SubsystemBase {
   private final Alert m_talonConnectionAlert = new Alert("Hood TalonFX motor is not connected", AlertType.kWarning);
   private final Alert m_stallAlert = new Alert("Hood stalling", AlertType.kWarning);
   private final Watchdawg m_watchdog;
+  private final LoopToggle m_loopEnabled = LoopToggles.create("Hood");
   private final Trigger m_isNearSetpointTrigger;
 
   private final LoggedTunableNumber m_setpointAngle = new LoggedTunableNumber("Hood/SetpointAngleDegrees", 0);
@@ -61,6 +64,10 @@ public class Hood extends SubsystemBase {
 
   @Override
   public void periodic() {
+    if (!m_loopEnabled.get()) {
+      return;
+    }
+
     m_watchdog.start();
 
     m_io.updateInputs(m_inputs);

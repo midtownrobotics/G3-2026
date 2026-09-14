@@ -11,6 +11,8 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.Watchdawg;
+import frc.robot.LoopToggles;
+import frc.robot.LoopToggles.LoopToggle;
 
 public class IntakeRoller extends SubsystemBase {
   private final IntakeRollerIO m_io;
@@ -19,6 +21,7 @@ public class IntakeRoller extends SubsystemBase {
       AlertType.kWarning);
   private final Alert m_stallAlert = new Alert("IntakeRoller stalling", AlertType.kWarning);
   private final Watchdawg m_watchdog;
+  private final LoopToggle m_loopEnabled = LoopToggles.create("IntakeRoller");
 
   public IntakeRoller(IntakeRollerIO io) {
     m_io = io;
@@ -27,6 +30,10 @@ public class IntakeRoller extends SubsystemBase {
 
   @Override
   public void periodic() {
+    if (!m_loopEnabled.get()) {
+      return;
+    }
+
     m_watchdog.start();
     m_io.updateInputs(m_inputs);
     Logger.processInputs("IntakeRoller", m_inputs);

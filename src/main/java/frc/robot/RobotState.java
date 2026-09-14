@@ -33,6 +33,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.GeometryUtil;
+import frc.lib.Watchdawg;
 import frc.robot.ShootingParameters.ShootingParametersMode;
 import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
@@ -63,6 +64,8 @@ public class RobotState {
   private final Trigger m_inAllianceZoneTrigger;
 
   private final Field2d m_field2d = new Field2d();
+
+  private final Watchdawg m_watchdog = new Watchdawg(RobotState.class);
 
   private final LoggedNetworkBoolean m_fixedTurretModeToggle = new LoggedNetworkBoolean("Toggles/FixedTurretMode",
       false);
@@ -124,6 +127,8 @@ public class RobotState {
   }
 
   public void periodic() {
+    m_watchdog.start();
+
     m_shootingParameters.periodic();
 
     double timestamp = Timer.getFPGATimestamp();
@@ -156,6 +161,13 @@ public class RobotState {
 		Logger.recordOutput("RobotState/PoseDerivedFieldRelativeChassisSpeeds", ChassisSpeeds.fromRobotRelativeSpeeds(poseDerivedChassisSpeeds, robotPose.getRotation()));
 
     m_field2d.setRobotPose(getRobotPose());
+
+    m_watchdog.total("periodic");
+    // ShootingParameters times itself and nests inside the above, so break it out.
+    m_watchdog.record(
+        "periodicExcludingShootingParameters",
+        Watchdawg.last(RobotState.class, "periodic")
+            - Watchdawg.last(ShootingParameters.class, "periodic"));
   }
 
   public ShooterState getShooterState() {
