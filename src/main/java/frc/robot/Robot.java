@@ -12,6 +12,7 @@ import java.util.Set;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
@@ -34,6 +35,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.lib.LoggedCommandScheduler;
 import frc.lib.Watchdawg;
@@ -86,6 +88,8 @@ public class Robot extends LoggedRobot {
 
   private final Drive m_drive;
   private final Vision m_vision;
+
+  private final LoggedNetworkBoolean m_hubOrbitDriveToggle = new LoggedNetworkBoolean("Toggles/HubOrbitDrive", false);
 
   private final IntakePivot m_intakePivot;
   private final IntakeRoller m_intakeRoller;
@@ -324,6 +328,10 @@ public class Robot extends LoggedRobot {
         Commands.runOnce(() -> m_drive.resetPose(FieldConstants.getHubZeroPose()))
             .ignoringDisable(true)
             .withName("ZeroPoseAtHub"));
+    SmartDashboard.putData("Commands/ZeroPoseAtHubFarSide",
+        Commands.runOnce(() -> m_drive.resetPose(FieldConstants.getHubFarSideZeroPose()))
+            .ignoringDisable(true)
+            .withName("ZeroPoseAtHubFarSide"));
     SmartDashboard.putData("Drive/DriveStraightRobotRelative", m_robotCommands.driveStrightRobotRelative());
     SmartDashboard.putData("TuningModes/ShotSpreadCharacterization", m_robotCommands.shotSpreadCharacterization());
   }
@@ -343,6 +351,10 @@ public class Robot extends LoggedRobot {
   }
 
   public void configureBindings() {
+    // Dashboard toggle: while set, hub-orbit drive interrupts the default drive command. Clearing
+    // it ends the command and the normal field-relative default takes back over.
+    new Trigger(m_hubOrbitDriveToggle::get).whileTrue(m_robotCommands.hubOrbitDriveCommand());
+
     m_controls.idle().onTrue(m_robotCommands.idle());
 
     m_controls.intake().onTrue(m_robotCommands.fill());

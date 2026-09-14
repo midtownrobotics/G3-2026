@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
@@ -8,22 +9,35 @@ import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.lib.LoggedTunableNumber;
 import frc.lib.Watchdawg;
 import frc.robot.RobotState;
 import frc.robot.RobotState.ShooterState;
 import frc.robot.constants.Constants;
+import frc.robot.constants.FieldConstants;
 import frc.robot.subsystems.drive.Drive;
 
 public class DriveCommands {
+  /** Closest the hub-orbit mode will let the commanded radius get, measured from the hub center. */
+  private static final Distance kMinOrbitRadius = Meters.of(
+      FieldConstants.kHubFaceRadius.in(Meters) + Constants.kRobotLengthWithBumpers.in(Meters) / 2.0);
+  private static final Distance kMaxOrbitRadius = Meters.of(8.0);
+  private static final double kOrbitLoopPeriodSeconds = 0.02;
+
+  private static final LoggedTunableNumber kOrbitRadiusKp = new LoggedTunableNumber("HubOrbitDrive/RadiusKp", 4.0);
+
   private final Drive m_drive;
   private final Supplier<Double> m_driveLeftSupplier;
   private final Supplier<Double> m_driveForwardSupplier;
@@ -194,6 +208,98 @@ public class DriveCommands {
           watchdog.end("snakeDrive");
         },
         m_drive);
+  }
+
+  /**
+   * Drive in polar coordinates about the hub instead of field-relative XY.
+   *
+   * <p>Forward/back on the left stick changes the commanded radius (up moves away from the hub,
+   * down moves toward it). Left/right on the left stick arcs around the hub at whatever radius is
+   * currently commanded; a PI controller on the radius error holds the robot on that circle while
+   * it arcs, so the driver traces the arc rather than a chord. The rotation stick still controls
+   * heading normally.
+   *
+   * <p>"Left" is the driver's left: the tangent is the outward radial rotated -90 deg, which lands
+   * on driver-left for both alliances as long as the robot is on our side of the hub.
+   */
+  protected Command hubOrbitDrive() {
+    final PIDController radiusController = new PIDController(kOrbitRadiusKp.get(), 0, 0);
+    final Watchdawg watchdog = new Watchdawg(DriveCommands.class);
+    // Commanded radius, integrated from the radial stick. Held across loops so tangential
+    // motion has a fixed circle to track.
+    final double[] targetRadius = new double[1];
+
+    return Commands.run(
+        () -> {
+          watchdog.start();
+
+          if (Constants.kTuningMode) {
+            radiusController.setP(kOrbitRadiusKp.get());
+          }
+
+          Translation2d hub = FieldConstants.getHubPosition2d();
+          Translation2d hubToRobot = m_drive.getPose().getTranslation().minus(hub);
+          double radius = hubToRobot.getNorm();
+
+          // Degenerate: sitting on the hub center, there is no radial direction to hold.
+          if (radius < 1e-3) {
+            m_drive.runVelocity(new ChassisSpeeds());
+            watchdog.end("hubOrbitDrive");
+            return;
+          }
+
+          double shootingMultiplier = isShooting() ? 0.25 : 1.0;
+          double maxSpeed = Constants.kMaxLinearSpeed.in(MetersPerSecond)
+              * Constants.kLinearSpeedMultiplier * shootingMultiplier;
+
+          Translation2d outward = hubToRobot.div(radius);
+          Translation2d tangentLeft = outward.rotateBy(Rotation2d.kCW_Pi_2);
+
+          double radialInput = m_driveForwardSupplier.get() * maxSpeed;
+          targetRadius[0] = MathUtil.clamp(
+              targetRadius[0] + radialInput * kOrbitLoopPeriodSeconds,
+              kMinOrbitRadius.in(Meters),
+              kMaxOrbitRadius.in(Meters));
+
+          // Feedforward the stick so radial motion is not fighting the controller, then correct
+          // whatever drift the arcing introduces.
+          double radialSpeed = radialInput + radiusController.calculate(radius, targetRadius[0]);
+          double tangentialSpeed = m_driveLeftSupplier.get() * maxSpeed;
+
+          Translation2d velocity = outward.times(radialSpeed).plus(tangentLeft.times(tangentialSpeed));
+
+          ChassisSpeeds fieldRelativeSpeeds = new ChassisSpeeds(
+              velocity.getX(),
+              velocity.getY(),
+              Math.copySign(
+                  m_driveRotationSupplier.get()
+                      * m_driveRotationSupplier.get()
+                      * Constants.kAngularMaxSpeed.in(RadiansPerSecond)
+                      * Constants.kAngluarSpeedMultiplier
+                      * shootingMultiplier,
+                  m_driveRotationSupplier.get()));
+
+          Logger.recordOutput("DriveCommands/hubOrbit/radius", radius);
+          Logger.recordOutput("DriveCommands/hubOrbit/targetRadius", targetRadius[0]);
+          Logger.recordOutput("DriveCommands/hubOrbit/radiusError", targetRadius[0] - radius);
+          Logger.recordOutput("DriveCommands/hubOrbit/commandedChassisSpeeds", fieldRelativeSpeeds);
+
+          // Field relative, not alliance adjusted: the stick axes mean radial/tangential here, and
+          // those directions are already derived from the hub.
+          m_drive.runVelocity(
+              ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, m_drive.getPose().getRotation()));
+          watchdog.end("hubOrbitDrive");
+        },
+        m_drive)
+        .beforeStarting(() -> {
+          // Latch the radius we were sitting at when the mode was engaged.
+          targetRadius[0] = MathUtil.clamp(
+              m_drive.getPose().getTranslation().getDistance(FieldConstants.getHubPosition2d()),
+              kMinOrbitRadius.in(Meters),
+              kMaxOrbitRadius.in(Meters));
+          radiusController.reset();
+        })
+        .withName("hubOrbitDrive");
   }
 
   protected Command driveCommand() {

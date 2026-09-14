@@ -261,6 +261,10 @@ public class RobotCommands {
     return m_driveCommands.driveCommand().withName("driveCommand");
   }
 
+  public Command hubOrbitDriveCommand() {
+    return m_driveCommands.hubOrbitDrive();
+  }
+
   public Command zeroTurretHood() {
     return m_hood.setLowerSoftLimitEnabledCommand(false)
         .andThen(m_hood.setVoltage(Volts.of(-3.5)).until(m_hood.getCurrentSpikeTrigger()).withTimeout(Seconds.of(4)))

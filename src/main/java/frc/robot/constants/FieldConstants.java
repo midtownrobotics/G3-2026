@@ -49,6 +49,9 @@ public class FieldConstants {
    */
   public static final Distance kHubFaceRadius = Meters.of(0.6035);
 
+  /** Half the bumper-to-bumper length, i.e. center of the robot to the front or back bumper face. */
+  private static final double kRobotCenterToBumperFace = Constants.kRobotLengthWithBumpers.in(Meters) / 2.0;
+
   /**
    * Pose to reset odometry to when the robot is physically staged against the driverstation-facing
    * face of the hub, centered on the field's short axis, with the intake pointed away from the hub
@@ -56,9 +59,18 @@ public class FieldConstants {
    */
   public static Pose2d getHubZeroPose() {
     // Intake is the +x side of the robot, so the back bumper is what touches the hub.
-    double robotCenterToBackBumper = Constants.kRobotLengthWithBumpers.in(Meters) / 2.0;
-    double x = kHubPosition.getX() - kHubFaceRadius.in(Meters) - robotCenterToBackBumper;
+    double x = kHubPosition.getX() - kHubFaceRadius.in(Meters) - kRobotCenterToBumperFace;
 
     return GeometryUtil.flip(new Pose2d(x, kHubPosition.getY(), Rotation2d.k180deg));
+  }
+
+  /**
+   * Same as {@link #getHubZeroPose()} but staged against the far face of the hub, with the intake
+   * pointed away from the hub (away from our driverstation). Blue-origin; flipped for red.
+   */
+  public static Pose2d getHubFarSideZeroPose() {
+    double x = kHubPosition.getX() + kHubFaceRadius.in(Meters) + kRobotCenterToBumperFace;
+
+    return GeometryUtil.flip(new Pose2d(x, kHubPosition.getY(), Rotation2d.kZero));
   }
 }

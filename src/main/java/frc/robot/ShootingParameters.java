@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -129,6 +130,14 @@ public class ShootingParameters {
   private Translation2d m_target = FieldConstants.getHubPosition2d();
   private final Watchdawg m_watchdog = new Watchdawg(getClass());
 
+  /**
+   * When set, the target and mode are forced to the hub and the scoring maps every loop, overriding
+   * whatever any {@code setTargetCommand} has asked for. Use it to keep shooting at the hub from
+   * anywhere on the field instead of falling back to passing.
+   */
+  private final LoggedNetworkBoolean m_forceHubTargetingToggle = new LoggedNetworkBoolean(
+      "Toggles/ForceHubTargeting", false);
+
   public record Parameters(
       Angle turretAngle, Angle hoodAngle, AngularVelocity flywheelVelocity, boolean noShot) {
     public Parameters(Angle turretAngle, Angle hoodAngle, AngularVelocity flywheelVelocity) {
@@ -193,6 +202,12 @@ public class ShootingParameters {
   public void periodic() {
     m_watchdog.start();
 
+    // Re-applied every loop so it wins over any setTargetCommand that is still running.
+    if (isForceHubTargetingEnabled()) {
+      m_target = FieldConstants.getHubPosition2d();
+      m_mode = ShootingParametersMode.kShoot;
+    }
+
     final InterpolatingDoubleTreeMap tofMap = m_mode == ShootingParametersMode.kPass ? m_feedingTimeOfFlightMap
         : m_scoringTimeOfFlightMap;
     final InterpolatingDoubleTreeMap hoodAngleMap = m_mode == ShootingParametersMode.kPass ? m_feedingHoodAngleMap
@@ -243,6 +258,7 @@ public class ShootingParameters {
     Logger.recordOutput("ShootingParameters/shooterRPMMultiplier", m_flywheelVelocityModifier);
 		Logger.recordOutput("ShootingParameters/turretAngleAdjustment", m_turretAngleModifier.in(Degrees));
     Logger.recordOutput("ShootingParameters/mode", m_mode);
+    Logger.recordOutput("ShootingParameters/forceHubTargeting", isForceHubTargetingEnabled());
 
     m_watchdog.end("periodic");
   }
@@ -304,6 +320,18 @@ public class ShootingParameters {
 	public ShootingParametersMode getMode() {
 		return m_mode;
 	}
+
+  public boolean isForceHubTargetingEnabled() {
+    return m_forceHubTargetingToggle.get();
+  }
+
+  public void setForceHubTargetingEnabled(boolean enabled) {
+    m_forceHubTargetingToggle.set(enabled);
+  }
+
+  public Command setForceHubTargetingEnabledCommand(boolean enabled) {
+    return Commands.runOnce(() -> setForceHubTargetingEnabled(enabled)).ignoringDisable(true);
+  }
 
   public Command setTargetCommand(Translation2d target) {
     return Commands.runOnce(() -> setTarget(target)).ignoringDisable(true);
