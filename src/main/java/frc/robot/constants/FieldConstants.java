@@ -2,6 +2,10 @@ package frc.robot.constants;
 
 import static edu.wpi.first.units.Units.Meters;
 
+import java.io.IOException;
+
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
+
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -11,7 +15,11 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Filesystem;
 import frc.lib.GeometryUtil;
 
 public class FieldConstants {
@@ -20,6 +28,44 @@ public class FieldConstants {
   public static final Pose2d kRedAllianceRightSide = new Pose2d(kFieldLength, kFieldWidth, Rotation2d.k180deg);
   public static final Pose3d kRedAllianceRightSide3d = new Pose3d(kRedAllianceRightSide);
   public static final AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
+
+  /**
+   * Calibration mode: when enabled, tag poses are resolved against the flat wall of AprilTags
+   * described by deploy/apriltag/tagwall.json instead of the real field layout. Used by the camera
+   * offset characterization routine (see tools/vision_cal/). The coprocessors must have the same
+   * layout uploaded, since they run the multi-tag solve themselves.
+   */
+  private static final LoggedNetworkBoolean kTagWallMode = new LoggedNetworkBoolean("Toggles/TagWallMode", false);
+
+  private static final Alert kTagWallLayoutAlert = new Alert(
+      "Tag wall layout (deploy/apriltag/tagwall.json) failed to load; falling back to the field layout.",
+      AlertType.kError);
+
+  private static final AprilTagFieldLayout kTagWallLayout = loadTagWallLayout();
+
+  private static AprilTagFieldLayout loadTagWallLayout() {
+    try {
+      return new AprilTagFieldLayout(
+          Filesystem.getDeployDirectory().toPath().resolve("apriltag/tagwall.json"));
+    } catch (IOException e) {
+      DriverStation.reportError("Failed to load tagwall.json: " + e.getMessage(), false);
+      return kTagLayout;
+    }
+  }
+
+  /** The tag layout the cameras should currently be interpreted against. */
+  public static AprilTagFieldLayout getActiveTagLayout() {
+    if (kTagWallMode.get()) {
+      kTagWallLayoutAlert.set(kTagWallLayout == kTagLayout);
+      return kTagWallLayout;
+    }
+    kTagWallLayoutAlert.set(false);
+    return kTagLayout;
+  }
+
+  public static boolean isTagWallModeEnabled() {
+    return kTagWallMode.get();
+  }
 
   public static final Translation2d kAllianceZoneOffset = new Translation2d(4.03, 8.07);
 

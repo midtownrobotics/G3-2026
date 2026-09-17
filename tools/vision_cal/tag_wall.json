@@ -1,0 +1,25 @@
+{
+  "_comment": [
+    "Measured positions of the AprilTags on the calibration wall.",
+    "Wall-frame convention (matches WPILib field coords):",
+    "  x = 0 is the wall plane; the robot lives at x > 0.",
+    "  y = left along the wall as seen by the robot facing it.",
+    "  z = up, measured to the CENTER of the tag.",
+    "Tags face +X (out of the wall, toward the robot), which is yawDeg = 0.",
+    "Pick one tag as the origin: its y and z should be 0, and every other",
+    "tag is measured relative to it. Optional per-tag yawDeg / pitchDeg for",
+    "tags that are not flush with the wall; both default to 0.",
+    "",
+    "REPLACE the tags below with your real measurements, then run:",
+    "  python3 tools/vision_cal/make_layout.py"
+  ],
+  "originTagId": 1,
+  "units": "inches",
+  "tags": [
+    { "id": 1, "y": 0.0, "z": 48.0 },
+    { "id": 2, "y": 36.0, "z": 48.0 },
+    { "id": 3, "y": -36.0, "z": 48.0 },
+    { "id": 4, "y": 18.0, "z": 24.0 },
+    { "id": 5, "y": -18.0, "z": 24.0 }
+  ]
+}

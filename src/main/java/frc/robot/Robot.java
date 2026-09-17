@@ -54,6 +54,7 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.sensors.Camera;
 import frc.robot.sensors.DynamicCamera;
 import frc.robot.sensors.Vision;
+import frc.robot.sensors.VisionCalibration;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.GyroIOSim;
@@ -88,6 +89,8 @@ public class Robot extends LoggedRobot {
 
   private final Drive m_drive;
   private final Vision m_vision;
+  @SuppressWarnings("unused")
+  private final VisionCalibration m_visionCalibration;
 
   private final LoggedNetworkBoolean m_hubOrbitDriveToggle = new LoggedNetworkBoolean("Toggles/HubOrbitDrive", false);
 
@@ -237,6 +240,15 @@ public class Robot extends LoggedRobot {
         m_hood);
 
     turretCamera.addRobotToCameraSupplier(m_state::getRobotToTurretCamera);
+
+    // Must come after m_state: needs the turret angle and chassis speeds.
+    m_visionCalibration = new VisionCalibration(
+        m_vision,
+        m_state::getRobotRelativeSpeeds,
+        m_state::getTurretAngle,
+        turretCamera.getName(),
+        new Transform3d(Constants.kRobotToTurret3d, Rotation3d.kZero),
+        Constants.kTurretToCamera);
 
     m_robotCommands = new RobotCommands(
         m_drive,

@@ -39,6 +39,17 @@ public class Camera {
   private final Supplier<Boolean> m_enabledSupplier;
   private final Watchdawg m_watchdog = new Watchdawg(Camera.class);
 
+  /**
+   * Latest raw multi-tag solve (field -> camera), cached for the camera offset characterization in
+   * {@link VisionCalibration}. This is the measurement that does <em>not</em> depend on
+   * {@link #m_robotToCamera}, which is exactly what makes it usable for solving that transform.
+   * Cached before the pose-quality rejections so calibration data is not filtered by gates tuned for
+   * match play.
+   */
+  private Transform3d m_latestFieldToCamera = null;
+  private int[] m_latestTagIds = new int[0];
+  private double m_latestResultTimestamp = -1.0;
+
   private static final double kDefaultStdMultiplier = 2;
 
   private static final LoggedTunableNumber kCameraStdDevMultiplier = new LoggedTunableNumber(
@@ -71,6 +82,10 @@ public class Camera {
 
     Logger.recordOutput("Vision/" + m_camera.getName() + "/enabled", m_enabledSupplier.get());
     Logger.recordOutput("Vision/" + m_camera.getName() + "/connected", m_camera.isConnected());
+    // Logged so the offline solver reads the nominal transform straight out of the log rather than
+    // keeping its own copy of the values in Robot.java, which would silently drift out of sync.
+    Logger.recordOutput("VisionCal/" + m_name + "/robotToCameraNominal",
+        new Pose3d(m_robotToCamera.getTranslation(), m_robotToCamera.getRotation()));
     m_connectionAlert.set(!m_camera.isConnected());
 
     m_watchdog.end(m_name + "/periodic");
@@ -125,7 +140,8 @@ public class Camera {
       Logger.recordOutput("Vision/" + m_camera.getName() + "/timeStamp", result.getTimestampSeconds());
       if (result.multitagResult.isPresent()) {
         List<Pose3d> tagPoses = result.targets.stream().map(t -> t.getFiducialId())
-            .map(d -> FieldConstants.kTagLayout.getTagPose(d).get()).toList();
+            .map(d -> FieldConstants.getActiveTagLayout().getTagPose(d))
+            .filter(Optional::isPresent).map(Optional::get).toList();
         Logger.recordOutput("Vision/" + m_camera.getName() + "/isSingleTagResult", false);
         Logger.recordOutput("Vision/" + m_camera.getName() + "/tagPoses", tagPoses.toArray(Pose3d[]::new));
         var multitagResult = result.multitagResult.get();
@@ -133,6 +149,14 @@ public class Camera {
         Transform3d fieldToCamera = multitagResult.estimatedPose.best;
         Transform3d fieldToRobot = fieldToCamera.plus(getRobotToCamera().inverse());
         Pose3d robotPose = new Pose3d(fieldToRobot.getTranslation(), fieldToRobot.getRotation());
+
+        m_latestFieldToCamera = fieldToCamera;
+        m_latestTagIds = multitagResult.fiducialIDsUsed.stream().mapToInt(Short::intValue).toArray();
+        m_latestResultTimestamp = result.getTimestampSeconds();
+        Logger.recordOutput("VisionCal/" + m_name + "/fieldToCameraPose",
+            new Pose3d(fieldToCamera.getTranslation(), fieldToCamera.getRotation()));
+        Logger.recordOutput("VisionCal/" + m_name + "/tagIds", m_latestTagIds);
+        Logger.recordOutput("VisionCal/" + m_name + "/resultTimestamp", m_latestResultTimestamp);
 
         double avgDistance = tagPoses.stream().map(Pose3d::getTranslation)
             .mapToDouble(p -> robotPose.getTranslation().getDistance(p)).average().orElse(Double.MAX_VALUE);
@@ -167,7 +191,7 @@ public class Camera {
         double ambiguity = bestTarget.getPoseAmbiguity();
         double areaPercent = bestTarget.getArea();
 
-        Optional<Pose3d> tagFieldPose = FieldConstants.kTagLayout.getTagPose(tagId);
+        Optional<Pose3d> tagFieldPose = FieldConstants.getActiveTagLayout().getTagPose(tagId);
         if (tagFieldPose.isEmpty()) {
           continue;
         }
@@ -220,6 +244,24 @@ public class Camera {
     Logger.recordOutput("Vision/" + m_camera.getName() + "/numberOfObservations", observations.size());
 
     return observations;
+  }
+
+  /**
+   * The most recent raw multi-tag solve (field -> camera), or empty if this camera has never
+   * produced one. Independent of {@link #getRobotToCamera()} -- see {@link VisionCalibration}.
+   */
+  public Optional<Transform3d> getLatestFieldToCamera() {
+    return Optional.ofNullable(m_latestFieldToCamera);
+  }
+
+  /** Tag IDs used by the most recent multi-tag solve. */
+  public int[] getLatestTagIds() {
+    return m_latestTagIds;
+  }
+
+  /** Capture timestamp of the most recent multi-tag solve, or -1 if there has not been one. */
+  public double getLatestResultTimestamp() {
+    return m_latestResultTimestamp;
   }
 
   public boolean hasTargets() {

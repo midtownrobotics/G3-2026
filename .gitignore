@@ -190,3 +190,7 @@ compile_commands.json
 
 
 !photonvision/configs/**/*.zip
+
+# Vision calibration tooling virtualenv
+tools/vision_cal/.venv/
+tools/vision_cal/__pycache__/

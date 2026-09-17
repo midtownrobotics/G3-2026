@@ -137,6 +137,10 @@ public class Vision extends SubsystemBase {
     m_watchdog.end("periodic");
   }
 
+  public List<Camera> getCameras() {
+    return m_cameras;
+  }
+
   public Optional<Pose2d> getPoseAtTime(double time) {
     return m_acceptedObservations.getSample(time);
   }
