@@ -55,7 +55,7 @@ public class Hood extends SubsystemBase {
     m_watchdog = new Watchdawg(getClass());
     SmartDashboard.putData("TuningModes/Hood", tuningMode());
     SmartDashboard.putData("TuningModes/HoodOpenLoopTorque", openLoopTorqueTuningMode());
-    m_isNearSetpointTrigger = new Trigger(() -> isNearSetpoint(Degrees.of(1)));
+    m_isNearSetpointTrigger = new Trigger(() -> isNearSetpoint(Degrees.of(2)));
   }
 
   private boolean getIsCurrentSpiking() {
