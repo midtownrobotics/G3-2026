@@ -276,7 +276,7 @@ public class AutoRoutines {
 
         rightHubCleanUp.active().onTrue(
                 Commands.sequence(
-												m_robotCommands.runIntake().asProxy().withTimeout(Seconds.of(2)),
+												m_robotCommands.runIntake().asProxy().withTimeout(Seconds.of(6)),
                         RightTrenchToCenterBack.resetOdometry(),
                         RightTrenchToCenterBack.cmd()));
         return rightHubCleanUp;
