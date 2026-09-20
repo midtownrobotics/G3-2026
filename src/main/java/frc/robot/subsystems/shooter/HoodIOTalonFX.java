@@ -163,7 +163,7 @@ public class HoodIOTalonFX implements HoodIO {
 
   @Override
   public void setPosition(Angle angle) {
-    m_setpoint = angle;
+		m_setpoint = angle.lt(Degrees.zero()) ? Degrees.zero() : angle;
     m_motor.setControl(m_positionRequest.withPosition(angle.in(Rotations)));
   }
 

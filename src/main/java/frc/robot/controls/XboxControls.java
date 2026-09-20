@@ -98,11 +98,23 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger increaseHoodAngle() {
-    return m_controller.povUp();
+    // return m_controller.povUp();
+		return new Trigger(() -> false);
   }
 
   @Override
   public Trigger decreaseHoodAngle() {
+    // return m_controller.povDown();
+		return new Trigger(() -> false);
+  }
+
+  @Override
+  public Trigger increaseFlywheelVelocity() {
+    return m_controller.povUp();
+  }
+
+  @Override
+  public Trigger decreaseFlywheelVelocity() {
     return m_controller.povDown();
   }
 
