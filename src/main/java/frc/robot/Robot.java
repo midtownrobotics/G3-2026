@@ -396,6 +396,8 @@ public class Robot extends LoggedRobot {
     m_controls.decreaseHoodAngle().onTrue(m_robotCommands.decreaseHoodAngle());
     m_controls.increaseTurretAngle().onTrue(m_robotCommands.increaseTurretAngle());
     m_controls.decreaseTurretAngle().onTrue(m_robotCommands.decreaseTurretAngle());
+    m_controls.increaseFlywheelVelocity().onTrue(m_robotCommands.increaseFlywheelVelocity());
+    m_controls.decreaseFlywheelVelocity().onTrue(m_robotCommands.decreaseFlywheelVelocity());
 
     m_controls.defense().onTrue(m_robotCommands.defense());
 

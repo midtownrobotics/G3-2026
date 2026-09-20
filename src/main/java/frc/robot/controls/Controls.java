@@ -36,6 +36,10 @@ public interface Controls {
 
   public Trigger decreaseHoodAngle();
 
+  public Trigger increaseFlywheelVelocity();
+
+  public Trigger decreaseFlywheelVelocity();
+
   public Trigger increaseTurretAngle();
 
   public Trigger decreaseTurretAngle();
