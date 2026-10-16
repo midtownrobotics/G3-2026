@@ -25,6 +25,7 @@ import frc.lib.LoggedTunableNumber;
 import frc.lib.Watchdawg;
 import frc.robot.RobotState;
 import frc.robot.RobotState.ShooterState;
+import frc.robot.ShootingParameters.ShootingParametersMode;
 import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
 import frc.robot.subsystems.drive.Drive;
@@ -122,7 +123,12 @@ public class DriveCommands {
   }
 
   private boolean isShooting() {
-    return m_state.getShooterState() == ShooterState.kShoot;
+    return m_state.getShooterState() == ShooterState.kShoot && !isFeeding();
+  }
+
+  /** Same check that selects the feeding shooter maps, so feeding never slows the drive. */
+  private boolean isFeeding() {
+    return m_state.getShootingParameters().getMode() == ShootingParametersMode.kPass;
   }
 
   private Command joyStickDrive() {

@@ -342,6 +342,6 @@ public class ShootingParameters {
   }
 
   public Command setTargetCommand(Supplier<Translation2d> target, ShootingParametersMode mode) {
-    return Commands.run(() -> setTarget(target.get(), mode));
+    return Commands.run(() -> setTarget(target.get(), mode)).ignoringDisable(true);
   }
 }
