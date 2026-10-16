@@ -97,7 +97,7 @@ public class AutoRoutines {
 
 				BackwardsBump.done().onTrue(m_robotCommands.revShooterCommand());
 				BackwardsBump.doneDelayed(0.3).onTrue(m_robotCommands.startShootingCommand());
-        BackwardsBump.doneDelayed(1.5).onTrue(BumpToTrenchSOTM.cmd());
+        BackwardsBump.doneDelayed(3.0).onTrue(BumpToTrenchSOTM.cmd());
 
         BumpToTrenchSOTM.atTime("PrepareForSweep").onTrue(m_robotCommands.fill());
         BumpToTrenchSOTM.done().onTrue(TrenchSweep2.cmd());
@@ -128,7 +128,7 @@ public class AutoRoutines {
 
 				BackwardsBump.done().onTrue(m_robotCommands.revShooterCommand());
 				BackwardsBump.doneDelayed(0.3).onTrue(m_robotCommands.startShootingCommand());
-        BackwardsBump.doneDelayed(1.5).onTrue(BumpToTrenchSOTM.cmd());
+        BackwardsBump.doneDelayed(3.0).onTrue(BumpToTrenchSOTM.cmd());
 
         BumpToTrenchSOTM.atTime("PrepareForSweep").onTrue(m_robotCommands.fill());
         BumpToTrenchSOTM.done().onTrue(TrenchSweep2.cmd());
