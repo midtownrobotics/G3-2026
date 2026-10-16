@@ -1,0 +1,20 @@
+{
+  "steps": [
+    {"type": "move", "awayMeters": 0.9, "leftMeters": 0.0},
+    {"type": "wait", "seconds": 5.0},
+    {"type": "rotate", "headingDegrees": 30},
+    {"type": "wait", "seconds": 5.0},
+    {"type": "rotate", "headingDegrees": 0},
+    {"type": "wait", "seconds": 5.0},
+    {"type": "move", "awayMeters": 1.5, "leftMeters": 0.35},
+    {"type": "wait", "seconds": 5.0},
+    {"type": "rotate", "headingDegrees": -30},
+    {"type": "wait", "seconds": 5.0},
+    {"type": "rotate", "headingDegrees": 0},
+    {"type": "wait", "seconds": 5.0},
+    {"type": "move", "awayMeters": 1.5, "leftMeters": -0.35},
+    {"type": "wait", "seconds": 5.0},
+    {"type": "rotate", "headingDegrees": 30},
+    {"type": "wait", "seconds": 5.0}
+  ]
+}

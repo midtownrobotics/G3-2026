@@ -32,6 +32,11 @@ public class XboxControls implements Controls {
   }
 
   @Override
+  public Trigger boardCalibration() {
+    return m_controller.back();
+  }
+
+  @Override
   public Trigger idle() {
     return m_controller.leftBumper();
   }

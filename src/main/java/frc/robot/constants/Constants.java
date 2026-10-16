@@ -23,6 +23,9 @@ public class Constants {
    */
   public static final boolean kTuningMode = true;
 
+  /** Calibration branch: log board detections but never fuse them into localization. */
+  public static final boolean kBoardCalibrationMode = true;
+
   public static final double kLinearSpeedMultiplier = 1;
   public static final double kAngluarSpeedMultiplier = 0.9;
 

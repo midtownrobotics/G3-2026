@@ -35,6 +35,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.constants.Constants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.util.PoseEstimator;
 import frc.robot.util.PoseEstimator.OdometryObservation;
@@ -141,6 +142,7 @@ public class Drive extends SubsystemBase {
     // Update odometry
     double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together
     int sampleCount = sampleTimestamps.length;
+    Pose2d[] calibrationOdometry = new Pose2d[sampleCount];
     for (int i = 0; i < sampleCount; i++) {
       // Read wheel positions and deltas from each module
       SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
@@ -177,6 +179,13 @@ public class Drive extends SubsystemBase {
 
       // Apply update
       poseEstimator.addOdometryObservation(odometryObservation);
+      calibrationOdometry[i] = poseEstimator.getOdometryPose();
+    }
+
+    if (Constants.kBoardCalibrationMode) {
+      Logger.recordOutput("Calibration/odometryTimestampsSeconds", sampleTimestamps);
+      Logger.recordOutput("Calibration/odometryPoses", calibrationOdometry);
+      Logger.recordOutput("Calibration/gyroConnected", gyroInputs.connected);
     }
 
     // Update gyro alert
@@ -195,8 +204,15 @@ public class Drive extends SubsystemBase {
    * @param speeds Speeds in meters/sec
    */
   public void runVelocity(ChassisSpeeds speeds) {
+    if (Constants.kBoardCalibrationMode) {
+      speeds = CalibrationDriveLimits.clamp(speeds);
+    }
+
     // Calculate module setpoints
     ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
+    if (Constants.kBoardCalibrationMode) {
+      discreteSpeeds = CalibrationDriveLimits.clamp(discreteSpeeds);
+    }
     SwerveModuleState[] setpointStates = kinematics.toSwerveModuleStates(discreteSpeeds);
     SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, TunerConstants.kSpeedAt12Volts);
 
@@ -342,6 +358,10 @@ public class Drive extends SubsystemBase {
   @AutoLogOutput(key = "Odometry/Robot")
   public Pose2d getPose() {
     return poseEstimator.getEstimatedPose();
+  }
+
+  public boolean isGyroConnected() {
+    return gyroInputs.connected;
   }
 
   /** Returns the current odometry rotation. */

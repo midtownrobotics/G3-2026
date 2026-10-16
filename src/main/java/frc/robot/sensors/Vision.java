@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.Watchdawg;
 import frc.robot.Robot;
+import frc.robot.constants.Constants;
 import frc.robot.sensors.Camera.PoseObservation;
 
 public class Vision extends SubsystemBase {
@@ -70,13 +71,26 @@ public class Vision extends SubsystemBase {
 
     m_watchdog = new Watchdawg(getClass());
 
-    SmartDashboard.putData("Commands/Vision/ResetRobotPoseToLatestVisionPose",
-        resetRobotPoseToLatestVisionPoseCommand());
+    if (!Constants.kBoardCalibrationMode) {
+      SmartDashboard.putData("Commands/Vision/ResetRobotPoseToLatestVisionPose",
+          resetRobotPoseToLatestVisionPoseCommand());
+    }
   }
 
   @Override
   public void periodic() {
     m_watchdog.start();
+
+    if (Constants.kBoardCalibrationMode) {
+      for (var camera : m_cameras) {
+        camera.periodic();
+        camera.logCalibrationResults();
+      }
+      m_hasVisionUpdate = false;
+      m_hasAcceptedVisionUpdate = false;
+      m_watchdog.end("periodic");
+      return;
+    }
 
     Pose2d robotPose = m_poseSupplier.get();
     Pose3d robotPose3d = new Pose3d(robotPose);
@@ -172,7 +186,7 @@ public class Vision extends SubsystemBase {
   }
 
 	public boolean areAllPipelinesReady() {
-		return m_cameras.stream().allMatch(c -> c.getCamera().getPipelineIndex() == 0);
+		return m_cameras.stream().allMatch(c -> c.getCamera().getPipelineIndex() == (Constants.kBoardCalibrationMode ? 3 : 0));
 	}
 
 	public void setPipelinesToIndex(int index) {

@@ -122,7 +122,7 @@ public class PoseEstimator {
     Twist2d finalTwist = lastOdometryPose.log(odometryPose);
     estimatedPose = estimatedPose.exp(finalTwist);
 
-		if (m_wallClampEnabled.get()) {
+		if (!Constants.kBoardCalibrationMode && m_wallClampEnabled.get()) {
 			estimatedPose = clampPose2dToFieldBounds(estimatedPose);
 		}
   }
@@ -209,7 +209,7 @@ public class PoseEstimator {
     // then shifting forward to the present using odometry data
 		estimatedPose = estimateAtTime.plus(scaledTransform).plus(sampleToOdometryTransform);
 
-    if (m_wallClampEnabled.get()) {
+    if (!Constants.kBoardCalibrationMode && m_wallClampEnabled.get()) {
 			estimatedPose = clampPose2dToFieldBounds(estimatedPose);
 		}
   }

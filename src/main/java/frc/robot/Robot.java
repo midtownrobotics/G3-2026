@@ -39,6 +39,7 @@ import frc.lib.LoggedCommandScheduler;
 import frc.lib.Watchdawg;
 import frc.robot.RobotState.ShooterState;
 import frc.robot.ShootingParameters.ShootingParametersMode;
+import frc.robot.commands.BoardCalibrationCommand;
 import frc.robot.commands.RobotCommands;
 import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
@@ -241,7 +242,12 @@ public class Robot extends LoggedRobot {
     m_viz = new RobotViz(m_state);
 
     m_cameraPipelineChooser = new LoggedDashboardChooser<Integer>("Vision Pipeline");
-    m_cameraPipelineChooser.addDefaultOption("Main Field", 0);
+    if (Constants.kBoardCalibrationMode) {
+      m_cameraPipelineChooser.addDefaultOption("Board Calibration", 3);
+      m_cameraPipelineChooser.addOption("Main Field", 0);
+    } else {
+      m_cameraPipelineChooser.addDefaultOption("Main Field", 0);
+    }
     m_cameraPipelineChooser.addOption("Practice Field", 2);
     m_cameraPipelineChooser.addOption("Johnson", 1);
 
@@ -286,11 +292,13 @@ public class Robot extends LoggedRobot {
             m_state.getShootingParameters().setTargetCommand(m_state::calculateFeedTarget, ShootingParametersMode.kPass)
                 .withName("setTargetCommandFeed"));
 
-    m_vision.getHasAcceptedVisionUpdateTrigger().negate().debounce(3.0)
-        .onTrue(m_controls.rumbleCommand().withTimeout(Seconds.of(1)));
+    if (!Constants.kBoardCalibrationMode) {
+      m_vision.getHasAcceptedVisionUpdateTrigger().negate().debounce(3.0)
+          .onTrue(m_controls.rumbleCommand().withTimeout(Seconds.of(1)));
 
-    m_vision.getHasAcceptedVisionUpdateTrigger().debounce(6.0, DebounceType.kFalling)
-        .onTrue(m_controls.pulseRumbleCommand(3, 0.14));
+      m_vision.getHasAcceptedVisionUpdateTrigger().debounce(6.0, DebounceType.kFalling)
+          .onTrue(m_controls.pulseRumbleCommand(3, 0.14));
+    }
 
     RobotModeTriggers.teleop().onTrue(m_robotCommands.stowIntakeAndHaltTurretMovement());
 
@@ -329,6 +337,11 @@ public class Robot extends LoggedRobot {
   }
 
   public void configureBindings() {
+    if (Constants.kBoardCalibrationMode) {
+      m_controls.boardCalibration().and(RobotModeTriggers.teleop())
+          .whileTrue(new BoardCalibrationCommand(m_drive));
+    }
+
     m_controls.idle().onTrue(m_robotCommands.idle());
 
     m_controls.intake().onTrue(m_robotCommands.fill());

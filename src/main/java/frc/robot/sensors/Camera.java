@@ -91,6 +91,29 @@ public class Camera {
     return VecBuilder.fill(stdDev, stdDev, stdDev);
   }
 
+  /** Records every unread board-relative camera solution without applying the robot extrinsic. */
+  public void logCalibrationResults() {
+    List<Double> timestamps = new LinkedList<>();
+    List<Pose3d> cameraPoses = new LinkedList<>();
+    List<String> tagIds = new LinkedList<>();
+
+    for (var result : m_camera.getAllUnreadResults()) {
+      if (result.multitagResult.isEmpty()) {
+        continue;
+      }
+      var multitag = result.multitagResult.get();
+      Transform3d boardToCamera = multitag.estimatedPose.best;
+      timestamps.add(result.getTimestampSeconds());
+      cameraPoses.add(new Pose3d(boardToCamera.getTranslation(), boardToCamera.getRotation()));
+      tagIds.add(multitag.fiducialIDsUsed.toString());
+    }
+
+    String prefix = "Calibration/" + m_name + "/";
+    Logger.recordOutput(prefix + "timestampsSeconds", timestamps.stream().mapToDouble(Double::doubleValue).toArray());
+    Logger.recordOutput(prefix + "boardToCamera", cameraPoses.toArray(Pose3d[]::new));
+    Logger.recordOutput(prefix + "tagIdsUsed", tagIds.toArray(String[]::new));
+  }
+
   public List<PoseObservation> getLatestObservations() {
     List<PoseObservation> observations = new LinkedList<>();
 

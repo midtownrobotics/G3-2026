@@ -21,6 +21,7 @@ import frc.lib.Watchdawg;
 import frc.robot.RobotState;
 import frc.robot.RobotState.ShooterState;
 import frc.robot.constants.Constants;
+import frc.robot.subsystems.drive.CalibrationDriveLimits;
 import frc.robot.subsystems.drive.Drive;
 
 public class DriveCommands {
@@ -117,17 +118,21 @@ public class DriveCommands {
         () -> {
           watchdog.start();
           double shootingMultiplier = isShooting() ? 0.25 : 1.0;
-          double maxSpeed = Constants.kMaxLinearSpeed.in(MetersPerSecond)
-              * Constants.kLinearSpeedMultiplier * shootingMultiplier;
+          double maxSpeed = Constants.kBoardCalibrationMode
+              ? CalibrationDriveLimits.kMaxLinearMetersPerSecond
+              : Constants.kMaxLinearSpeed.in(MetersPerSecond)
+                  * Constants.kLinearSpeedMultiplier * shootingMultiplier;
+          double maxRotation = Constants.kBoardCalibrationMode
+              ? CalibrationDriveLimits.kMaxAngularRadiansPerSecond
+              : Constants.kAngularMaxSpeed.in(RadiansPerSecond)
+                  * Constants.kAngluarSpeedMultiplier * shootingMultiplier;
           ChassisSpeeds fieldRelativeSpeeds = new ChassisSpeeds(
               m_driveForwardSupplier.get() * maxSpeed,
               m_driveLeftSupplier.get() * maxSpeed,
               Math.copySign(
                   m_driveRotationSupplier.get()
                       * m_driveRotationSupplier.get()
-                      * Constants.kAngularMaxSpeed.in(RadiansPerSecond)
-                      * Constants.kAngluarSpeedMultiplier
-                      * shootingMultiplier,
+                      * maxRotation,
                   m_driveRotationSupplier.get()));
 
           Logger.recordOutput("DriveCommands/joystickDriveCommandedChassisSpeeds", ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAdjustedRotation()));
