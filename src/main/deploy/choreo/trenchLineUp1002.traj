@@ -4,7 +4,8 @@
  "snapshot":{
   "waypoints":[
     {"x":2.96, "y":0.5848698616027832, "heading":-3.096169361557012, "intervals":14, "split":false, "fixTranslation":true, "fixHeading":true, "overrideIntervals":false},
-    {"x":4.33351993560791, "y":0.5848698616027832, "heading":-3.096169361557012, "intervals":14, "split":false, "fixTranslation":true, "fixHeading":true, "overrideIntervals":false}],
+    {"x":4.33351993560791, "y":0.5848698616027832, "heading":-3.096169361557012, "intervals":0, "split":false, "fixTranslation":true, "fixHeading":true, "overrideIntervals":false},
+    {"x":4.33351993560791, "y":0.5848698616027832, "heading":-3.096169361557012, "intervals":17, "split":false, "fixTranslation":true, "fixHeading":true, "overrideIntervals":false}],
   "constraints":[
     {"from":"first", "to":null, "data":{"type":"StopPoint", "props":{}}, "enabled":true},
     {"from":"last", "to":null, "data":{"type":"StopPoint", "props":{}}, "enabled":true},
@@ -14,7 +15,7 @@
  "params":{
   "waypoints":[
     {"x":{"exp":"AllianceBumpFar.x", "val":2.96}, "y":{"exp":"Trench.y", "val":0.5848698616027832}, "heading":{"exp":"Trench.heading", "val":-3.096169361557012}, "intervals":14, "split":false, "fixTranslation":true, "fixHeading":true, "overrideIntervals":false},
-    {"x":{"exp":"Trench.x", "val":4.33351993560791}, "y":{"exp":"Trench.y", "val":0.5848698616027832}, "heading":{"exp":"Trench.heading", "val":-3.096169361557012}, "intervals":14, "split":false, "fixTranslation":true, "fixHeading":true, "overrideIntervals":false},
+    {"x":{"exp":"Trench.x", "val":4.33351993560791}, "y":{"exp":"Trench.y", "val":0.5848698616027832}, "heading":{"exp":"Trench.heading", "val":-3.096169361557012}, "intervals":0, "split":false, "fixTranslation":true, "fixHeading":true, "overrideIntervals":false},
     {"x":{"exp":"Trench.x", "val":4.33351993560791}, "y":{"exp":"Trench.y", "val":0.5848698616027832}, "heading":{"exp":"-3.096169361557012 rad", "val":-3.096169361557012}, "intervals":17, "split":false, "fixTranslation":true, "fixHeading":true, "overrideIntervals":false}],
   "constraints":[
     {"from":"first", "to":null, "data":{"type":"StopPoint", "props":{}}, "enabled":true},
@@ -50,7 +51,7 @@
    "differentialTrackWidth":0.5588
   },
   "sampleType":"Swerve",
-  "waypoints":[0.0,0.69067],
+  "waypoints":[0.0,0.69067,0.69067],
   "samples":[
     {"t":0.0, "x":2.96, "y":0.58487, "heading":-3.09617, "vx":0.0, "vy":0.0, "omega":0.0, "ax":11.52589, "ay":0.0, "alpha":-0.00004, "fx":[150.30672,150.30672,150.30661,150.30661], "fy":[-0.04311,0.04885,0.04314,-0.04889]},
     {"t":0.04933, "x":2.97403, "y":0.58487, "heading":-3.09617, "vx":0.56862, "vy":0.0, "omega":0.0, "ax":11.52407, "ay":0.0, "alpha":-0.00003, "fx":[150.28288,150.28287,150.28274,150.28274], "fy":[-0.04315,0.0489,0.04318,-0.04894]},
