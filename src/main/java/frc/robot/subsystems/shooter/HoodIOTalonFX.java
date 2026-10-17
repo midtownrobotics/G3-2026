@@ -133,6 +133,9 @@ public class HoodIOTalonFX implements HoodIO {
         m_closedLoopReferenceSignal,
         m_closedLoopErrorSignal,
         m_encoderAbsolutePosition);
+
+    // The hood is placed at its physical zero before robot startup.
+    setEncoderPosition(Degrees.zero());
   }
 
   @Override
