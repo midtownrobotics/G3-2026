@@ -53,8 +53,8 @@
      "val":6.206632137298584
     },
     "y":{
-     "exp":"2.5865139961242676 m",
-     "val":2.5865139961242676
+     "exp":"2.38 m",
+     "val":2.38
     },
     "heading":{
      "exp":"-2.2411594327053814 rad",
@@ -82,7 +82,7 @@
     },
     "y":{
      "exp":"CenterBump.y",
-     "val":2.5865139961242676
+     "val":2.38
     },
     "heading":{
      "exp":"CenterBump.heading - 90 deg",
@@ -109,8 +109,8 @@
      "val":1.76
     },
     "y":{
-     "exp":"AllianceBumpFar.y",
-     "val":2.61
+     "exp":"AllianceBumpFar.y - 0.2 m",
+     "val":2.4099999999999997
     },
     "heading":{
      "exp":"-2.60746632632133 rad",
@@ -166,7 +166,7 @@
     },
     "y":{
      "exp":"CenterBump.y",
-     "val":2.5865139961242676
+     "val":2.38
     },
     "heading":{
      "exp":"CenterBump.heading",
