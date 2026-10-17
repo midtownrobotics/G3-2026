@@ -77,7 +77,7 @@ public class RobotCommands {
         .parallel(
             Commands.either(autoAimWithDrivetrainForTeleop(), driveCommand(),
                 m_state::isAutoAimAndFixedTurretModeEnabled),
-            hoodAndFlywheelTrackShootingParamters(), runIntake())
+            hoodAndFlywheelForShot(), runIntake())
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("snowBlow");
   }
 
@@ -92,6 +92,27 @@ public class RobotCommands {
 	public Command stowHood() {
 		return m_hood.setAngleCommand(Degrees.zero());
 	}
+
+  /**
+   * Hood and flywheel targets for a normal shot. Fixed turret mode means manual shooting: the
+   * turret no longer tracks, so the distance-based shooting maps do not apply and every shot falls
+   * back to the fixed setpoint. Both branches require only the hood and flywheel, so the condition
+   * never pulls extra subsystems away from the driver.
+   */
+  public Command hoodAndFlywheelForShot() {
+    return Commands.either(
+        hoodAndFlywheelSetpoint(),
+        hoodAndFlywheelTrackShootingParamters(),
+        m_state::isFixedTurretModeEnabled)
+        .withName("hoodAndFlywheelForShot");
+  }
+
+  public Command hoodAndFlywheelSetpoint() {
+    return Commands.parallel(
+        m_shooter.setSpeedCommand(() -> RPM.of(1800)),
+        m_hood.setAngleCommand(Degrees.of(2)))
+        .withName("hoodAndFlywheelSetpoint");
+  }
 
   public Command hoodAndFlywheelTrackShootingParamters() {
     return Commands.parallel(
@@ -123,7 +144,7 @@ public class RobotCommands {
   }
 
   public Command shootShooterCommand() {
-    return Commands.parallel(hoodAndFlywheelTrackShootingParamters(),
+    return Commands.parallel(hoodAndFlywheelForShot(),
         m_state.setShooterStateCommand(ShooterState.kShoot));
   }
 
@@ -192,7 +213,7 @@ public class RobotCommands {
   }
 
   public Command prepareShoot() {
-    return Commands.parallel(hoodAndFlywheelTrackShootingParamters(), shakeIntake())
+    return Commands.parallel(hoodAndFlywheelForShot(), shakeIntake())
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("prepareShoot");
   }
 
@@ -238,8 +259,7 @@ public class RobotCommands {
   }
 
   public Command setPointShoot() {
-    return Commands.parallel(
-        m_shooter.setSpeedCommand(() -> RPM.of(1800)), m_hood.setAngleCommand(Degrees.of(2)))
+    return hoodAndFlywheelSetpoint()
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf).withName("setPointShoot");
   }
 
