@@ -105,8 +105,8 @@
    },
    "MadtownAllianceBumpFar":{
     "x":{
-     "exp":"AllianceBumpFar.x - 0.6 m",
-     "val":2.36
+     "exp":"AllianceBumpFar.x - 1.2 m",
+     "val":1.76
     },
     "y":{
      "exp":"AllianceBumpFar.y",
