@@ -309,35 +309,35 @@ public class RobotCommands {
   }
 
   public Command increaseFlywheelVelocity() {
-    return Commands.runOnce(m_state.getShootingParameters()::increaseFlywheelVelocity);
+    return Commands.runOnce(m_state.getShootingParameters()::increaseFlywheelVelocity).ignoringDisable(true);
   }
 
   public Command decreaseFlywheelVelocity() {
-    return Commands.runOnce(m_state.getShootingParameters()::decreaseFlywheelVelocity);
+    return Commands.runOnce(m_state.getShootingParameters()::decreaseFlywheelVelocity).ignoringDisable(true);
   }
 
   public Command increaseHoodAngle() {
-    return Commands.runOnce(m_state.getShootingParameters()::increaseHoodAngle);
+    return Commands.runOnce(m_state.getShootingParameters()::increaseHoodAngle).ignoringDisable(true);
   }
 
   public Command decreaseHoodAngle() {
-    return Commands.runOnce(m_state.getShootingParameters()::decreaseHoodAngle);
+    return Commands.runOnce(m_state.getShootingParameters()::decreaseHoodAngle).ignoringDisable(true);
   }
 
   public Command increaseVelocityCompensation() {
-    return Commands.runOnce(m_state.getShootingParameters()::increaseVelocityCompensation);
+    return Commands.runOnce(m_state.getShootingParameters()::increaseVelocityCompensation).ignoringDisable(true);
   }
 
   public Command decreaseVelocityCompensation() {
-    return Commands.runOnce(m_state.getShootingParameters()::decreaseVelocityCompensation);
+    return Commands.runOnce(m_state.getShootingParameters()::decreaseVelocityCompensation).ignoringDisable(true);
   }
 
   public Command increaseTurretAngle() {
-    return Commands.runOnce(m_state.getShootingParameters()::increaseTurretAngle);
+    return Commands.runOnce(m_state.getShootingParameters()::increaseTurretAngle).ignoringDisable(true);
   }
 
   public Command decreaseTurretAngle() {
-    return Commands.runOnce(m_state.getShootingParameters()::decreaseTurretAngle);
+    return Commands.runOnce(m_state.getShootingParameters()::decreaseTurretAngle).ignoringDisable(true);
   }
 
   public Command driveStrightRobotRelative() {
