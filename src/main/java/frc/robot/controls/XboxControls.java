@@ -120,12 +120,12 @@ public class XboxControls implements Controls {
 
   @Override
   public Trigger increaseTurretAngle() {
-    return m_controller.povRight();
+		return m_controller.povLeft();
   }
 
   @Override
   public Trigger decreaseTurretAngle() {
-    return m_controller.povLeft();
+		    return m_controller.povRight();
   }
 
   @Override
