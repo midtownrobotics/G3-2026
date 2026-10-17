@@ -88,16 +88,16 @@ public class AutoRoutines {
         AutoRoutine routine = m_autoFactory.newRoutine("MadtownLeft");
         AutoTrajectory TrenchSweep = routine.trajectory("TrenchSweep").mirrorY();
         AutoTrajectory TrenchSweep2 = routine.trajectory("TrenchSweep").mirrorY();
-        AutoTrajectory BackwardsBump = routine.trajectory("BackwardsBump").mirrorY();
-        AutoTrajectory BackwardsBump2 = routine.trajectory("BackwardsBump").mirrorY();
+        AutoTrajectory BackwardsBump = routine.trajectory("BackwardsBumpShoot").mirrorY();
+        AutoTrajectory BackwardsBump2 = routine.trajectory("BackwardsBumpShoot").mirrorY();
         AutoTrajectory BumpToTrenchSOTM = routine.trajectory("BumpToTrenchSOTM").mirrorY();
 
 				TrenchSweep.active().onTrue(m_robotCommands.runIntake());
         TrenchSweep.done().onTrue(BackwardsBump.cmd());
 
 				BackwardsBump.done().onTrue(m_robotCommands.revShooterCommand());
-				BackwardsBump.doneDelayed(0.3).onTrue(m_robotCommands.startShootingCommand());
-        BackwardsBump.doneDelayed(3.0).onTrue(BumpToTrenchSOTM.cmd());
+				BackwardsBump.atTime("StartShooting").onTrue(m_robotCommands.startShootingCommand());
+        BackwardsBump.done().onTrue(BumpToTrenchSOTM.cmd());
 
         BumpToTrenchSOTM.atTime("PrepareForSweep").onTrue(m_robotCommands.fill());
         BumpToTrenchSOTM.done().onTrue(TrenchSweep2.cmd());
@@ -105,7 +105,7 @@ public class AutoRoutines {
         TrenchSweep2.done().onTrue(BackwardsBump2.cmd());
 
 				BackwardsBump2.done().onTrue(m_robotCommands.revShooterCommand());
-        BackwardsBump2.doneDelayed(0.3).onTrue(m_robotCommands.startShootingCommand());
+				BackwardsBump2.atTime("StartShooting").onTrue(m_robotCommands.startShootingCommand());
 
         routine.active().onTrue(
                 Commands.sequence(
@@ -119,16 +119,16 @@ public class AutoRoutines {
         AutoRoutine routine = m_autoFactory.newRoutine("MadtownRight");
         AutoTrajectory TrenchSweep = routine.trajectory("TrenchSweep");
         AutoTrajectory TrenchSweep2 = routine.trajectory("TrenchSweep");
-        AutoTrajectory BackwardsBump = routine.trajectory("BackwardsBump");
-        AutoTrajectory BackwardsBump2 = routine.trajectory("BackwardsBump");
+        AutoTrajectory BackwardsBump = routine.trajectory("BackwardsBumpShoot");
+        AutoTrajectory BackwardsBump2 = routine.trajectory("BackwardsBumpShoot");
         AutoTrajectory BumpToTrenchSOTM = routine.trajectory("BumpToTrenchSOTM");
 
 				TrenchSweep.active().onTrue(m_robotCommands.runIntake());
         TrenchSweep.done().onTrue(BackwardsBump.cmd());
 
 				BackwardsBump.done().onTrue(m_robotCommands.revShooterCommand());
-				BackwardsBump.doneDelayed(0.3).onTrue(m_robotCommands.startShootingCommand());
-        BackwardsBump.doneDelayed(3.0).onTrue(BumpToTrenchSOTM.cmd());
+				BackwardsBump.atTime("StartShooting").onTrue(m_robotCommands.startShootingCommand());
+        BackwardsBump.done().onTrue(BumpToTrenchSOTM.cmd());
 
         BumpToTrenchSOTM.atTime("PrepareForSweep").onTrue(m_robotCommands.fill());
         BumpToTrenchSOTM.done().onTrue(TrenchSweep2.cmd());
@@ -136,7 +136,7 @@ public class AutoRoutines {
         TrenchSweep2.done().onTrue(BackwardsBump2.cmd());
 
 				BackwardsBump2.done().onTrue(m_robotCommands.revShooterCommand());
-        BackwardsBump2.doneDelayed(0.3).onTrue(m_robotCommands.startShootingCommand());
+				BackwardsBump2.atTime("StartShooting").onTrue(m_robotCommands.startShootingCommand());
 
         routine.active().onTrue(
                 Commands.sequence(
