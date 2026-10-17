@@ -36,7 +36,6 @@ import frc.robot.constants.Ports;
 public class HoodIOTalonFX implements HoodIO {
   private static final double kSensorToMechanismRatio = 19.0;
   private static final double kRotorToSensorRatio = 14.0;
-  private static final Angle kMagnetOffset = Degrees.of(0).times(kSensorToMechanismRatio);
 
   /** Offset of the arm's center of mass from horizontal, used to orient the kG cosine term. */
   private static final Angle kGravityArmPositionOffset = Degrees.of(11);
